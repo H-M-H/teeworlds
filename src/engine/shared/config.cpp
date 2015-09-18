@@ -31,9 +31,9 @@ class CConfig : public IConfig
 
 	void EscapeParam(char *pDst, const char *pSrc, int size)
 	{
-		for(int i = 0; *pSrc && i < size - 1; ++i)
+		for (int i = 0; *pSrc && i < size - 1; ++i)
 		{
-			if(*pSrc == '"' || *pSrc == '\\') // escape \ and "
+			if (*pSrc == '"' || *pSrc == '\\') // escape \ and "
 				*pDst++ = '\\';
 			*pDst++ = *pSrc++;
 		}
@@ -43,7 +43,7 @@ class CConfig : public IConfig
 	static void Con_SaveConfig(IConsole::IResult *pResult, void *pUserData)
 	{
 		char aFilename[128];
-		if(pResult->NumArguments())
+		if (pResult->NumArguments())
 			str_format(aFilename, sizeof(aFilename), "configs/%s.cfg", pResult->GetString(0));
 		else
 		{
@@ -51,7 +51,7 @@ class CConfig : public IConfig
 			str_timestamp(aDate, sizeof(aDate));
 			str_format(aFilename, sizeof(aFilename), "configs/config_%s.cfg", aDate);
 		}
-		((CConfig*)pUserData)->Save(aFilename);
+		((CConfig *)pUserData)->Save(aFilename);
 	}
 
 public:
@@ -72,58 +72,58 @@ public:
 		m_FlagMask = FlagMask;
 		Reset();
 
-		if(m_pConsole)
+		if (m_pConsole)
 			m_pConsole->Register("save_config", "?s", CFGFLAG_SERVER|CFGFLAG_CLIENT|CFGFLAG_STORE, Con_SaveConfig, this, "Save config to file");
 	}
 
 	virtual void Reset()
 	{
-		#define MACRO_CONFIG_INT(Name,ScriptName,def,min,max,flags,desc) g_Config.m_##Name = def;
-		#define MACRO_CONFIG_STR(Name,ScriptName,len,def,flags,desc) str_copy(g_Config.m_##Name, def, len);
+#define MACRO_CONFIG_INT(Name,ScriptName,def,min,max,flags,desc) g_Config.m_##Name = def;
+#define MACRO_CONFIG_STR(Name,ScriptName,len,def,flags,desc) str_copy(g_Config.m_##Name, def, len);
 
-		#include "config_variables.h"
+#include "config_variables.h"
 
-		#undef MACRO_CONFIG_INT
-		#undef MACRO_CONFIG_STR
+#undef MACRO_CONFIG_INT
+#undef MACRO_CONFIG_STR
 	}
 
 	virtual void RestoreStrings()
 	{
-		#define MACRO_CONFIG_INT(Name,ScriptName,def,min,max,flags,desc)	// nop
-		#define MACRO_CONFIG_STR(Name,ScriptName,len,def,flags,desc) if(!g_Config.m_##Name[0] && def[0]) str_copy(g_Config.m_##Name, def, len);
+#define MACRO_CONFIG_INT(Name,ScriptName,def,min,max,flags,desc)	// nop
+#define MACRO_CONFIG_STR(Name,ScriptName,len,def,flags,desc) if(!g_Config.m_##Name[0] && def[0]) str_copy(g_Config.m_##Name, def, len);
 
-		#include "config_variables.h"
+#include "config_variables.h"
 
-		#undef MACRO_CONFIG_INT
-		#undef MACRO_CONFIG_STR
+#undef MACRO_CONFIG_INT
+#undef MACRO_CONFIG_STR
 	}
 
 	virtual void Save(const char *pFilename)
 	{
-		if(!m_pStorage)
+		if (!m_pStorage)
 			return;
 		m_ConfigFile = m_pStorage->OpenFile(pFilename ? pFilename : "settings.cfg", IOFLAG_WRITE, IStorage::TYPE_SAVE);
 
-		if(!m_ConfigFile)
+		if (!m_ConfigFile)
 			return;
 
 		char aLineBuf[1024*2];
 		char aEscapeBuf[1024*2];
 
-		#define MACRO_CONFIG_INT(Name,ScriptName,def,min,max,flags,desc) if(((flags)&(CFGFLAG_SAVE))&&((flags)&(m_FlagMask))){ str_format(aLineBuf, sizeof(aLineBuf), "%s %i", #ScriptName, g_Config.m_##Name); WriteLine(aLineBuf); }
-		#define MACRO_CONFIG_STR(Name,ScriptName,len,def,flags,desc) if(((flags)&(CFGFLAG_SAVE))&&((flags)&(m_FlagMask))){ EscapeParam(aEscapeBuf, g_Config.m_##Name, sizeof(aEscapeBuf)); str_format(aLineBuf, sizeof(aLineBuf), "%s \"%s\"", #ScriptName, aEscapeBuf); WriteLine(aLineBuf); }
+#define MACRO_CONFIG_INT(Name,ScriptName,def,min,max,flags,desc) if(((flags)&(CFGFLAG_SAVE))&&((flags)&(m_FlagMask))){ str_format(aLineBuf, sizeof(aLineBuf), "%s %i", #ScriptName, g_Config.m_##Name); WriteLine(aLineBuf); }
+#define MACRO_CONFIG_STR(Name,ScriptName,len,def,flags,desc) if(((flags)&(CFGFLAG_SAVE))&&((flags)&(m_FlagMask))){ EscapeParam(aEscapeBuf, g_Config.m_##Name, sizeof(aEscapeBuf)); str_format(aLineBuf, sizeof(aLineBuf), "%s \"%s\"", #ScriptName, aEscapeBuf); WriteLine(aLineBuf); }
 
-		#include "config_variables.h"
+#include "config_variables.h"
 
-		#undef MACRO_CONFIG_INT
-		#undef MACRO_CONFIG_STR
+#undef MACRO_CONFIG_INT
+#undef MACRO_CONFIG_STR
 
-		for(int i = 0; i < m_NumCallbacks; i++)
+		for (int i = 0; i < m_NumCallbacks; i++)
 			m_aCallbacks[i].m_pfnFunc(this, m_aCallbacks[i].m_pUserData);
 
 		io_close(m_ConfigFile);
 
-		if(m_pConsole)
+		if (m_pConsole)
 		{
 			char aBuf[256];
 			str_format(aBuf, sizeof(aBuf), "saved config to '%s'", pFilename);
@@ -141,7 +141,7 @@ public:
 
 	virtual void WriteLine(const char *pLine)
 	{
-		if(!m_ConfigFile)
+		if (!m_ConfigFile)
 			return;
 		io_write(m_ConfigFile, pLine, str_length(pLine));
 		io_write_newline(m_ConfigFile);

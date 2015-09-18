@@ -121,7 +121,7 @@ public:
 	virtual const void *SnapFindItem(int SnapID, int Type, int ID) const = 0;
 	virtual const void *SnapGetItem(int SnapID, int Index, CSnapItem *pItem) const = 0;
 	virtual void SnapInvalidateItem(int SnapID, int Index) = 0;
-	
+
 	virtual void *SnapNewItem(int Type, int ID, int Size) = 0;
 
 	virtual void SnapSetStaticsize(int ItemType, int Size) = 0;
@@ -132,7 +132,7 @@ public:
 	int SendPackMsg(T *pMsg, int Flags)
 	{
 		CMsgPacker Packer(pMsg->MsgID(), false);
-		if(pMsg->Pack(&Packer))
+		if (pMsg->Pack(&Packer))
 			return -1;
 		return SendMsg(&Packer, Flags);
 	}

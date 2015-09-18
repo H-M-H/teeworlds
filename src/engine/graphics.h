@@ -84,7 +84,7 @@ public:
 		int m_Id;
 	public:
 		CTextureHandle()
-		: m_Id(-1)
+			: m_Id(-1)
 		{}
 
 		bool IsValid() const { return Id() >= 0; }

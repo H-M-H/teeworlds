@@ -26,7 +26,7 @@ CLayerQuads::~CLayerQuads()
 void CLayerQuads::Render()
 {
 	Graphics()->TextureClear();
-	if(m_Image >= 0 && m_Image < m_pEditor->m_Map.m_lImages.size())
+	if (m_Image >= 0 && m_Image < m_pEditor->m_Map.m_lImages.size())
 		Graphics()->TextureSet(m_pEditor->m_Map.m_lImages[m_Image]->m_Texture);
 
 	//Graphics()->BlendNone();
@@ -82,11 +82,13 @@ void CLayerQuads::BrushSelecting(CUIRect Rect)
 {
 	// draw selection rectangle
 	vec4 RectColor = HexToRgba(g_Config.m_EdColorSelectionQuad);
-	IGraphics::CLineItem Array[4] = {
+	IGraphics::CLineItem Array[4] =
+	{
 		IGraphics::CLineItem(Rect.x, Rect.y, Rect.x+Rect.w, Rect.y),
 		IGraphics::CLineItem(Rect.x+Rect.w, Rect.y, Rect.x+Rect.w, Rect.y+Rect.h),
 		IGraphics::CLineItem(Rect.x+Rect.w, Rect.y+Rect.h, Rect.x, Rect.y+Rect.h),
-		IGraphics::CLineItem(Rect.x, Rect.y+Rect.h, Rect.x, Rect.y)};
+		IGraphics::CLineItem(Rect.x, Rect.y+Rect.h, Rect.x, Rect.y)
+	};
 	Graphics()->TextureClear();
 	Graphics()->LinesBegin();
 	Graphics()->SetColor(RectColor.r, RectColor.g, RectColor.b, RectColor.a);
@@ -103,18 +105,18 @@ int CLayerQuads::BrushGrab(CLayerGroup *pBrush, CUIRect Rect)
 	pBrush->AddLayer(pGrabbed);
 
 	//dbg_msg("", "%f %f %f %f", rect.x, rect.y, rect.w, rect.h);
-	for(int i = 0; i < m_lQuads.size(); i++)
+	for (int i = 0; i < m_lQuads.size(); i++)
 	{
 		CQuad *q = &m_lQuads[i];
 		float px = fx2f(q->m_aPoints[4].x);
 		float py = fx2f(q->m_aPoints[4].y);
 
-		if(px > Rect.x && px < Rect.x+Rect.w && py > Rect.y && py < Rect.y+Rect.h)
+		if (px > Rect.x && px < Rect.x+Rect.w && py > Rect.y && py < Rect.y+Rect.h)
 		{
 			CQuad n;
 			n = *q;
 
-			for(int p = 0; p < 5; p++)
+			for (int p = 0; p < 5; p++)
 			{
 				n.m_aPoints[p].x -= f2fx(Rect.x);
 				n.m_aPoints[p].y -= f2fx(Rect.y);
@@ -130,11 +132,11 @@ int CLayerQuads::BrushGrab(CLayerGroup *pBrush, CUIRect Rect)
 void CLayerQuads::BrushPlace(CLayer *pBrush, float wx, float wy)
 {
 	CLayerQuads *l = (CLayerQuads *)pBrush;
-	for(int i = 0; i < l->m_lQuads.size(); i++)
+	for (int i = 0; i < l->m_lQuads.size(); i++)
 	{
 		CQuad n = l->m_lQuads[i];
 
-		for(int p = 0; p < 5; p++)
+		for (int p = 0; p < 5; p++)
 		{
 			n.m_aPoints[p].x += f2fx(wx);
 			n.m_aPoints[p].y += f2fx(wy);
@@ -168,11 +170,11 @@ void CLayerQuads::BrushRotate(float Amount)
 	Center.x /= 2;
 	Center.y /= 2;
 
-	for(int i = 0; i < m_lQuads.size(); i++)
+	for (int i = 0; i < m_lQuads.size(); i++)
 	{
 		CQuad *q = &m_lQuads[i];
 
-		for(int p = 0; p < 5; p++)
+		for (int p = 0; p < 5; p++)
 		{
 			vec2 Pos(fx2f(q->m_aPoints[p].x), fx2f(q->m_aPoints[p].y));
 			Rotate(&Center, &Pos, Amount);
@@ -186,9 +188,9 @@ void CLayerQuads::GetSize(float *w, float *h) const
 {
 	*w = 0; *h = 0;
 
-	for(int i = 0; i < m_lQuads.size(); i++)
+	for (int i = 0; i < m_lQuads.size(); i++)
 	{
-		for(int p = 0; p < 5; p++)
+		for (int p = 0; p < 5; p++)
 		{
 			*w = max(*w, fx2f(m_lQuads[i].m_aPoints[p].x));
 			*h = max(*h, fx2f(m_lQuads[i].m_aPoints[p].y));
@@ -207,7 +209,8 @@ int CLayerQuads::RenderProperties(CUIRect *pToolBox)
 		NUM_PROPS,
 	};
 
-	CProperty aProps[] = {
+	CProperty aProps[] =
+	{
 		{"Image", m_Image, PROPTYPE_IMAGE, -1, 0},
 		{0},
 	};
@@ -215,12 +218,12 @@ int CLayerQuads::RenderProperties(CUIRect *pToolBox)
 	static int s_aIds[NUM_PROPS] = {0};
 	int NewVal = 0;
 	int Prop = m_pEditor->DoProperties(pToolBox, aProps, s_aIds, &NewVal);
-	if(Prop != -1)
+	if (Prop != -1)
 		m_pEditor->m_Map.m_Modified = true;
 
-	if(Prop == PROP_IMAGE)
+	if (Prop == PROP_IMAGE)
 	{
-		if(NewVal >= 0)
+		if (NewVal >= 0)
 			m_Image = NewVal%m_pEditor->m_Map.m_lImages.size();
 		else
 			m_Image = -1;
@@ -237,7 +240,7 @@ void CLayerQuads::ModifyImageIndex(INDEX_MODIFY_FUNC Func)
 
 void CLayerQuads::ModifyEnvelopeIndex(INDEX_MODIFY_FUNC Func)
 {
-	for(int i = 0; i < m_lQuads.size(); i++)
+	for (int i = 0; i < m_lQuads.size(); i++)
 	{
 		Func(&m_lQuads[i].m_PosEnv);
 		Func(&m_lQuads[i].m_ColorEnv);

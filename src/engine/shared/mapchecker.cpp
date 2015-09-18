@@ -31,10 +31,10 @@ void CMapChecker::SetDefaults()
 
 void CMapChecker::AddMaplist(CMapVersion *pMaplist, int Num)
 {
-	if(m_RemoveDefaultList)
+	if (m_RemoveDefaultList)
 		Init();
 
-	for(int i = 0; i < Num; ++i)
+	for (int i = 0; i < Num; ++i)
 	{
 		CWhitelistEntry *pEntry = (CWhitelistEntry *)m_Whitelist.Allocate(sizeof(CWhitelistEntry));
 		pEntry->m_pNext = m_pFirst;

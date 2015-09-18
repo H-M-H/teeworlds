@@ -23,7 +23,7 @@ void CLineInput::Set(const char *pString)
 	m_CursorPos = m_Len;
 	m_NumChars = 0;
 	int Offset = 0;
-	while(pString[Offset])
+	while (pString[Offset])
 	{
 		Offset = str_utf8_forward(pString, Offset);
 		++m_NumChars;
@@ -37,7 +37,7 @@ bool CLineInput::Manipulate(IInput::CEvent e, char *pStr, int StrMaxSize, int St
 	int Len = *pStrLenPtr;
 	bool Changes = false;
 
-	if(CursorPos > Len)
+	if (CursorPos > Len)
 		CursorPos = Len;
 
 	int Code = e.m_Unicode;
@@ -52,17 +52,17 @@ bool CLineInput::Manipulate(IInput::CEvent e, char *pStr, int StrMaxSize, int St
 		if (Len < StrMaxSize - CharSize && CursorPos < StrMaxSize - CharSize && NumChars < StrMaxChars)
 		{
 			mem_move(pStr + CursorPos + CharSize, pStr + CursorPos, Len-CursorPos+1); // +1 == null term
-			for(int i = 0; i < CharSize; i++)
+			for (int i = 0; i < CharSize; i++)
 				pStr[CursorPos+i] = Tmp[i];
 			CursorPos += CharSize;
 			Len += CharSize;
-			if(CharSize > 0)
+			if (CharSize > 0)
 				++NumChars;
 			Changes = true;
 		}
 	}
 
-	if(e.m_Flags&IInput::FLAG_PRESS)
+	if (e.m_Flags&IInput::FLAG_PRESS)
 	{
 		if (k == KEY_BACKSPACE && CursorPos > 0)
 		{
@@ -71,7 +71,7 @@ bool CLineInput::Manipulate(IInput::CEvent e, char *pStr, int StrMaxSize, int St
 			mem_move(pStr+NewCursorPos, pStr+CursorPos, Len - NewCursorPos - CharSize + 1); // +1 == null term
 			CursorPos = NewCursorPos;
 			Len -= CharSize;
-			if(CharSize > 0)
+			if (CharSize > 0)
 				--NumChars;
 			Changes = true;
 		}
@@ -81,7 +81,7 @@ bool CLineInput::Manipulate(IInput::CEvent e, char *pStr, int StrMaxSize, int St
 			int CharSize = p-CursorPos;
 			mem_move(pStr + CursorPos, pStr + CursorPos + CharSize, Len - CursorPos - CharSize + 1); // +1 == null term
 			Len -= CharSize;
-			if(CharSize > 0)
+			if (CharSize > 0)
 				--NumChars;
 			Changes = true;
 		}

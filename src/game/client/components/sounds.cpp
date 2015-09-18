@@ -20,15 +20,15 @@ static int LoadSoundsThread(void *pUser)
 {
 	CUserData *pData = static_cast<CUserData *>(pUser);
 
-	for(int s = 0; s < g_pData->m_NumSounds; s++)
+	for (int s = 0; s < g_pData->m_NumSounds; s++)
 	{
-		for(int i = 0; i < g_pData->m_aSounds[s].m_NumSounds; i++)
+		for (int i = 0; i < g_pData->m_aSounds[s].m_NumSounds; i++)
 		{
 			ISound::CSampleHandle Id = pData->m_pGameClient->Sound()->LoadWV(g_pData->m_aSounds[s].m_aSounds[i].m_pFilename);
 			g_pData->m_aSounds[s].m_aSounds[i].m_Id = Id;
 		}
 
-		if(pData->m_Render)
+		if (pData->m_Render)
 			pData->m_pGameClient->m_pMenus->RenderLoading();
 	}
 
@@ -37,14 +37,14 @@ static int LoadSoundsThread(void *pUser)
 
 ISound::CSampleHandle CSounds::GetSampleId(int SetId)
 {
-	if(!g_Config.m_SndEnable || !Sound()->IsSoundEnabled() || m_WaitForSoundJob || SetId < 0 || SetId >= g_pData->m_NumSounds)
-		return ISound::CSampleHandle();
-	
-	CDataSoundset *pSet = &g_pData->m_aSounds[SetId];
-	if(!pSet->m_NumSounds)
+	if (!g_Config.m_SndEnable || !Sound()->IsSoundEnabled() || m_WaitForSoundJob || SetId < 0 || SetId >= g_pData->m_NumSounds)
 		return ISound::CSampleHandle();
 
-	if(pSet->m_NumSounds == 1)
+	CDataSoundset *pSet = &g_pData->m_aSounds[SetId];
+	if (!pSet->m_NumSounds)
+		return ISound::CSampleHandle();
+
+	if (pSet->m_NumSounds == 1)
 		return pSet->m_aSounds[0].m_Id;
 
 	// return random one
@@ -53,7 +53,7 @@ ISound::CSampleHandle CSounds::GetSampleId(int SetId)
 	{
 		Id = rand() % pSet->m_NumSounds;
 	}
-	while(Id == pSet->m_Last);
+	while (Id == pSet->m_Last);
 	pSet->m_Last = Id;
 	return pSet->m_aSounds[Id].m_Id;
 }
@@ -71,7 +71,7 @@ void CSounds::OnInit()
 	ClearQueue();
 
 	// load sounds
-	if(g_Config.m_ClThreadsoundloading)
+	if (g_Config.m_ClThreadsoundloading)
 	{
 		g_UserData.m_pGameClient = m_pClient;
 		g_UserData.m_Render = false;
@@ -89,7 +89,7 @@ void CSounds::OnInit()
 
 void CSounds::OnReset()
 {
-	if(Client()->State() >= IClient::STATE_ONLINE)
+	if (Client()->State() >= IClient::STATE_ONLINE)
 	{
 		Sound()->StopAll();
 		ClearQueue();
@@ -98,16 +98,16 @@ void CSounds::OnReset()
 
 void CSounds::OnStateChange(int NewState, int OldState)
 {
-	if(NewState == IClient::STATE_ONLINE || NewState == IClient::STATE_DEMOPLAYBACK)
+	if (NewState == IClient::STATE_ONLINE || NewState == IClient::STATE_DEMOPLAYBACK)
 		OnReset();
 }
 
 void CSounds::OnRender()
 {
 	// check for sound initialisation
-	if(m_WaitForSoundJob)
+	if (m_WaitForSoundJob)
 	{
-		if(m_SoundJob.Status() == CJob::STATE_DONE)
+		if (m_SoundJob.Status() == CJob::STATE_DONE)
 			m_WaitForSoundJob = false;
 		else
 			return;
@@ -117,14 +117,14 @@ void CSounds::OnRender()
 	Sound()->SetListenerPos(m_pClient->m_pCamera->m_Center.x, m_pClient->m_pCamera->m_Center.y);
 
 	// play sound from queue
-	if(m_QueuePos > 0)
+	if (m_QueuePos > 0)
 	{
 		int64 Now = time_get();
-		if(m_QueueWaitTime <= Now)
+		if (m_QueueWaitTime <= Now)
 		{
 			Play(m_aQueue[0].m_Channel, m_aQueue[0].m_SetId, 1.0f);
 			m_QueueWaitTime = Now+time_freq()*3/10; // wait 300ms before playing the next one
-			if(--m_QueuePos > 0)
+			if (--m_QueuePos > 0)
 				mem_move(m_aQueue, m_aQueue+1, m_QueuePos*sizeof(QueueEntry));
 		}
 	}
@@ -140,9 +140,9 @@ void CSounds::ClearQueue()
 void CSounds::Enqueue(int Channel, int SetId)
 {
 	// add sound to the queue
-	if(m_QueuePos < QUEUE_SIZE)
+	if (m_QueuePos < QUEUE_SIZE)
 	{
-		if(Channel == CHN_MUSIC || !g_Config.m_ClEditor)
+		if (Channel == CHN_MUSIC || !g_Config.m_ClEditor)
 		{
 			m_aQueue[m_QueuePos].m_Channel = Channel;
 			m_aQueue[m_QueuePos++].m_SetId = SetId;
@@ -152,15 +152,15 @@ void CSounds::Enqueue(int Channel, int SetId)
 
 void CSounds::Play(int Chn, int SetId, float Vol)
 {
-	if(Chn == CHN_MUSIC && !g_Config.m_SndMusic)
+	if (Chn == CHN_MUSIC && !g_Config.m_SndMusic)
 		return;
 
 	ISound::CSampleHandle SampleId = GetSampleId(SetId);
-	if(!SampleId.IsValid())
+	if (!SampleId.IsValid())
 		return;
 
 	int Flags = 0;
-	if(Chn == CHN_MUSIC)
+	if (Chn == CHN_MUSIC)
 		Flags = ISound::FLAG_LOOP;
 
 	Sound()->Play(Chn, SampleId, Flags);
@@ -168,15 +168,15 @@ void CSounds::Play(int Chn, int SetId, float Vol)
 
 void CSounds::PlayAt(int Chn, int SetId, float Vol, vec2 Pos)
 {
-	if(Chn == CHN_MUSIC && !g_Config.m_SndMusic)
+	if (Chn == CHN_MUSIC && !g_Config.m_SndMusic)
 		return;
-	
+
 	ISound::CSampleHandle SampleId = GetSampleId(SetId);
-	if(!SampleId.IsValid())
+	if (!SampleId.IsValid())
 		return;
 
 	int Flags = 0;
-	if(Chn == CHN_MUSIC)
+	if (Chn == CHN_MUSIC)
 		Flags = ISound::FLAG_LOOP;
 
 	Sound()->PlayAt(Chn, SampleId, Flags, Pos.x, Pos.y);
@@ -184,24 +184,24 @@ void CSounds::PlayAt(int Chn, int SetId, float Vol, vec2 Pos)
 
 void CSounds::Stop(int SetId)
 {
-	if(m_WaitForSoundJob || SetId < 0 || SetId >= g_pData->m_NumSounds)
+	if (m_WaitForSoundJob || SetId < 0 || SetId >= g_pData->m_NumSounds)
 		return;
 
 	CDataSoundset *pSet = &g_pData->m_aSounds[SetId];
 
-	for(int i = 0; i < pSet->m_NumSounds; i++)
+	for (int i = 0; i < pSet->m_NumSounds; i++)
 		Sound()->Stop(pSet->m_aSounds[i].m_Id);
 }
 
 bool CSounds::IsPlaying(int SetId)
 {
-	if(m_WaitForSoundJob || SetId < 0 || SetId >= g_pData->m_NumSounds)
+	if (m_WaitForSoundJob || SetId < 0 || SetId >= g_pData->m_NumSounds)
 		return false;
 
 	CDataSoundset *pSet = &g_pData->m_aSounds[SetId];
-	for(int i = 0; i < pSet->m_NumSounds; i++)
+	for (int i = 0; i < pSet->m_NumSounds; i++)
 	{
-		if(Sound()->IsPlaying(pSet->m_aSounds[i].m_Id))
+		if (Sound()->IsPlaying(pSet->m_aSounds[i].m_Id))
 			return true;
 	}
 	return false;

@@ -43,7 +43,7 @@ public:
 	{
 		init();
 		set_size(other.size());
-		for(int i = 0; i < size(); i++)
+		for (int i = 0; i < size(); i++)
 			(*this)[i] = other[i];
 	}
 
@@ -66,7 +66,7 @@ public:
 	*/
 	void delete_all()
 	{
-		for(int i = 0; i < size(); i++)
+		for (int i = 0; i < size(); i++)
 			delete list[i];
 		clear();
 	}
@@ -112,10 +112,10 @@ public:
 		Remarks:
 			- Invalidates ranges
 	*/
-	void remove_fast(const T& item)
+	void remove_fast(const T &item)
 	{
-		for(int i = 0; i < size(); i++)
-			if(list[i] == item)
+		for (int i = 0; i < size(); i++)
+			if (list[i] == item)
 			{
 				remove_index_fast(i);
 				return;
@@ -130,7 +130,7 @@ public:
 	*/
 	void remove_index(int index)
 	{
-		for(int i = index+1; i < num_elements; i++)
+		for (int i = index+1; i < num_elements; i++)
 			list[i-1] = list[i];
 
 		set_size(size()-1);
@@ -142,10 +142,10 @@ public:
 		Remarks:
 			- Invalidates ranges
 	*/
-	bool remove(const T& item)
+	bool remove(const T &item)
 	{
-		for(int i = 0; i < size(); i++)
-			if(list[i] == item)
+		for (int i = 0; i < size(); i++)
+			if (list[i] == item)
 			{
 				remove_index(i);
 				return true;
@@ -164,7 +164,7 @@ public:
 			- Invalidates ranges
 			- See remarks about <array> how the array grows.
 	*/
-	int add(const T& item)
+	int add(const T &item)
 	{
 		incsize();
 		set_size(size()+1);
@@ -184,16 +184,16 @@ public:
 			- Invalidates ranges
 			- See remarks about <array> how the array grows.
 	*/
-	int insert(const T& item, range r)
+	int insert(const T &item, range r)
 	{
-		if(r.empty())
+		if (r.empty())
 			return add(item);
 
 		int index = (int)(&r.front()-list);
 		incsize();
 		set_size(size()+1);
 
-		for(int i = num_elements-1; i > index; i--)
+		for (int i = num_elements-1; i > index; i--)
 			list[i] = list[i-1];
 
 		list[index] = item;
@@ -204,7 +204,7 @@ public:
 	/*
 		Function: operator[]
 	*/
-	T& operator[] (int index)
+	T &operator[] (int index)
 	{
 		return list[index];
 	}
@@ -212,7 +212,7 @@ public:
 	/*
 		Function: const operator[]
 	*/
-	const T& operator[] (int index) const
+	const T &operator[] (int index) const
 	{
 		return list[index];
 	}
@@ -242,7 +242,7 @@ public:
 	*/
 	void set_size(int new_size)
 	{
-		if(list_size < new_size)
+		if (list_size < new_size)
 			alloc(new_size);
 		num_elements = new_size;
 	}
@@ -261,7 +261,7 @@ public:
 	*/
 	void hint_size(int hint)
 	{
-		if(num_elements < hint)
+		if (num_elements < hint)
 			alloc(hint);
 	}
 
@@ -298,7 +298,7 @@ public:
 	array &operator = (const array &other)
 	{
 		set_size(other.size());
-		for(int i = 0; i < size(); i++)
+		for (int i = 0; i < size(); i++)
 			(*this)[i] = other[i];
 		return *this;
 	}
@@ -312,9 +312,9 @@ protected:
 
 	void incsize()
 	{
-		if(num_elements == list_size)
+		if (num_elements == list_size)
 		{
-			if(list_size < 2)
+			if (list_size < 2)
 				alloc(list_size+1);
 			else
 				alloc(list_size+list_size/2);
@@ -327,7 +327,7 @@ protected:
 		T *new_list = ALLOCATOR::alloc_array(list_size);
 
 		int end = num_elements < list_size ? num_elements : list_size;
-		for(int i = 0; i < end; i++)
+		for (int i = 0; i < end; i++)
 			new_list[i] = list[i];
 
 		ALLOCATOR::free_array(list);

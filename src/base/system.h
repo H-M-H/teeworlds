@@ -179,7 +179,8 @@ int mem_check_imp();
 #define mem_check() dbg_assert_imp(__FILE__, __LINE__, mem_check_imp(), "Memory check failed")
 
 /* Group: File IO */
-enum {
+enum
+{
 	IOFLAG_READ = 1,
 	IOFLAG_WRITE = 2,
 	IOFLAG_RANDOM = 4,
@@ -399,7 +400,7 @@ void thread_yield();
 void thread_detach(void *thread);
 
 /* Group: Locks */
-typedef void* LOCK;
+typedef void *LOCK;
 
 LOCK lock_create();
 void lock_destroy(LOCK lock);
@@ -412,19 +413,19 @@ void lock_unlock(LOCK lock);
 /* Group: Semaphores */
 
 #if !defined(CONF_PLATFORM_MACOSX)
-	#if defined(CONF_FAMILY_UNIX)
-		#include <semaphore.h>
-		typedef sem_t SEMAPHORE;
-	#elif defined(CONF_FAMILY_WINDOWS)
-		typedef void* SEMAPHORE;
-	#else
-		#error missing sempahore implementation
-	#endif
+#if defined(CONF_FAMILY_UNIX)
+#include <semaphore.h>
+typedef sem_t SEMAPHORE;
+#elif defined(CONF_FAMILY_WINDOWS)
+typedef void *SEMAPHORE;
+#else
+#error missing sempahore implementation
+#endif
 
-	void semaphore_init(SEMAPHORE *sem);
-	void semaphore_wait(SEMAPHORE *sem);
-	void semaphore_signal(SEMAPHORE *sem);
-	void semaphore_destroy(SEMAPHORE *sem);
+void semaphore_init(SEMAPHORE *sem);
+void semaphore_wait(SEMAPHORE *sem);
+void semaphore_signal(SEMAPHORE *sem);
+void semaphore_destroy(SEMAPHORE *sem);
 #endif
 
 /* Group: Timer */
@@ -837,7 +838,7 @@ void str_sanitize(char *str);
 	Remarks:
 		- The strings are treated as zero-terminated strings.
 */
-int str_check_pathname(const char* str);
+int str_check_pathname(const char *str);
 
 /*
 	Function: str_clean_whitespaces

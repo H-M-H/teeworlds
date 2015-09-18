@@ -51,7 +51,7 @@ public:
 
 	inline operator const char *()
 	{
-		if(m_Version != g_Localization.Version())
+		if (m_Version != g_Localization.Version())
 			Reload();
 		return m_pCurrentStr;
 	}

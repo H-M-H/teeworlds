@@ -4,7 +4,7 @@
 
 
 CLayerGame::CLayerGame(int w, int h)
-: CLayerTiles(w, h)
+	: CLayerTiles(w, h)
 {
 	str_copy(m_aName, "Game", sizeof(m_aName));
 	m_Game = 1;

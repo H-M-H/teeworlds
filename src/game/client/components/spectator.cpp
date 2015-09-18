@@ -17,8 +17,8 @@
 void CSpectator::ConKeySpectator(IConsole::IResult *pResult, void *pUserData)
 {
 	CSpectator *pSelf = (CSpectator *)pUserData;
-	if(pSelf->m_pClient->m_Snap.m_SpecInfo.m_Active &&
-		(pSelf->Client()->State() != IClient::STATE_DEMOPLAYBACK || pSelf->DemoPlayer()->GetDemoType() == IDemoPlayer::DEMOTYPE_SERVER))
+	if (pSelf->m_pClient->m_Snap.m_SpecInfo.m_Active &&
+			(pSelf->Client()->State() != IClient::STATE_DEMOPLAYBACK || pSelf->DemoPlayer()->GetDemoType() == IDemoPlayer::DEMOTYPE_SERVER))
 		pSelf->m_Active = pResult->GetInteger(0) != 0;
 }
 
@@ -33,11 +33,11 @@ void CSpectator::ConSpectateNext(IConsole::IResult *pResult, void *pUserData)
 	int NewSpectatorID;
 	bool GotNewSpectatorID = false;
 
-	if(pSelf->m_pClient->m_Snap.m_SpecInfo.m_SpectatorID == SPEC_FREEVIEW)
+	if (pSelf->m_pClient->m_Snap.m_SpecInfo.m_SpectatorID == SPEC_FREEVIEW)
 	{
-		for(int i = 0; i < MAX_CLIENTS; i++)
+		for (int i = 0; i < MAX_CLIENTS; i++)
 		{
-			if(!pSelf->m_pClient->m_aClients[i].m_Active || pSelf->m_pClient->m_aClients[i].m_Team == TEAM_SPECTATORS)
+			if (!pSelf->m_pClient->m_aClients[i].m_Active || pSelf->m_pClient->m_aClients[i].m_Team == TEAM_SPECTATORS)
 				continue;
 
 			NewSpectatorID = i;
@@ -47,9 +47,9 @@ void CSpectator::ConSpectateNext(IConsole::IResult *pResult, void *pUserData)
 	}
 	else
 	{
-		for(int i = pSelf->m_pClient->m_Snap.m_SpecInfo.m_SpectatorID + 1; i < MAX_CLIENTS; i++)
+		for (int i = pSelf->m_pClient->m_Snap.m_SpecInfo.m_SpectatorID + 1; i < MAX_CLIENTS; i++)
 		{
-			if(!pSelf->m_pClient->m_aClients[i].m_Active || pSelf->m_pClient->m_aClients[i].m_Team == TEAM_SPECTATORS)
+			if (!pSelf->m_pClient->m_aClients[i].m_Active || pSelf->m_pClient->m_aClients[i].m_Team == TEAM_SPECTATORS)
 				continue;
 
 			NewSpectatorID = i;
@@ -57,11 +57,11 @@ void CSpectator::ConSpectateNext(IConsole::IResult *pResult, void *pUserData)
 			break;
 		}
 
-		if(!GotNewSpectatorID)
+		if (!GotNewSpectatorID)
 		{
-			for(int i = 0; i < pSelf->m_pClient->m_Snap.m_SpecInfo.m_SpectatorID; i++)
+			for (int i = 0; i < pSelf->m_pClient->m_Snap.m_SpecInfo.m_SpectatorID; i++)
 			{
-				if(!pSelf->m_pClient->m_aClients[i].m_Active || pSelf->m_pClient->m_aClients[i].m_Team == TEAM_SPECTATORS)
+				if (!pSelf->m_pClient->m_aClients[i].m_Active || pSelf->m_pClient->m_aClients[i].m_Team == TEAM_SPECTATORS)
 					continue;
 
 				NewSpectatorID = i;
@@ -70,7 +70,7 @@ void CSpectator::ConSpectateNext(IConsole::IResult *pResult, void *pUserData)
 			}
 		}
 	}
-	if(GotNewSpectatorID)
+	if (GotNewSpectatorID)
 		pSelf->Spectate(NewSpectatorID);
 }
 
@@ -80,11 +80,11 @@ void CSpectator::ConSpectatePrevious(IConsole::IResult *pResult, void *pUserData
 	int NewSpectatorID;
 	bool GotNewSpectatorID = false;
 
-	if(pSelf->m_pClient->m_Snap.m_SpecInfo.m_SpectatorID == SPEC_FREEVIEW)
+	if (pSelf->m_pClient->m_Snap.m_SpecInfo.m_SpectatorID == SPEC_FREEVIEW)
 	{
-		for(int i = MAX_CLIENTS -1; i > -1; i--)
+		for (int i = MAX_CLIENTS -1; i > -1; i--)
 		{
-			if(!pSelf->m_pClient->m_aClients[i].m_Active || pSelf->m_pClient->m_aClients[i].m_Team == TEAM_SPECTATORS)
+			if (!pSelf->m_pClient->m_aClients[i].m_Active || pSelf->m_pClient->m_aClients[i].m_Team == TEAM_SPECTATORS)
 				continue;
 
 			NewSpectatorID = i;
@@ -94,9 +94,9 @@ void CSpectator::ConSpectatePrevious(IConsole::IResult *pResult, void *pUserData
 	}
 	else
 	{
-		for(int i = pSelf->m_pClient->m_Snap.m_SpecInfo.m_SpectatorID - 1; i > -1; i--)
+		for (int i = pSelf->m_pClient->m_Snap.m_SpecInfo.m_SpectatorID - 1; i > -1; i--)
 		{
-			if(!pSelf->m_pClient->m_aClients[i].m_Active || pSelf->m_pClient->m_aClients[i].m_Team == TEAM_SPECTATORS)
+			if (!pSelf->m_pClient->m_aClients[i].m_Active || pSelf->m_pClient->m_aClients[i].m_Team == TEAM_SPECTATORS)
 				continue;
 
 			NewSpectatorID = i;
@@ -104,20 +104,20 @@ void CSpectator::ConSpectatePrevious(IConsole::IResult *pResult, void *pUserData
 			break;
 		}
 
-		if(!GotNewSpectatorID)
+		if (!GotNewSpectatorID)
 		{
-			for(int i = MAX_CLIENTS - 1; i > pSelf->m_pClient->m_Snap.m_SpecInfo.m_SpectatorID; i--)
+			for (int i = MAX_CLIENTS - 1; i > pSelf->m_pClient->m_Snap.m_SpecInfo.m_SpectatorID; i--)
 			{
-				if(!pSelf->m_pClient->m_aClients[i].m_Active || pSelf->m_pClient->m_aClients[i].m_Team == TEAM_SPECTATORS)
+				if (!pSelf->m_pClient->m_aClients[i].m_Active || pSelf->m_pClient->m_aClients[i].m_Team == TEAM_SPECTATORS)
 					continue;
 
-			NewSpectatorID = i;
-			GotNewSpectatorID = true;
+				NewSpectatorID = i;
+				GotNewSpectatorID = true;
 				break;
 			}
 		}
 	}
-	if(GotNewSpectatorID)
+	if (GotNewSpectatorID)
 		pSelf->Spectate(NewSpectatorID);
 }
 
@@ -136,7 +136,7 @@ void CSpectator::OnConsoleInit()
 
 bool CSpectator::OnMouseMove(float x, float y)
 {
-	if(!m_Active)
+	if (!m_Active)
 		return false;
 
 	UI()->ConvertMouseMove(&x, &y);
@@ -151,18 +151,18 @@ void CSpectator::OnRelease()
 
 void CSpectator::OnRender()
 {
-	if(!m_Active)
+	if (!m_Active)
 	{
-		if(m_WasActive)
+		if (m_WasActive)
 		{
-			if(m_SelectedSpectatorID != NO_SELECTION)
+			if (m_SelectedSpectatorID != NO_SELECTION)
 				Spectate(m_SelectedSpectatorID);
 			m_WasActive = false;
 		}
 		return;
 	}
 
-	if(!m_pClient->m_Snap.m_SpecInfo.m_Active)
+	if (!m_pClient->m_Snap.m_SpecInfo.m_Active)
 	{
 		m_Active = false;
 		m_WasActive = false;
@@ -192,9 +192,9 @@ void CSpectator::OnRender()
 	float LineHeight = 60.0f;
 	bool Selected = false;
 
-	if(m_pClient->m_aClients[m_pClient->m_LocalClientID].m_Team == TEAM_SPECTATORS)
+	if (m_pClient->m_aClients[m_pClient->m_LocalClientID].m_Team == TEAM_SPECTATORS)
 	{
-		if(m_pClient->m_Snap.m_SpecInfo.m_SpectatorID == SPEC_FREEVIEW)
+		if (m_pClient->m_Snap.m_SpecInfo.m_SpectatorID == SPEC_FREEVIEW)
 		{
 			Rect.x = Width/2.0f-280.0f;
 			Rect.y = Height/2.0f-280.0f;
@@ -203,8 +203,8 @@ void CSpectator::OnRender()
 			RenderTools()->DrawRoundRect(&Rect, vec4(1.0f, 1.0f, 1.0f, 0.25f), 20.0f);
 		}
 
-		if(m_SelectorMouse.x >= -280.0f && m_SelectorMouse.x <= -10.0f &&
-			m_SelectorMouse.y >= -280.0f && m_SelectorMouse.y <= -220.0f)
+		if (m_SelectorMouse.x >= -280.0f && m_SelectorMouse.x <= -10.0f &&
+				m_SelectorMouse.y >= -280.0f && m_SelectorMouse.y <= -220.0f)
 		{
 			m_SelectedSpectatorID = SPEC_FREEVIEW;
 			Selected = true;
@@ -214,20 +214,20 @@ void CSpectator::OnRender()
 	}
 
 	float x = -270.0f, y = StartY;
-	for(int i = 0, Count = 0; i < MAX_CLIENTS; ++i)
+	for (int i = 0, Count = 0; i < MAX_CLIENTS; ++i)
 	{
-		if(!m_pClient->m_Snap.m_paPlayerInfos[i] || m_pClient->m_aClients[i].m_Team == TEAM_SPECTATORS ||
-			(m_pClient->m_aClients[m_pClient->m_LocalClientID].m_Team != TEAM_SPECTATORS && (m_pClient->m_Snap.m_paPlayerInfos[i]->m_PlayerFlags&PLAYERFLAG_DEAD ||
-			m_pClient->m_aClients[m_pClient->m_LocalClientID].m_Team != m_pClient->m_aClients[i].m_Team || i == m_pClient->m_LocalClientID)))
+		if (!m_pClient->m_Snap.m_paPlayerInfos[i] || m_pClient->m_aClients[i].m_Team == TEAM_SPECTATORS ||
+				(m_pClient->m_aClients[m_pClient->m_LocalClientID].m_Team != TEAM_SPECTATORS && (m_pClient->m_Snap.m_paPlayerInfos[i]->m_PlayerFlags&PLAYERFLAG_DEAD ||
+						m_pClient->m_aClients[m_pClient->m_LocalClientID].m_Team != m_pClient->m_aClients[i].m_Team || i == m_pClient->m_LocalClientID)))
 			continue;
 
-		if(++Count%9 == 0)
+		if (++Count%9 == 0)
 		{
 			x += 290.0f;
 			y = StartY;
 		}
 
-		if(m_pClient->m_Snap.m_SpecInfo.m_SpectatorID == i)
+		if (m_pClient->m_Snap.m_SpecInfo.m_SpectatorID == i)
 		{
 			Rect.x = Width/2.0f+x-10.0f;
 			Rect.y = Height/2.0f+y-10.0f;
@@ -237,8 +237,8 @@ void CSpectator::OnRender()
 		}
 
 		Selected = false;
-		if(m_SelectorMouse.x >= x-10.0f && m_SelectorMouse.x <= x+260.0f &&
-			m_SelectorMouse.y >= y-10.0f && m_SelectorMouse.y <= y+50.0f)
+		if (m_SelectorMouse.x >= x-10.0f && m_SelectorMouse.x <= x+260.0f &&
+				m_SelectorMouse.y >= y-10.0f && m_SelectorMouse.y <= y+50.0f)
 		{
 			m_SelectedSpectatorID = i;
 			Selected = true;
@@ -247,9 +247,9 @@ void CSpectator::OnRender()
 		TextRender()->Text(0, Width/2.0f+x+50.0f, Height/2.0f+y+5.0f, FontSize, m_pClient->m_aClients[i].m_aName, 220.0f);
 
 		// flag
-		if(m_pClient->m_GameInfo.m_GameFlags&GAMEFLAG_FLAGS &&
-			m_pClient->m_Snap.m_pGameDataFlag && (m_pClient->m_Snap.m_pGameDataFlag->m_FlagCarrierRed == i ||
-			m_pClient->m_Snap.m_pGameDataFlag->m_FlagCarrierBlue == i))
+		if (m_pClient->m_GameInfo.m_GameFlags&GAMEFLAG_FLAGS &&
+				m_pClient->m_Snap.m_pGameDataFlag && (m_pClient->m_Snap.m_pGameDataFlag->m_FlagCarrierRed == i ||
+						m_pClient->m_Snap.m_pGameDataFlag->m_FlagCarrierBlue == i))
 		{
 			Graphics()->BlendNormal();
 			Graphics()->TextureSet(g_pData->m_aImages[IMAGE_GAME].m_Id);
@@ -288,13 +288,13 @@ void CSpectator::OnReset()
 
 void CSpectator::Spectate(int SpectatorID)
 {
-	if(Client()->State() == IClient::STATE_DEMOPLAYBACK)
+	if (Client()->State() == IClient::STATE_DEMOPLAYBACK)
 	{
 		m_pClient->m_DemoSpecID = clamp(SpectatorID, (int)SPEC_FREEVIEW, MAX_CLIENTS-1);
 		return;
 	}
 
-	if(m_pClient->m_Snap.m_SpecInfo.m_SpectatorID == SpectatorID)
+	if (m_pClient->m_Snap.m_SpecInfo.m_SpectatorID == SpectatorID)
 		return;
 
 	CNetMsg_Cl_SetSpectatorMode Msg;

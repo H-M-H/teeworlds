@@ -24,7 +24,7 @@ public:
 		NUM_SKINPARTS,
 
 		DARKEST_COLOR_LGT=61,
-		
+
 		NUM_COLOR_COMPONENTS=4
 	};
 
@@ -51,12 +51,12 @@ public:
 		bool operator==(const CSkin &Other) { return mem_comp(this, &Other, sizeof(CSkin)) == 0; }
 	};
 
-	static const char * const ms_apSkinPartNames[NUM_SKINPARTS];
-	static const char * const ms_apColorComponents[NUM_COLOR_COMPONENTS];
+	static const char *const ms_apSkinPartNames[NUM_SKINPARTS];
+	static const char *const ms_apColorComponents[NUM_COLOR_COMPONENTS];
 
-	static char * const ms_apSkinVariables[NUM_SKINPARTS];
-	static int * const ms_apUCCVariables[NUM_SKINPARTS]; // use custom color
-	static int * const ms_apColorVariables[NUM_SKINPARTS];
+	static char *const ms_apSkinVariables[NUM_SKINPARTS];
+	static int *const ms_apUCCVariables[NUM_SKINPARTS];  // use custom color
+	static int *const ms_apColorVariables[NUM_SKINPARTS];
 
 	//
 	void OnInit();

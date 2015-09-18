@@ -28,19 +28,15 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 
 	TopMenu.HSplitBottom(40.0f, &TopMenu, &Button);
 	static int s_SettingsButton = 0;
-	if(g_Config.m_ClShowStartMenuImages)
+	if (g_Config.m_ClShowStartMenuImages)
 	{
-		if(DoButton_MenuImage(&s_SettingsButton, Localize("Settings"), 0, &Button, "settings", 10.0f, 0.5f))
-		{
+		if (DoButton_MenuImage(&s_SettingsButton, Localize("Settings"), 0, &Button, "settings", 10.0f, 0.5f))
 			NewPage = PAGE_SETTINGS;
-		}
 	}
 	else
 	{
-		if(DoButton_Menu(&s_SettingsButton, Localize("Settings"), 0, &Button, CUI::CORNER_ALL, 10.0f, 0.5f))
-		{
+		if (DoButton_Menu(&s_SettingsButton, Localize("Settings"), 0, &Button, CUI::CORNER_ALL, 10.0f, 0.5f))
 			NewPage = PAGE_SETTINGS;
-		}
 	}
 
 	/*TopMenu.HSplitBottom(5.0f, &TopMenu, 0); // little space
@@ -62,9 +58,9 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 	TopMenu.HSplitBottom(5.0f, &TopMenu, 0); // little space
 	TopMenu.HSplitBottom(40.0f, &TopMenu, &Button);
 	static int s_DemoButton = 0;
-	if(g_Config.m_ClShowStartMenuImages)
+	if (g_Config.m_ClShowStartMenuImages)
 	{
-		if(DoButton_MenuImage(&s_DemoButton, Localize("Demos"), 0, &Button, "demos", 10.0f, 0.5f))
+		if (DoButton_MenuImage(&s_DemoButton, Localize("Demos"), 0, &Button, "demos", 10.0f, 0.5f))
 		{
 			NewPage = PAGE_DEMOS;
 			DemolistPopulate();
@@ -73,7 +69,7 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 	}
 	else
 	{
-		if(DoButton_Menu(&s_DemoButton, Localize("Demos"), 0, &Button, CUI::CORNER_ALL, 10.0f, 0.5f))
+		if (DoButton_Menu(&s_DemoButton, Localize("Demos"), 0, &Button, CUI::CORNER_ALL, 10.0f, 0.5f))
 		{
 			NewPage = PAGE_DEMOS;
 			DemolistPopulate();
@@ -84,9 +80,9 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 	TopMenu.HSplitBottom(5.0f, &TopMenu, 0); // little space
 	TopMenu.HSplitBottom(40.0f, &TopMenu, &Button);
 	static int s_MapEditorButton = 0;
-	if(g_Config.m_ClShowStartMenuImages)
+	if (g_Config.m_ClShowStartMenuImages)
 	{
-		if(DoButton_MenuImage(&s_MapEditorButton, Localize("Editor"), 0, &Button, "editor", 10.0f, 0.5f))
+		if (DoButton_MenuImage(&s_MapEditorButton, Localize("Editor"), 0, &Button, "editor", 10.0f, 0.5f))
 		{
 			g_Config.m_ClEditor = 1;
 			Input()->MouseModeRelative();
@@ -94,7 +90,7 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 	}
 	else
 	{
-		if(DoButton_Menu(&s_MapEditorButton, Localize("Editor"), 0, &Button, CUI::CORNER_ALL, 10.0f, 0.5f))
+		if (DoButton_Menu(&s_MapEditorButton, Localize("Editor"), 0, &Button, CUI::CORNER_ALL, 10.0f, 0.5f))
 		{
 			g_Config.m_ClEditor = 1;
 			Input()->MouseModeRelative();
@@ -104,14 +100,14 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 	TopMenu.HSplitBottom(5.0f, &TopMenu, 0); // little space
 	TopMenu.HSplitBottom(40.0f, &TopMenu, &Button);
 	static int s_PlayButton = 0;
-	if(g_Config.m_ClShowStartMenuImages)
+	if (g_Config.m_ClShowStartMenuImages)
 	{
-		if(DoButton_MenuImage(&s_PlayButton, Localize("Play"), 0, &Button, "play_game", 10.0f, 0.5f))
+		if (DoButton_MenuImage(&s_PlayButton, Localize("Play"), 0, &Button, "play_game", 10.0f, 0.5f))
 			NewPage = g_Config.m_UiBrowserPage;
 	}
 	else
 	{
-		if(DoButton_Menu(&s_PlayButton, Localize("Play"), 0, &Button, CUI::CORNER_ALL, 10.0f, 0.5f))
+		if (DoButton_Menu(&s_PlayButton, Localize("Play"), 0, &Button, CUI::CORNER_ALL, 10.0f, 0.5f))
 			NewPage = g_Config.m_UiBrowserPage;
 	}
 
@@ -120,7 +116,7 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 
 	BottomMenu.HSplitTop(40.0f, &Button, &TopMenu);
 	static int s_QuitButton = 0;
-	if(DoButton_Menu(&s_QuitButton, Localize("Quit"), 0, &Button, CUI::CORNER_ALL, 10.0f, 0.5f) || m_EscapePressed)
+	if (DoButton_Menu(&s_QuitButton, Localize("Quit"), 0, &Button, CUI::CORNER_ALL, 10.0f, 0.5f) || m_EscapePressed)
 		m_Popup = POPUP_QUIT;
 
 	// render version
@@ -128,7 +124,7 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 	MainView.HSplitBottom(50.0f, 0, &Version);
 	Version.VMargin(50.0f, &Version);
 	char aBuf[64];
-	if(str_comp(Client()->LatestVersion(), "0") != 0)
+	if (str_comp(Client()->LatestVersion(), "0") != 0)
 	{
 		str_format(aBuf, sizeof(aBuf), Localize("Teeworlds %s is out! Download it at www.teeworlds.com!"), Client()->LatestVersion());
 		TextRender()->TextColor(1.0f, 0.4f, 0.4f, 1.0f);
@@ -137,7 +133,7 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 	}
 	UI()->DoLabelScaled(&Version, GAME_VERSION, 14.0f, CUI::ALIGN_RIGHT);
 
-	if(NewPage != -1)
+	if (NewPage != -1)
 		SetMenuPage(NewPage);
 }
 

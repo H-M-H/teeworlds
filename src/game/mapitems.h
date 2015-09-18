@@ -210,7 +210,7 @@ struct CEnvPoint : public CEnvPoint_v1
 	int m_aOutTangentdx[4];
 	int m_aOutTangentdy[4];
 
-	bool operator<(const CEnvPoint& other) { return m_Time < other.m_Time; }
+	bool operator<(const CEnvPoint &other) { return m_Time < other.m_Time; }
 };
 
 struct CMapItemEnvelope_v1

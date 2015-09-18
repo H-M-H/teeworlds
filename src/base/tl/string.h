@@ -32,7 +32,7 @@ class string_base : private ALLOCATOR
 
 	void copy(const string_base &other)
 	{
-		if(!other.str)
+		if (!other.str)
 			return;
 		copy(other.str, other.length);
 	}
@@ -46,7 +46,7 @@ public:
 	string_base &operator = (const char *other)
 	{
 		free();
-		if(other)
+		if (other)
 			copy(other, str_length(other));
 		return *this;
 	}

@@ -26,7 +26,7 @@ class CSnapshot
 	int m_NumItems;
 
 	int *Offsets() const { return (int *)(this+1); }
-	char *DataStart() const { return (char*)(Offsets()+m_NumItems); }
+	char *DataStart() const { return (char *)(Offsets()+m_NumItems); }
 
 public:
 	enum

@@ -32,7 +32,7 @@ public:
 	virtual void Proceed(class CLayerTiles *pLayer, int ConfigID, int Ammount) {} // for convenience purposes
 
 	virtual int RuleSetNum() = 0;
-	virtual const char* GetRuleSetName(int Index) const = 0;
+	virtual const char *GetRuleSetName(int Index) const = 0;
 
 	//
 	int GetType() const { return m_Type; }
@@ -44,9 +44,9 @@ public:
 
 	static const char *GetTypeName(int Type)
 	{
-		if(Type == TYPE_TILESET)
+		if (Type == TYPE_TILESET)
 			return "tileset";
-		else if(Type == TYPE_DOODADS)
+		else if (Type == TYPE_DOODADS)
 			return "doodads";
 		else
 			return "";
@@ -96,7 +96,7 @@ public:
 	virtual void Proceed(class CLayerTiles *pLayer, int ConfigID);
 
 	virtual int RuleSetNum() { return m_aRuleSets.size(); }
-	virtual const char* GetRuleSetName(int Index) const;
+	virtual const char *GetRuleSetName(int Index) const;
 };
 
 class CDoodadsMapper: public IAutoMapper
@@ -136,7 +136,7 @@ public:
 	void AnalyzeGameLayer();
 
 	virtual int RuleSetNum() { return m_aRuleSets.size(); }
-	virtual const char* GetRuleSetName(int Index) const;
+	virtual const char *GetRuleSetName(int Index) const;
 
 private:
 	void PlaceDoodads(CLayerTiles *pLayer, CRule *pRule, array<array<int> > *pPositions, int Amount, int LeftWall = 0);

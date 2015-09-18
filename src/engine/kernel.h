@@ -28,8 +28,8 @@ public:
 		static const char *InterfaceName() { return Name; } \
 	private:
 
-		//virtual unsigned InterfaceID() { return INTERFACE_ID; }
-		//virtual const char *InterfaceName() { return name; }
+//virtual unsigned InterfaceID() { return INTERFACE_ID; }
+//virtual const char *InterfaceName() { return name; }
 
 
 // This kernel thingie makes the structure very flat and basiclly singletons.

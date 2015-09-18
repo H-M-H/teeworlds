@@ -13,18 +13,18 @@ int main(int argc, const char **argv)
 	CDataFileReader DataFile;
 	CDataFileWriter df;
 
-	if(!pStorage || argc != 3)
+	if (!pStorage || argc != 3)
 		return -1;
 
 	str_format(aFileName, sizeof(aFileName), "%s", argv[2]);
 
-	if(!DataFile.Open(pStorage, argv[1], IStorage::TYPE_ALL))
+	if (!DataFile.Open(pStorage, argv[1], IStorage::TYPE_ALL))
 		return -1;
-	if(!df.Open(pStorage, aFileName))
+	if (!df.Open(pStorage, aFileName))
 		return -1;
 
 	// add all items
-	for(Index = 0; Index < DataFile.NumItems(); Index++)
+	for (Index = 0; Index < DataFile.NumItems(); Index++)
 	{
 		pPtr = DataFile.GetItem(Index, &Type, &ID);
 		Size = DataFile.GetItemSize(Index);
@@ -32,7 +32,7 @@ int main(int argc, const char **argv)
 	}
 
 	// add all data
-	for(Index = 0; Index < DataFile.NumData(); Index++)
+	for (Index = 0; Index < DataFile.NumData(); Index++)
 	{
 		pPtr = DataFile.GetData(Index);
 		Size = DataFile.GetDataSize(Index);

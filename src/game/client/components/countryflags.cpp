@@ -18,7 +18,7 @@ void CCountryFlags::LoadCountryflagsIndexfile()
 	// read file data into buffer
 	const char *pFilename = "countryflags/index.json";
 	IOHANDLE File = Storage()->OpenFile(pFilename, IOFLAG_READ, IStorage::TYPE_ALL);
-	if(!File)
+	if (!File)
 	{
 		Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "countryflags", "couldn't open index file");
 		return;
@@ -34,7 +34,7 @@ void CCountryFlags::LoadCountryflagsIndexfile()
 	mem_zero(&JsonSettings, sizeof(JsonSettings));
 	char aError[256];
 	json_value *pJsonData = json_parse_ex(&JsonSettings, pFileData, aError);
-	if(pJsonData == 0)
+	if (pJsonData == 0)
 	{
 		Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, pFilename, aError);
 		mem_free(pFileData);
@@ -43,42 +43,42 @@ void CCountryFlags::LoadCountryflagsIndexfile()
 
 	// extract data
 	const json_value &rInit = (*pJsonData)["country codes"];
-	if(rInit.type == json_object)
+	if (rInit.type == json_object)
 	{
 		enum
 		{
 			NUM_INDICES = 2,
 		};
 		const char *paIndices[NUM_INDICES] = {"custom", "ISO 3166-1"};
-		for(int Index = 0; Index < NUM_INDICES; ++Index)
+		for (int Index = 0; Index < NUM_INDICES; ++Index)
 		{
 			const json_value &rStart = rInit[(const char *)paIndices[Index]];
-			if(rStart.type == json_array)
+			if (rStart.type == json_array)
 			{
-				for(unsigned i = 0; i < rStart.u.array.length; ++i)
+				for (unsigned i = 0; i < rStart.u.array.length; ++i)
 				{
 					char aBuf[64];
 
 					// validate country code
 					int CountryCode = (long)rStart[i]["code"];
-					if(CountryCode < CODE_LB || CountryCode > CODE_UB)
+					if (CountryCode < CODE_LB || CountryCode > CODE_UB)
 					{
 						str_format(aBuf, sizeof(aBuf), "country code '%i' not within valid code range [%i..%i]", CountryCode, CODE_LB, CODE_UB);
 						Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "countryflags", aBuf);
 						continue;
 					}
-					
+
 					// add entry
 					const char *pCountryName = rStart[i]["id"];
 					CCountryFlag CountryFlag;
 					CountryFlag.m_CountryCode = CountryCode;
 					str_copy(CountryFlag.m_aCountryCodeString, pCountryName, sizeof(CountryFlag.m_aCountryCodeString));
-					if(g_Config.m_ClLoadCountryFlags)
+					if (g_Config.m_ClLoadCountryFlags)
 					{
 						// load the graphic file
 						CImageInfo Info;
 						str_format(aBuf, sizeof(aBuf), "countryflags/%s.png", pCountryName);
-						if(!Graphics()->LoadPNG(&Info, aBuf, IStorage::TYPE_ALL))
+						if (!Graphics()->LoadPNG(&Info, aBuf, IStorage::TYPE_ALL))
 						{
 							char aMsg[64];
 							str_format(aMsg, sizeof(aMsg), "failed to load '%s'", aBuf);
@@ -89,9 +89,9 @@ void CCountryFlags::LoadCountryflagsIndexfile()
 						mem_free(Info.m_pData);
 					}
 					m_aCountryFlags.add_unsorted(CountryFlag);
-		
+
 					// print message
-					if(g_Config.m_Debug)
+					if (g_Config.m_Debug)
 					{
 						str_format(aBuf, sizeof(aBuf), "loaded country flag '%s'", pCountryName);
 						Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "countryflags", aBuf);
@@ -108,20 +108,20 @@ void CCountryFlags::LoadCountryflagsIndexfile()
 
 	// find index of default item
 	int DefaultIndex = 0, Index = 0;
-	for(sorted_array<CCountryFlag>::range r = m_aCountryFlags.all(); !r.empty(); r.pop_front(), ++Index)
-		if(r.front().m_CountryCode == -1)
+	for (sorted_array<CCountryFlag>::range r = m_aCountryFlags.all(); !r.empty(); r.pop_front(), ++Index)
+		if (r.front().m_CountryCode == -1)
 		{
 			DefaultIndex = Index;
 			break;
 		}
-	
+
 	// init LUT
-	if(DefaultIndex != 0)
-		for(int i = 0; i < CODE_RANGE; ++i)
+	if (DefaultIndex != 0)
+		for (int i = 0; i < CODE_RANGE; ++i)
 			m_CodeIndexLUT[i] = DefaultIndex;
 	else
 		mem_zero(m_CodeIndexLUT, sizeof(m_CodeIndexLUT));
-	for(int i = 0; i < m_aCountryFlags.size(); ++i)
+	for (int i = 0; i < m_aCountryFlags.size(); ++i)
 		m_CodeIndexLUT[max(0, (m_aCountryFlags[i].m_CountryCode-CODE_LB)%CODE_RANGE)] = i;
 }
 
@@ -130,7 +130,7 @@ void CCountryFlags::OnInit()
 	// load country flags
 	m_aCountryFlags.clear();
 	LoadCountryflagsIndexfile();
-	if(!m_aCountryFlags.size())
+	if (!m_aCountryFlags.size())
 	{
 		Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "countryflags", "failed to load country flags. folder='countryflags/'");
 		CCountryFlag DummyEntry;
@@ -158,7 +158,7 @@ const CCountryFlags::CCountryFlag *CCountryFlags::GetByIndex(int Index) const
 void CCountryFlags::Render(int CountryCode, const vec4 *pColor, float x, float y, float w, float h)
 {
 	const CCountryFlag *pFlag = GetByCountryCode(CountryCode);
-	if(pFlag->m_Texture.IsValid())
+	if (pFlag->m_Texture.IsValid())
 	{
 		Graphics()->TextureSet(pFlag->m_Texture);
 		Graphics()->QuadsBegin();

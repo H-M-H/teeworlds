@@ -43,7 +43,7 @@ public:
 	bool operator ==(const vector2_base &v) const { return x == v.x && y == v.y; } //TODO: do this with an eps instead
 	bool operator !=(const vector2_base &v) const { return x != v.x || y != v.y; }
 
-	operator const T* () { return &x; }
+	operator const T *() { return &x; }
 };
 
 template<typename T>
@@ -146,7 +146,7 @@ public:
 	bool operator ==(const vector3_base &v) const { return x == v.x && y == v.y && z == v.z; } //TODO: do this with an eps instead
 	bool operator !=(const vector3_base &v) const { return x != v.x || y != v.y || z != v.z; }
 
-	operator const T* () { return &x; }
+	operator const T *() { return &x; }
 };
 
 template<typename T>
@@ -165,9 +165,9 @@ template<typename T>
 inline vector3_base<T> cross(const vector3_base<T> &a, const vector3_base<T> &b)
 {
 	return vector3_base<T>(
-		a.y*b.z - a.z*b.y,
-		a.z*b.x - a.x*b.z,
-		a.x*b.y - a.y*b.x);
+			   a.y*b.z - a.z*b.y,
+			   a.z*b.x - a.x*b.z,
+			   a.x*b.y - a.y*b.x);
 }
 
 //
@@ -226,7 +226,7 @@ public:
 	bool operator ==(const vector4_base &v) const { return x == v.x && y == v.y && z == v.z && w == v.w; } //TODO: do this with an eps instead
 	bool operator !=(const vector4_base &v) const { return x != v.x || y != v.y || z != v.z || w != v.w; }
 
-	operator const T* () { return &x; }
+	operator const T *() { return &x; }
 };
 
 typedef vector4_base<float> vec4;

@@ -19,7 +19,7 @@
 
 void CDebugHud::RenderNetCorrections()
 {
-	if(!g_Config.m_Debug || g_Config.m_DbgGraphs || !m_pClient->m_Snap.m_pLocalCharacter || !m_pClient->m_Snap.m_pLocalPrevCharacter)
+	if (!g_Config.m_Debug || g_Config.m_DbgGraphs || !m_pClient->m_Snap.m_pLocalCharacter || !m_pClient->m_Snap.m_pLocalPrevCharacter)
 		return;
 
 	float Width = 300*Graphics()->ScreenAspect();
@@ -37,7 +37,7 @@ void CDebugHud::RenderNetCorrections()
 	const float Fontsize = 5.0f;
 
 	float x = Width-100.0f, y = 50.0f;
-	for(int i = 0; i < Num; ++i)
+	for (int i = 0; i < Num; ++i)
 		TextRender()->Text(0, x, y+i*LineHeight, Fontsize, paStrings[i], -1);
 
 	x = Width-10.0f;
@@ -73,7 +73,7 @@ void CDebugHud::RenderNetCorrections()
 void CDebugHud::RenderTuning()
 {
 	// render tuning debugging
-	if(!g_Config.m_DbgTuning)
+	if (!g_Config.m_DbgTuning)
 		return;
 
 	CTuningParams StandardTuning;
@@ -82,14 +82,14 @@ void CDebugHud::RenderTuning()
 
 	float y = 50.0f;
 	int Count = 0;
-	for(int i = 0; i < m_pClient->m_Tuning.Num(); i++)
+	for (int i = 0; i < m_pClient->m_Tuning.Num(); i++)
 	{
 		char aBuf[128];
 		float Current, Standard;
 		m_pClient->m_Tuning.Get(i, &Current);
 		StandardTuning.Get(i, &Standard);
 
-		if(Standard == Current)
+		if (Standard == Current)
 			TextRender()->TextColor(1,1,1,1.0f);
 		else
 			TextRender()->TextColor(1,0.25f,0.25f,1.0f);
@@ -121,7 +121,7 @@ void CDebugHud::RenderTuning()
 	float Height = 50.0f;
 	float pv = 1;
 	IGraphics::CLineItem Array[100];
-	for(int i = 0; i < 100; i++)
+	for (int i = 0; i < 100; i++)
 	{
 		float Speed = i/100.0f * 3000;
 		float Ramp = VelocityRamp(Speed, m_pClient->m_Tuning.m_VelrampStart, m_pClient->m_Tuning.m_VelrampRange, m_pClient->m_Tuning.m_VelrampCurvature);

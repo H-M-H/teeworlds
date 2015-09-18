@@ -43,7 +43,7 @@ static void SendHeartBeats()
 	aData[sizeof(SERVERBROWSE_HEARTBEAT)] = 0;
 	aData[sizeof(SERVERBROWSE_HEARTBEAT)+1] = 0;
 
-	for(int i = 0; i < NumMasters; i++)
+	for (int i = 0; i < NumMasters; i++)
 	{
 		Packet.m_Address = aMasterServers[i];
 		pNet->Send(&Packet);
@@ -79,7 +79,7 @@ static void BuildInfoMsg()
 	WriteInt(NumPlayers);
 	WriteInt(MaxPlayers);
 
-	for(int i = 0; i < NumPlayers; i++)
+	for (int i = 0; i < NumPlayers; i++)
 	{
 		WriteStr(PlayerNames[i]);
 		WriteInt(PlayerScores[i]);
@@ -113,32 +113,28 @@ static int Run()
 	int64 NextHeartBeat = 0;
 	NETADDR BindAddr = {NETTYPE_IPV4, {0},0};
 
-	if(!pNet->Open(BindAddr, 0, 0, 0, 0))
+	if (!pNet->Open(BindAddr, 0, 0, 0, 0))
 		return 0;
 
-	while(1)
+	while (1)
 	{
 		CNetChunk p;
 		pNet->Update();
-		while(pNet->Recv(&p))
+		while (pNet->Recv(&p))
 		{
-			if(p.m_ClientID == -1)
+			if (p.m_ClientID == -1)
 			{
-				if(p.m_DataSize >= sizeof(SERVERBROWSE_GETINFO) &&
-					mem_comp(p.m_pData, SERVERBROWSE_GETINFO, sizeof(SERVERBROWSE_GETINFO)) == 0)
-				{
+				if (p.m_DataSize >= sizeof(SERVERBROWSE_GETINFO) &&
+						mem_comp(p.m_pData, SERVERBROWSE_GETINFO, sizeof(SERVERBROWSE_GETINFO)) == 0)
 					SendServerInfo(&p.m_Address);
-				}
-				else if(p.m_DataSize == sizeof(SERVERBROWSE_FWCHECK) &&
-					mem_comp(p.m_pData, SERVERBROWSE_FWCHECK, sizeof(SERVERBROWSE_FWCHECK)) == 0)
-				{
+				else if (p.m_DataSize == sizeof(SERVERBROWSE_FWCHECK) &&
+						 mem_comp(p.m_pData, SERVERBROWSE_FWCHECK, sizeof(SERVERBROWSE_FWCHECK)) == 0)
 					SendFWCheckResponse(&p.m_Address);
-				}
 			}
 		}
 
 		/* send heartbeats if needed */
-		if(NextHeartBeat < time_get())
+		if (NextHeartBeat < time_get())
 		{
 			NextHeartBeat = time_get()+time_freq()*(15+(rand()%15));
 			SendHeartBeats();
@@ -152,7 +148,7 @@ int main(int argc, char **argv)
 {
 	pNet = new CNetServer;
 
-	while(argc)
+	while (argc)
 	{
 		// ?
 		/*if(str_comp(*argv, "-m") == 0)
@@ -163,39 +159,39 @@ int main(int argc, char **argv)
 			aMasterServers[NumMasters].port = str_toint(*argv);
 			NumMasters++;
 		}
-		else */if(str_comp(*argv, "-p") == 0)
+		else */if (str_comp(*argv, "-p") == 0)
 		{
 			argc--; argv++;
 			PlayerNames[NumPlayers++] = *argv;
 			argc--; argv++;
 			PlayerScores[NumPlayers] = str_toint(*argv);
 		}
-		else if(str_comp(*argv, "-a") == 0)
+		else if (str_comp(*argv, "-a") == 0)
 		{
 			argc--; argv++;
 			pMap = *argv;
 		}
-		else if(str_comp(*argv, "-x") == 0)
+		else if (str_comp(*argv, "-x") == 0)
 		{
 			argc--; argv++;
 			MaxPlayers = str_toint(*argv);
 		}
-		else if(str_comp(*argv, "-t") == 0)
+		else if (str_comp(*argv, "-t") == 0)
 		{
 			argc--; argv++;
 			GameType = str_toint(*argv);
 		}
-		else if(str_comp(*argv, "-g") == 0)
+		else if (str_comp(*argv, "-g") == 0)
 		{
 			argc--; argv++;
 			Progression = str_toint(*argv);
 		}
-		else if(str_comp(*argv, "-f") == 0)
+		else if (str_comp(*argv, "-f") == 0)
 		{
 			argc--; argv++;
 			Flags = str_toint(*argv);
 		}
-		else if(str_comp(*argv, "-n") == 0)
+		else if (str_comp(*argv, "-n") == 0)
 		{
 			argc--; argv++;
 			pServerName = *argv;

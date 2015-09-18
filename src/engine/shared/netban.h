@@ -35,7 +35,7 @@ protected:
 	bool NetMatch(const CNetRange *pRange, const NETADDR *pAddr, int Start, int Length) const
 	{
 		return pRange->m_LB.type == pAddr->type && (Start == 0 || mem_comp(&pRange->m_LB.ip[0], &pAddr->ip[0], Start) == 0) &&
-			mem_comp(&pRange->m_LB.ip[Start], &pAddr->ip[Start], Length-Start) <= 0 && mem_comp(&pRange->m_UB.ip[Start], &pAddr->ip[Start], Length-Start) >= 0;
+			   mem_comp(&pRange->m_LB.ip[Start], &pAddr->ip[Start], Length-Start) <= 0 && mem_comp(&pRange->m_UB.ip[Start], &pAddr->ip[Start], Length-Start) >= 0;
 	}
 
 	bool NetMatch(const CNetRange *pRange, const NETADDR *pAddr) const
@@ -69,7 +69,7 @@ protected:
 		int m_Hash;
 		int m_HashIndex;	// matching parts for ranges, 0 for addr
 
-		CNetHash() {}	
+		CNetHash() {}
 		CNetHash(const NETADDR *pAddr);
 		CNetHash(const CNetRange *pRange);
 
@@ -111,7 +111,7 @@ protected:
 		int Remove(CBan<CDataType> *pBan);
 		void Update(CBan<CDataType> *pBan, const CBanInfo *pInfo);
 		void Reset();
-	
+
 		int Num() const { return m_CountUsed; }
 		bool IsFull() const { return m_CountUsed == MAX_BANS; }
 
@@ -119,9 +119,9 @@ protected:
 		CBan<CDataType> *First(const CNetHash *pNetHash) const { return m_paaHashList[pNetHash->m_HashIndex][pNetHash->m_Hash]; }
 		CBan<CDataType> *Find(const CDataType *pData, const CNetHash *pNetHash) const
 		{
-			for(CBan<CDataType> *pBan = m_paaHashList[pNetHash->m_HashIndex][pNetHash->m_Hash]; pBan; pBan = pBan->m_pHashNext)
+			for (CBan<CDataType> *pBan = m_paaHashList[pNetHash->m_HashIndex][pNetHash->m_Hash]; pBan; pBan = pBan->m_pHashNext)
 			{
-				if(NetComp(&pBan->m_Data, pData) == 0)
+				if (NetComp(&pBan->m_Data, pData) == 0)
 					return pBan;
 			}
 
@@ -146,7 +146,7 @@ protected:
 	typedef CBanPool<CNetRange, 16> CBanRangePool;
 	typedef CBan<NETADDR> CBanAddr;
 	typedef CBan<CNetRange> CBanRange;
-	
+
 	template<class T> void MakeBanInfo(const CBan<T> *pBan, char *pBuf, unsigned BuffSize, int Type) const;
 	template<class T> int Ban(T *pBanPool, const typename T::CDataType *pData, int Seconds, const char *pReason);
 	template<class T> int Unban(T *pBanPool, const typename T::CDataType *pData);

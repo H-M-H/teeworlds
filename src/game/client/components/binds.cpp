@@ -7,10 +7,10 @@
 bool CBinds::CBindsSpecial::OnInput(IInput::CEvent Event)
 {
 	// don't handle invalid events and keys that arn't set to anything
-	if(((Event.m_Key >= KEY_F1 && Event.m_Key <= KEY_F12) || (Event.m_Key >= KEY_F13 && Event.m_Key <= KEY_F24)) && m_pBinds->m_aaKeyBindings[Event.m_Key][0] != 0)
+	if (((Event.m_Key >= KEY_F1 && Event.m_Key <= KEY_F12) || (Event.m_Key >= KEY_F13 && Event.m_Key <= KEY_F24)) && m_pBinds->m_aaKeyBindings[Event.m_Key][0] != 0)
 	{
 		int Stroke = 0;
-		if(Event.m_Flags&IInput::FLAG_PRESS)
+		if (Event.m_Flags&IInput::FLAG_PRESS)
 			Stroke = 1;
 
 		m_pBinds->GetConsole()->ExecuteLineStroked(Stroke, m_pBinds->m_aaKeyBindings[Event.m_Key]);
@@ -28,12 +28,12 @@ CBinds::CBinds()
 
 void CBinds::Bind(int KeyID, const char *pStr)
 {
-	if(KeyID < 0 || KeyID >= KEY_LAST)
+	if (KeyID < 0 || KeyID >= KEY_LAST)
 		return;
 
 	str_copy(m_aaKeyBindings[KeyID], pStr, sizeof(m_aaKeyBindings[KeyID]));
 	char aBuf[256];
-	if(!m_aaKeyBindings[KeyID][0])
+	if (!m_aaKeyBindings[KeyID][0])
 		str_format(aBuf, sizeof(aBuf), "unbound %s (%d)", Input()->KeyName(KeyID), KeyID);
 	else
 		str_format(aBuf, sizeof(aBuf), "bound %s (%d) = %s", Input()->KeyName(KeyID), KeyID, m_aaKeyBindings[KeyID]);
@@ -44,11 +44,11 @@ void CBinds::Bind(int KeyID, const char *pStr)
 bool CBinds::OnInput(IInput::CEvent e)
 {
 	// don't handle invalid events and keys that arn't set to anything
-	if(e.m_Key <= 0 || e.m_Key >= KEY_LAST || m_aaKeyBindings[e.m_Key][0] == 0)
+	if (e.m_Key <= 0 || e.m_Key >= KEY_LAST || m_aaKeyBindings[e.m_Key][0] == 0)
 		return false;
 
 	int Stroke = 0;
-	if(e.m_Flags&IInput::FLAG_PRESS)
+	if (e.m_Flags&IInput::FLAG_PRESS)
 		Stroke = 1;
 	Console()->ExecuteLineStroked(Stroke, m_aaKeyBindings[e.m_Key]);
 	return true;
@@ -56,26 +56,26 @@ bool CBinds::OnInput(IInput::CEvent e)
 
 void CBinds::UnbindAll()
 {
-	for(int i = 0; i < KEY_LAST; i++)
+	for (int i = 0; i < KEY_LAST; i++)
 		m_aaKeyBindings[i][0] = 0;
 }
 
 const char *CBinds::Get(int KeyID)
 {
-	if(KeyID > 0 && KeyID < KEY_LAST)
+	if (KeyID > 0 && KeyID < KEY_LAST)
 		return m_aaKeyBindings[KeyID];
 	return "";
 }
 
 const char *CBinds::GetKey(const char *pBindStr)
 {
-	for(int KeyId = 0; KeyId < KEY_LAST; KeyId++)
+	for (int KeyId = 0; KeyId < KEY_LAST; KeyId++)
 	{
 		const char *pBind = Get(KeyId);
-		if(!pBind[0])
+		if (!pBind[0])
 			continue;
 
-		if(str_comp(pBind, pBindStr) == 0)
+		if (str_comp(pBind, pBindStr) == 0)
 			return Input()->KeyName(KeyId);
 	}
 
@@ -125,7 +125,7 @@ void CBinds::OnConsoleInit()
 {
 	// bindings
 	IConfig *pConfig = Kernel()->RequestInterface<IConfig>();
-	if(pConfig)
+	if (pConfig)
 		pConfig->RegisterCallback(ConfigSaveCallback, this);
 
 	Console()->Register("bind", "sr", CFGFLAG_CLIENT, ConBind, this, "Bind key to execute the command");
@@ -143,7 +143,7 @@ void CBinds::ConBind(IConsole::IResult *pResult, void *pUserData)
 	const char *pKeyName = pResult->GetString(0);
 	int id = pBinds->GetKeyID(pKeyName);
 
-	if(!id)
+	if (!id)
 	{
 		char aBuf[256];
 		str_format(aBuf, sizeof(aBuf), "key %s not found", pKeyName);
@@ -161,7 +161,7 @@ void CBinds::ConUnbind(IConsole::IResult *pResult, void *pUserData)
 	const char *pKeyName = pResult->GetString(0);
 	int id = pBinds->GetKeyID(pKeyName);
 
-	if(!id)
+	if (!id)
 	{
 		char aBuf[256];
 		str_format(aBuf, sizeof(aBuf), "key %s not found", pKeyName);
@@ -184,9 +184,9 @@ void CBinds::ConDumpBinds(IConsole::IResult *pResult, void *pUserData)
 {
 	CBinds *pBinds = (CBinds *)pUserData;
 	char aBuf[1024];
-	for(int i = 0; i < KEY_LAST; i++)
+	for (int i = 0; i < KEY_LAST; i++)
 	{
-		if(pBinds->m_aaKeyBindings[i][0] == 0)
+		if (pBinds->m_aaKeyBindings[i][0] == 0)
 			continue;
 		str_format(aBuf, sizeof(aBuf), "%s (%d) = %s", pBinds->Input()->KeyName(i), i, pBinds->m_aaKeyBindings[i]);
 		pBinds->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "binds", aBuf);
@@ -196,17 +196,17 @@ void CBinds::ConDumpBinds(IConsole::IResult *pResult, void *pUserData)
 int CBinds::GetKeyID(const char *pKeyName)
 {
 	// check for numeric
-	if(pKeyName[0] == '&')
+	if (pKeyName[0] == '&')
 	{
 		int i = str_toint(pKeyName+1);
-		if(i > 0 && i < KEY_LAST)
+		if (i > 0 && i < KEY_LAST)
 			return i; // numeric
 	}
 
 	// search for key
-	for(int i = 0; i < KEY_LAST; i++)
+	for (int i = 0; i < KEY_LAST; i++)
 	{
-		if(str_comp(pKeyName, Input()->KeyName(i)) == 0)
+		if (str_comp(pKeyName, Input()->KeyName(i)) == 0)
 			return i;
 	}
 
@@ -220,9 +220,9 @@ void CBinds::ConfigSaveCallback(IConfig *pConfig, void *pUserData)
 	char aBuffer[256];
 	char *pEnd = aBuffer+sizeof(aBuffer)-8;
 	pConfig->WriteLine("unbindall");
-	for(int i = 0; i < KEY_LAST; i++)
+	for (int i = 0; i < KEY_LAST; i++)
 	{
-		if(pSelf->m_aaKeyBindings[i][0] == 0)
+		if (pSelf->m_aaKeyBindings[i][0] == 0)
 			continue;
 		str_format(aBuffer, sizeof(aBuffer), "bind %s ", pSelf->Input()->KeyName(i));
 
@@ -230,9 +230,9 @@ void CBinds::ConfigSaveCallback(IConfig *pConfig, void *pUserData)
 		const char *pSrc = pSelf->m_aaKeyBindings[i];
 		char *pDst = aBuffer + str_length(aBuffer);
 		*pDst++ = '"';
-		while(*pSrc && pDst < pEnd)
+		while (*pSrc && pDst < pEnd)
 		{
-			if(*pSrc == '"' || *pSrc == '\\') // escape \ and "
+			if (*pSrc == '"' || *pSrc == '\\') // escape \ and "
 				*pDst++ = '\\';
 			*pDst++ = *pSrc++;
 		}

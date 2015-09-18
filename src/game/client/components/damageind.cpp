@@ -48,24 +48,24 @@ void CDamageInd::OnRender()
 	Graphics()->TextureSet(g_pData->m_aImages[IMAGE_GAME].m_Id);
 	Graphics()->QuadsBegin();
 	static float s_LastLocalTime = Client()->LocalTime();
-	for(int i = 0; i < m_NumItems;)
+	for (int i = 0; i < m_NumItems;)
 	{
-		if(Client()->State() == IClient::STATE_DEMOPLAYBACK)
+		if (Client()->State() == IClient::STATE_DEMOPLAYBACK)
 		{
 			const IDemoPlayer::CInfo *pInfo = DemoPlayer()->BaseInfo();
-			if(pInfo->m_Paused)
+			if (pInfo->m_Paused)
 				m_aItems[i].m_StartTime += Client()->LocalTime()-s_LastLocalTime;
 			else
 				m_aItems[i].m_StartTime += (Client()->LocalTime()-s_LastLocalTime)*(1.0f-pInfo->m_Speed);
 		}
 		else
 		{
-			if(m_pClient->m_Snap.m_pGameData && m_pClient->m_Snap.m_pGameData->m_GameStateFlags&GAMESTATEFLAG_PAUSED)
+			if (m_pClient->m_Snap.m_pGameData && m_pClient->m_Snap.m_pGameData->m_GameStateFlags&GAMESTATEFLAG_PAUSED)
 				m_aItems[i].m_StartTime += Client()->LocalTime()-s_LastLocalTime;
 		}
 
 		float Life = 0.75f - (Client()->LocalTime() - m_aItems[i].m_StartTime);
-		if(Life < 0.0f)
+		if (Life < 0.0f)
 			DestroyI(&m_aItems[i]);
 		else
 		{

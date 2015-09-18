@@ -12,13 +12,13 @@
 void CKillMessages::OnReset()
 {
 	m_KillmsgCurrent = 0;
-	for(int i = 0; i < MAX_KILLMSGS; i++)
+	for (int i = 0; i < MAX_KILLMSGS; i++)
 		m_aKillmsgs[i].m_Tick = -100000;
 }
 
 void CKillMessages::OnMessage(int MsgType, void *pRawMsg)
 {
-	if(MsgType == NETMSGTYPE_SV_KILLMSG)
+	if (MsgType == NETMSGTYPE_SV_KILLMSG)
 	{
 		CNetMsg_Sv_KillMsg *pMsg = (CNetMsg_Sv_KillMsg *)pRawMsg;
 
@@ -51,10 +51,10 @@ void CKillMessages::OnRender()
 	float StartX = Width*1.5f-10.0f;
 	float y = 20.0f;
 
-	for(int i = 1; i <= MAX_KILLMSGS; i++)
+	for (int i = 1; i <= MAX_KILLMSGS; i++)
 	{
 		int r = (m_KillmsgCurrent+i)%MAX_KILLMSGS;
-		if(Client()->GameTick() > m_aKillmsgs[r].m_Tick+50*10)
+		if (Client()->GameTick() > m_aKillmsgs[r].m_Tick+50*10)
 			continue;
 
 		float FontSize = 36.0f;
@@ -70,15 +70,15 @@ void CKillMessages::OnRender()
 		// render victim tee
 		x -= 24.0f;
 
-		if(m_pClient->m_GameInfo.m_GameFlags&GAMEFLAG_FLAGS)
+		if (m_pClient->m_GameInfo.m_GameFlags&GAMEFLAG_FLAGS)
 		{
-			if(m_aKillmsgs[r].m_ModeSpecial&1)
+			if (m_aKillmsgs[r].m_ModeSpecial&1)
 			{
 				Graphics()->BlendNormal();
 				Graphics()->TextureSet(g_pData->m_aImages[IMAGE_GAME].m_Id);
 				Graphics()->QuadsBegin();
 
-				if(m_aKillmsgs[r].m_VictimTeam == TEAM_RED)
+				if (m_aKillmsgs[r].m_VictimTeam == TEAM_RED)
 					RenderTools()->SelectSprite(SPRITE_FLAG_BLUE);
 				else
 					RenderTools()->SelectSprite(SPRITE_FLAG_RED);
@@ -105,17 +105,17 @@ void CKillMessages::OnRender()
 		}
 		x -= 52.0f;
 
-		if(m_aKillmsgs[r].m_VictimID != m_aKillmsgs[r].m_KillerID)
+		if (m_aKillmsgs[r].m_VictimID != m_aKillmsgs[r].m_KillerID)
 		{
-			if(m_pClient->m_GameInfo.m_GameFlags&GAMEFLAG_FLAGS)
+			if (m_pClient->m_GameInfo.m_GameFlags&GAMEFLAG_FLAGS)
 			{
-				if(m_aKillmsgs[r].m_ModeSpecial&2)
+				if (m_aKillmsgs[r].m_ModeSpecial&2)
 				{
 					Graphics()->BlendNormal();
 					Graphics()->TextureSet(g_pData->m_aImages[IMAGE_GAME].m_Id);
 					Graphics()->QuadsBegin();
 
-					if(m_aKillmsgs[r].m_KillerTeam == TEAM_RED)
+					if (m_aKillmsgs[r].m_KillerTeam == TEAM_RED)
 						RenderTools()->SelectSprite(SPRITE_FLAG_BLUE, SPRITE_FLAG_FLIP_X);
 					else
 						RenderTools()->SelectSprite(SPRITE_FLAG_RED, SPRITE_FLAG_FLIP_X);

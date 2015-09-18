@@ -30,11 +30,12 @@ struct CPingConfig
 	int m_DelayFreq;
 };
 
-static CPingConfig m_aConfigPings[] = {
+static CPingConfig m_aConfigPings[] =
+{
 //		base	flux	spike	loss	delay	delayfreq
-		{0,		0,		0,		0,		0,		0},
-		{40,	20,		100,		0,		0,		0},
-		{140,	40,		200,		0,		0,		0},
+	{0,		0,		0,		0,		0,		0},
+	{40,	20,		100,		0,		0,		0},
+	{140,	40,		200,		0,		0,		0},
 };
 
 static int m_ConfigNumpingconfs = sizeof(m_aConfigPings)/sizeof(CPingConfig);
@@ -51,29 +52,29 @@ void Run(unsigned short Port, NETADDR Dest)
 	int ID = 0;
 	int Delaycounter = 0;
 
-	while(1)
+	while (1)
 	{
 		static int Lastcfg = 0;
 		int n = ((time_get()/time_freq())/m_ConfigInterval) % m_ConfigNumpingconfs;
 		CPingConfig Ping = m_aConfigPings[n];
 
-		if(n != Lastcfg)
+		if (n != Lastcfg)
 			dbg_msg("crapnet", "cfg = %d", n);
 		Lastcfg = n;
 
 		// handle incomming packets
-		while(1)
+		while (1)
 		{
 			// fetch data
 			int DataTrash = 0;
 			NETADDR From;
 			int Bytes = net_udp_recv(Socket, &From, aBuffer, 1024*2);
-			if(Bytes <= 0)
+			if (Bytes <= 0)
 				break;
 
-			if((rand()%100) < Ping.m_Loss) // drop the packet
+			if ((rand()%100) < Ping.m_Loss) // drop the packet
 			{
-				if(m_ConfigLog)
+				if (m_ConfigLog)
 					dbg_msg("crapnet", "dropped packet");
 				continue;
 			}
@@ -81,7 +82,7 @@ void Run(unsigned short Port, NETADDR Dest)
 			// create new packet
 			CPacket *p = (CPacket *)mem_alloc(sizeof(CPacket)+Bytes, 1);
 
-			if(net_addr_comp(&From, &Dest) == 0)
+			if (net_addr_comp(&From, &Dest) == 0)
 				p->m_SendTo = Src; // from the server
 			else
 			{
@@ -92,7 +93,7 @@ void Run(unsigned short Port, NETADDR Dest)
 			// queue packet
 			p->m_pPrev = m_pLast;
 			p->m_pNext = 0;
-			if(m_pLast)
+			if (m_pLast)
 				m_pLast->m_pNext = p;
 			else
 			{
@@ -107,26 +108,26 @@ void Run(unsigned short Port, NETADDR Dest)
 			p->m_ID = ID++;
 			mem_copy(p->m_aData, aBuffer, Bytes);
 
-			if(ID > 20 && Bytes > 6 && DataTrash)
+			if (ID > 20 && Bytes > 6 && DataTrash)
 			{
 				p->m_aData[6+(rand()%(Bytes-6))] = rand()&255; // modify a byte
-				if((rand()%10) == 0)
+				if ((rand()%10) == 0)
 				{
 					p->m_DataSize -= rand()%32;
-					if(p->m_DataSize < 6)
+					if (p->m_DataSize < 6)
 						p->m_DataSize = 6;
 				}
 			}
 
-			if(Delaycounter <= 0)
+			if (Delaycounter <= 0)
 			{
-				if(Ping.m_Delay)
+				if (Ping.m_Delay)
 					p->m_Timestamp += (time_freq()*1000)/Ping.m_Delay;
 				Delaycounter = Ping.m_DelayFreq;
 			}
 			Delaycounter--;
 
-			if(m_ConfigLog)
+			if (m_ConfigLog)
 			{
 				char aAddrStr[NETADDR_MAXSTRSIZE];
 				net_addr_str(&From, aAddrStr, sizeof(aAddrStr), true);
@@ -139,29 +140,29 @@ void Run(unsigned short Port, NETADDR Dest)
 		{*/
 		CPacket *p = 0;
 		CPacket *pNext = m_pFirst;
-		while(1)
+		while (1)
 		{
 			p = pNext;
-			if(!p)
+			if (!p)
 				break;
 			pNext = p->m_pNext;
 
-			if((time_get()-p->m_Timestamp) > m_CurrentLatency)
+			if ((time_get()-p->m_Timestamp) > m_CurrentLatency)
 			{
 				char aFlags[] = "  ";
 
-				if(m_ConfigReorder && (rand()%2) == 0 && p->m_pNext)
+				if (m_ConfigReorder && (rand()%2) == 0 && p->m_pNext)
 				{
 					aFlags[0] = 'R';
 					p = m_pFirst->m_pNext;
 				}
 
-				if(p->m_pNext)
+				if (p->m_pNext)
 					p->m_pNext->m_pPrev = p->m_pPrev;
 				else
 					m_pLast = p->m_pPrev;
 
-				if(p->m_pPrev)
+				if (p->m_pPrev)
 					p->m_pPrev->m_pNext = p->m_pNext;
 				else
 					m_pFirst = p->m_pNext;
@@ -184,13 +185,13 @@ void Run(unsigned short Port, NETADDR Dest)
 				int MsPing = Ping.m_Base;
 				m_CurrentLatency = ((time_freq()*MsPing)/1000) + (int64)(((time_freq()*MsFlux)/1000)*Flux); // 50ms
 
-				if(MsSpike && (p->m_ID%100) == 0)
+				if (MsSpike && (p->m_ID%100) == 0)
 				{
 					m_CurrentLatency += (time_freq()*MsSpike)/1000;
 					aFlags[1] = 'S';
 				}
 
-				if(m_ConfigLog)
+				if (m_ConfigLog)
 				{
 					char aAddrStr[NETADDR_MAXSTRSIZE];
 					net_addr_str(&p->m_SendTo, aAddrStr, sizeof(aAddrStr), true);

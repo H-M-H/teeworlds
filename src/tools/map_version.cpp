@@ -15,12 +15,12 @@ static IEngineMap *s_pEngineMap = 0;
 int MaplistCallback(const char *pName, int IsDir, int DirType, void *pUser)
 {
 	int l = str_length(pName);
-	if(l < 4 || IsDir || str_comp(pName+l-4, ".map") != 0)
+	if (l < 4 || IsDir || str_comp(pName+l-4, ".map") != 0)
 		return 0;
 
 	char aBuf[128];
 	str_format(aBuf, sizeof(aBuf), "maps/%s", pName);
-	if(!s_pEngineMap->Load(aBuf))
+	if (!s_pEngineMap->Load(aBuf))
 		return 0;
 
 	unsigned MapCrc = s_pEngineMap->Crc();
@@ -34,8 +34,8 @@ int MaplistCallback(const char *pName, int IsDir, int DirType, void *pUser)
 	str_copy(aMapName, pName, min((int)sizeof(aMapName),l-3));
 
 	str_format(aBuf, sizeof(aBuf), "\t{\"%s\", {0x%02x, 0x%02x, 0x%02x, 0x%02x}, {0x%02x, 0x%02x, 0x%02x, 0x%02x}},\n", aMapName,
-		(MapCrc>>24)&0xff, (MapCrc>>16)&0xff, (MapCrc>>8)&0xff, MapCrc&0xff,
-		(MapSize>>24)&0xff, (MapSize>>16)&0xff, (MapSize>>8)&0xff, MapSize&0xff);
+			   (MapCrc>>24)&0xff, (MapCrc>>16)&0xff, (MapCrc>>8)&0xff, MapCrc&0xff,
+			   (MapSize>>24)&0xff, (MapSize>>16)&0xff, (MapSize>>8)&0xff, MapSize&0xff);
 	io_write(s_File, aBuf, str_length(aBuf));
 
 	return 0;
@@ -50,11 +50,11 @@ int main(int argc, const char **argv) // ignore_convention
 	bool RegisterFail = !pKernel->RegisterInterface(s_pStorage);
 	RegisterFail |= !pKernel->RegisterInterface(s_pEngineMap);
 
-	if(RegisterFail)
+	if (RegisterFail)
 		return -1;
 
 	s_File = s_pStorage->OpenFile("map_version.txt", IOFLAG_WRITE, 1);
-	if(s_File)
+	if (s_File)
 	{
 		io_write(s_File, "static CMapVersion s_aMapVersionList[] = {\n", str_length("static CMapVersion s_aMapVersionList[] = {\n"));
 		s_pStorage->ListDirectory(1, "maps", MaplistCallback, 0);

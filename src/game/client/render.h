@@ -13,7 +13,7 @@ class CTeeRenderInfo
 public:
 	CTeeRenderInfo()
 	{
-		for(int i = 0; i < 6; i++)
+		for (int i = 0; i < 6; i++)
 			m_aColors[i] = vec4(1,1,1,1);
 		m_Size = 1.0f;
 		m_GotAirJump = 1;
@@ -75,7 +75,7 @@ public:
 
 	// helpers
 	void MapScreenToWorld(float CenterX, float CenterY, float ParallaxX, float ParallaxY,
-		float OffsetX, float OffsetY, float Aspect, float Zoom, float aPoints[4]);
+						  float OffsetX, float OffsetY, float Aspect, float Zoom, float aPoints[4]);
 	void MapScreenToGroup(float CenterX, float CenterY, CMapItemGroup *pGroup, float Zoom);
 
 };

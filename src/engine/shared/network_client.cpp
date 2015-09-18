@@ -8,7 +8,7 @@ bool CNetClient::Open(NETADDR BindAddr, int Flags)
 	// open socket
 	NETSOCKET Socket;
 	Socket = net_udp_create(BindAddr, (Flags&NETCREATE_FLAG_RANDOMPORT) ? 1 : 0);
-	if(!Socket.type)
+	if (!Socket.type)
 		return false;
 
 	// clean it
@@ -37,7 +37,7 @@ int CNetClient::Disconnect(const char *pReason)
 int CNetClient::Update()
 {
 	m_Connection.Update();
-	if(m_Connection.State() == NET_CONNSTATE_ERROR)
+	if (m_Connection.State() == NET_CONNSTATE_ERROR)
 		Disconnect(m_Connection.ErrorString());
 	return 0;
 }
@@ -56,10 +56,10 @@ int CNetClient::ResetErrorString()
 
 int CNetClient::Recv(CNetChunk *pChunk)
 {
-	while(1)
+	while (1)
 	{
 		// check for a chunk
-		if(m_RecvUnpacker.FetchChunk(pChunk))
+		if (m_RecvUnpacker.FetchChunk(pChunk))
 			return 1;
 
 		// TODO: empty the recvinfo
@@ -67,12 +67,12 @@ int CNetClient::Recv(CNetChunk *pChunk)
 		int Bytes = net_udp_recv(m_Socket, &Addr, m_RecvUnpacker.m_aBuffer, NET_MAX_PACKETSIZE);
 
 		// no more packets for now
-		if(Bytes <= 0)
+		if (Bytes <= 0)
 			break;
 
-		if(CNetBase::UnpackPacket(m_RecvUnpacker.m_aBuffer, Bytes, &m_RecvUnpacker.m_Data) == 0)
+		if (CNetBase::UnpackPacket(m_RecvUnpacker.m_aBuffer, Bytes, &m_RecvUnpacker.m_Data) == 0)
 		{
-			if(m_RecvUnpacker.m_Data.m_Flags&NET_PACKETFLAG_CONNLESS)
+			if (m_RecvUnpacker.m_Data.m_Flags&NET_PACKETFLAG_CONNLESS)
 			{
 				pChunk->m_Flags = NETSENDFLAG_CONNLESS;
 				pChunk->m_ClientID = -1;
@@ -83,8 +83,8 @@ int CNetClient::Recv(CNetChunk *pChunk)
 			}
 			else
 			{
-				if(m_Connection.State() != NET_CONNSTATE_OFFLINE && m_Connection.State() != NET_CONNSTATE_ERROR && net_addr_comp(m_Connection.PeerAddress(), &Addr) == 0
-					&& m_Connection.Feed(&m_RecvUnpacker.m_Data, &Addr))
+				if (m_Connection.State() != NET_CONNSTATE_OFFLINE && m_Connection.State() != NET_CONNSTATE_ERROR && net_addr_comp(m_Connection.PeerAddress(), &Addr) == 0
+						&& m_Connection.Feed(&m_RecvUnpacker.m_Data, &Addr))
 					m_RecvUnpacker.Start(&Addr, &m_Connection, 0);
 			}
 		}
@@ -94,9 +94,9 @@ int CNetClient::Recv(CNetChunk *pChunk)
 
 int CNetClient::Send(CNetChunk *pChunk)
 {
-	if(pChunk->m_Flags&NETSENDFLAG_CONNLESS)
+	if (pChunk->m_Flags&NETSENDFLAG_CONNLESS)
 	{
-		if(pChunk->m_DataSize >= NET_MAX_PAYLOAD)
+		if (pChunk->m_DataSize >= NET_MAX_PAYLOAD)
 		{
 			dbg_msg("netserver", "packet payload too big. %d. dropping packet", pChunk->m_DataSize);
 			return -1;
@@ -107,7 +107,7 @@ int CNetClient::Send(CNetChunk *pChunk)
 	}
 	else
 	{
-		if(pChunk->m_DataSize+NET_MAX_CHUNKHEADERSIZE >= NET_MAX_PAYLOAD)
+		if (pChunk->m_DataSize+NET_MAX_CHUNKHEADERSIZE >= NET_MAX_PAYLOAD)
 		{
 			dbg_msg("netclient", "chunk payload too big. %d. dropping chunk", pChunk->m_DataSize);
 			return -1;
@@ -116,12 +116,12 @@ int CNetClient::Send(CNetChunk *pChunk)
 		int Flags = 0;
 		dbg_assert(pChunk->m_ClientID == 0, "errornous client id");
 
-		if(pChunk->m_Flags&NETSENDFLAG_VITAL)
+		if (pChunk->m_Flags&NETSENDFLAG_VITAL)
 			Flags = NET_CHUNKFLAG_VITAL;
 
 		m_Connection.QueueChunk(Flags, pChunk->m_DataSize, pChunk->m_pData);
 
-		if(pChunk->m_Flags&NETSENDFLAG_FLUSH)
+		if (pChunk->m_Flags&NETSENDFLAG_FLUSH)
 			m_Connection.Flush();
 	}
 	return 0;
@@ -129,9 +129,9 @@ int CNetClient::Send(CNetChunk *pChunk)
 
 int CNetClient::State() const
 {
-	if(m_Connection.State() == NET_CONNSTATE_ONLINE)
+	if (m_Connection.State() == NET_CONNSTATE_ONLINE)
 		return NETSTATE_ONLINE;
-	if(m_Connection.State() == NET_CONNSTATE_OFFLINE)
+	if (m_Connection.State() == NET_CONNSTATE_OFFLINE)
 		return NETSTATE_OFFLINE;
 	return NETSTATE_CONNECTING;
 }

@@ -17,7 +17,7 @@ class CGameControllerCTF : public IGameController
 
 public:
 	CGameControllerCTF(class CGameContext *pGameServer);
-	
+
 	// event
 	virtual int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon);
 	virtual void OnFlagReturn(class CFlag *pFlag);

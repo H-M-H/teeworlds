@@ -17,26 +17,26 @@ CGameControllerSUR::CGameControllerSUR(CGameContext *pGameServer) : IGameControl
 void CGameControllerSUR::DoWincheckRound()
 {
 	int Count[2] = {0};
-	for(int i = 0; i < MAX_CLIENTS; ++i)
+	for (int i = 0; i < MAX_CLIENTS; ++i)
 	{
-		if(GameServer()->m_apPlayers[i] && GameServer()->m_apPlayers[i]->GetTeam() != TEAM_SPECTATORS &&
-			(!GameServer()->m_apPlayers[i]->m_RespawnDisabled || 
-			(GameServer()->m_apPlayers[i]->GetCharacter() && GameServer()->m_apPlayers[i]->GetCharacter()->IsAlive())))
+		if (GameServer()->m_apPlayers[i] && GameServer()->m_apPlayers[i]->GetTeam() != TEAM_SPECTATORS &&
+				(!GameServer()->m_apPlayers[i]->m_RespawnDisabled ||
+				 (GameServer()->m_apPlayers[i]->GetCharacter() && GameServer()->m_apPlayers[i]->GetCharacter()->IsAlive())))
 			++Count[GameServer()->m_apPlayers[i]->GetTeam()];
 	}
 
-	if(Count[TEAM_RED]+Count[TEAM_BLUE] == 0 || (m_GameInfo.m_TimeLimit > 0 && (Server()->Tick()-m_GameStartTick) >= m_GameInfo.m_TimeLimit*Server()->TickSpeed()*60))
+	if (Count[TEAM_RED]+Count[TEAM_BLUE] == 0 || (m_GameInfo.m_TimeLimit > 0 && (Server()->Tick()-m_GameStartTick) >= m_GameInfo.m_TimeLimit*Server()->TickSpeed()*60))
 	{
 		++m_aTeamscore[TEAM_BLUE];
 		++m_aTeamscore[TEAM_RED];
 		EndRound();
 	}
-	else if(Count[TEAM_RED] == 0)
+	else if (Count[TEAM_RED] == 0)
 	{
 		++m_aTeamscore[TEAM_BLUE];
 		EndRound();
 	}
-	else if(Count[TEAM_BLUE] == 0)
+	else if (Count[TEAM_BLUE] == 0)
 	{
 		++m_aTeamscore[TEAM_RED];
 		EndRound();

@@ -6,8 +6,8 @@
 #include "projectile.h"
 
 CProjectile::CProjectile(CGameWorld *pGameWorld, int Type, int Owner, vec2 Pos, vec2 Dir, int Span,
-		int Damage, bool Explosive, float Force, int SoundImpact, int Weapon)
-: CEntity(pGameWorld, CGameWorld::ENTTYPE_PROJECTILE, Pos)
+						 int Damage, bool Explosive, float Force, int SoundImpact, int Weapon)
+	: CEntity(pGameWorld, CGameWorld::ENTTYPE_PROJECTILE, Pos)
 {
 	m_Type = Type;
 	m_Direction = Dir;
@@ -33,7 +33,7 @@ vec2 CProjectile::GetPos(float Time)
 	float Curvature = 0;
 	float Speed = 0;
 
-	switch(m_Type)
+	switch (m_Type)
 	{
 		case WEAPON_GRENADE:
 			Curvature = GameServer()->Tuning()->m_GrenadeCurvature;
@@ -67,15 +67,15 @@ void CProjectile::Tick()
 
 	m_LifeSpan--;
 
-	if(TargetChr || Collide || m_LifeSpan < 0 || GameLayerClipped(CurPos))
+	if (TargetChr || Collide || m_LifeSpan < 0 || GameLayerClipped(CurPos))
 	{
-		if(m_LifeSpan >= 0 || m_Weapon == WEAPON_GRENADE)
+		if (m_LifeSpan >= 0 || m_Weapon == WEAPON_GRENADE)
 			GameServer()->CreateSound(CurPos, m_SoundImpact);
 
-		if(m_Explosive)
+		if (m_Explosive)
 			GameServer()->CreateExplosion(CurPos, m_Owner, m_Weapon, m_Damage);
 
-		else if(TargetChr)
+		else if (TargetChr)
 			TargetChr->TakeDamage(m_Direction * max(0.001f, m_Force), m_Damage, m_Owner, m_Weapon);
 
 		GameServer()->m_World.DestroyEntity(this);
@@ -101,10 +101,10 @@ void CProjectile::Snap(int SnappingClient)
 {
 	float Ct = (Server()->Tick()-m_StartTick)/(float)Server()->TickSpeed();
 
-	if(NetworkClipped(SnappingClient, GetPos(Ct)))
+	if (NetworkClipped(SnappingClient, GetPos(Ct)))
 		return;
 
 	CNetObj_Projectile *pProj = static_cast<CNetObj_Projectile *>(Server()->SnapNewItem(NETOBJTYPE_PROJECTILE, GetID(), sizeof(CNetObj_Projectile)));
-	if(pProj)
+	if (pProj)
 		FillInfo(pProj);
 }

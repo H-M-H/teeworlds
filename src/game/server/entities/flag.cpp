@@ -7,7 +7,7 @@
 #include "flag.h"
 
 CFlag::CFlag(CGameWorld *pGameWorld, int Team, vec2 StandPos)
-: CEntity(pGameWorld, CGameWorld::ENTTYPE_FLAG, StandPos, ms_PhysSize)
+	: CEntity(pGameWorld, CGameWorld::ENTTYPE_FLAG, StandPos, ms_PhysSize)
 {
 	m_Team = Team;
 	m_StandPos = StandPos;
@@ -30,7 +30,7 @@ void CFlag::Grab(CCharacter *pChar)
 {
 	m_AtStand = false;
 	m_pCarrier = pChar;
-	if(m_AtStand)
+	if (m_AtStand)
 		m_GrabTick = Server()->Tick();
 }
 
@@ -43,7 +43,7 @@ void CFlag::Drop()
 
 void CFlag::Tick()
 {
-	if(m_pCarrier)
+	if (m_pCarrier)
 	{
 		// update flag position
 		m_Pos = m_pCarrier->GetPos();
@@ -51,16 +51,16 @@ void CFlag::Tick()
 	else
 	{
 		// flag hits death-tile or left the game layer, reset it
-		if((GameServer()->Collision()->GetCollisionAt(m_Pos.x, m_Pos.y) & CCollision::COLFLAG_DEATH)
-			|| GameLayerClipped(m_Pos))
+		if ((GameServer()->Collision()->GetCollisionAt(m_Pos.x, m_Pos.y) & CCollision::COLFLAG_DEATH)
+				|| GameLayerClipped(m_Pos))
 		{
 			Reset();
 			GameServer()->m_pController->OnFlagReturn(this);
 		}
 
-		if(!m_AtStand)
+		if (!m_AtStand)
 		{
-			if(Server()->Tick() > m_DropTick + Server()->TickSpeed()*30)
+			if (Server()->Tick() > m_DropTick + Server()->TickSpeed()*30)
 			{
 				Reset();
 				GameServer()->m_pController->OnFlagReturn(this);
@@ -77,17 +77,17 @@ void CFlag::Tick()
 void CFlag::TickPaused()
 {
 	m_DropTick++;
-	if(m_GrabTick)
+	if (m_GrabTick)
 		m_GrabTick++;
 }
 
 void CFlag::Snap(int SnappingClient)
 {
-	if(NetworkClipped(SnappingClient))
+	if (NetworkClipped(SnappingClient))
 		return;
 
 	CNetObj_Flag *pFlag = (CNetObj_Flag *)Server()->SnapNewItem(NETOBJTYPE_FLAG, m_Team, sizeof(CNetObj_Flag));
-	if(!pFlag)
+	if (!pFlag)
 		return;
 
 	pFlag->m_X = (int)m_Pos.x;

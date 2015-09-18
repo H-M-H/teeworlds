@@ -9,17 +9,15 @@
 
 static void AnimSeqEval(CAnimSequence *pSeq, float Time, CAnimKeyframe *pFrame)
 {
-	if(pSeq->m_NumFrames == 0)
+	if (pSeq->m_NumFrames == 0)
 	{
 		pFrame->m_Time = 0;
 		pFrame->m_X = 0;
 		pFrame->m_Y = 0;
 		pFrame->m_Angle = 0;
 	}
-	else if(pSeq->m_NumFrames == 1)
-	{
+	else if (pSeq->m_NumFrames == 1)
 		*pFrame = pSeq->m_aFrames[0];
-	}
 	else
 	{
 		//time = max(0.0f, min(1.0f, time / duration)); // TODO: use clamp
@@ -85,7 +83,7 @@ CAnimState *CAnimState::GetIdle()
 	static CAnimState State;
 	static bool Init = true;
 
-	if(Init)
+	if (Init)
 	{
 		State.Set(&g_pData->m_aAnimations[ANIM_BASE], 0);
 		State.Add(&g_pData->m_aAnimations[ANIM_IDLE], 0, 1.0f);

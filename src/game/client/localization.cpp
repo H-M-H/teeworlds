@@ -27,7 +27,7 @@ void CLocConstString::Reload()
 	m_Version = g_Localization.Version();
 	const char *pNewStr = g_Localization.FindString(m_Hash, m_ContextHash);
 	m_pCurrentStr = pNewStr;
-	if(!m_pCurrentStr)
+	if (!m_pCurrentStr)
 		m_pCurrentStr = m_pDefaultStr;
 }
 
@@ -49,7 +49,7 @@ void CLocalizationDatabase::AddString(const char *pOrgStr, const char *pNewStr, 
 bool CLocalizationDatabase::Load(const char *pFilename, IStorage *pStorage, IConsole *pConsole)
 {
 	// empty string means unload
-	if(pFilename[0] == 0)
+	if (pFilename[0] == 0)
 	{
 		m_Strings.clear();
 		m_CurrentVersion = 0;
@@ -58,7 +58,7 @@ bool CLocalizationDatabase::Load(const char *pFilename, IStorage *pStorage, ICon
 
 	// read file data into buffer
 	IOHANDLE File = pStorage->OpenFile(pFilename, IOFLAG_READ, IStorage::TYPE_ALL);
-	if(!File)
+	if (!File)
 		return false;
 	int FileSize = (int)io_length(File);
 	char *pFileData = (char *)mem_alloc(FileSize+1, 1);
@@ -77,7 +77,7 @@ bool CLocalizationDatabase::Load(const char *pFilename, IStorage *pStorage, ICon
 	mem_zero(&JsonSettings, sizeof(JsonSettings));
 	char aError[256];
 	json_value *pJsonData = json_parse_ex(&JsonSettings, pFileData, aError);
-	if(pJsonData == 0)
+	if (pJsonData == 0)
 	{
 		pConsole->Print(IConsole::OUTPUT_LEVEL_ADDINFO, pFilename, aError);
 		mem_free(pFileData);
@@ -86,9 +86,9 @@ bool CLocalizationDatabase::Load(const char *pFilename, IStorage *pStorage, ICon
 
 	// extract data
 	const json_value &rStart = (*pJsonData)["translated strings"];
-	if(rStart.type == json_array)
+	if (rStart.type == json_array)
 	{
-		for(unsigned i = 0; i < rStart.u.array.length; ++i)
+		for (unsigned i = 0; i < rStart.u.array.length; ++i)
 			AddString((const char *)rStart[i]["or"], (const char *)rStart[i]["tr"], (const char *)rStart[i]["context"]);
 	}
 
@@ -104,21 +104,21 @@ const char *CLocalizationDatabase::FindString(unsigned Hash, unsigned ContextHas
 	CString String;
 	String.m_Hash = Hash;
 	sorted_array<CString>::range r = ::find_binary(m_Strings.all(), String);
-	if(r.empty())
+	if (r.empty())
 		return 0;
 
 	unsigned DefaultHash = str_quickhash("");
 	unsigned DefaultIndex = 0;
-	for(unsigned i = 0; i < r.size() && r.index(i).m_Hash == Hash; ++i)
+	for (unsigned i = 0; i < r.size() && r.index(i).m_Hash == Hash; ++i)
 	{
 		const CString &rStr = r.index(i);
-		if(rStr.m_ContextHash == ContextHash)
+		if (rStr.m_ContextHash == ContextHash)
 			return rStr.m_Replacement;
-		else if(rStr.m_ContextHash == DefaultHash)
+		else if (rStr.m_ContextHash == DefaultHash)
 			DefaultIndex = i;
 	}
-	
-    return r.index(DefaultIndex).m_Replacement;
+
+	return r.index(DefaultIndex).m_Replacement;
 }
 
 CLocalizationDatabase g_Localization;

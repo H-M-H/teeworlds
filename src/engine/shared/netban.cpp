@@ -9,9 +9,9 @@
 
 bool CNetBan::StrAllnum(const char *pStr)
 {
-	while(*pStr)
+	while (*pStr)
 	{
-		if(!(*pStr >= '0' && *pStr <= '9'))
+		if (!(*pStr >= '0' && *pStr <= '9'))
 			return false;
 		pStr++;
 	}
@@ -21,11 +21,11 @@ bool CNetBan::StrAllnum(const char *pStr)
 
 CNetBan::CNetHash::CNetHash(const NETADDR *pAddr)
 {
-	if(pAddr->type==NETTYPE_IPV4)
+	if (pAddr->type==NETTYPE_IPV4)
 		m_Hash = (pAddr->ip[0]+pAddr->ip[1]+pAddr->ip[2]+pAddr->ip[3])&0xFF;
 	else
 		m_Hash = (pAddr->ip[0]+pAddr->ip[1]+pAddr->ip[2]+pAddr->ip[3]+pAddr->ip[4]+pAddr->ip[5]+pAddr->ip[6]+pAddr->ip[7]+
-			pAddr->ip[8]+pAddr->ip[9]+pAddr->ip[10]+pAddr->ip[11]+pAddr->ip[12]+pAddr->ip[13]+pAddr->ip[14]+pAddr->ip[15])&0xFF;
+				  pAddr->ip[8]+pAddr->ip[9]+pAddr->ip[10]+pAddr->ip[11]+pAddr->ip[12]+pAddr->ip[13]+pAddr->ip[14]+pAddr->ip[15])&0xFF;
 	m_HashIndex = 0;
 }
 
@@ -33,7 +33,7 @@ CNetBan::CNetHash::CNetHash(const CNetRange *pRange)
 {
 	m_Hash = 0;
 	m_HashIndex = 0;
-	for(int i = 0; pRange->m_LB.ip[i] == pRange->m_UB.ip[i]; ++i)
+	for (int i = 0; pRange->m_LB.ip[i] == pRange->m_UB.ip[i]; ++i)
 	{
 		m_Hash += pRange->m_LB.ip[i];
 		++m_HashIndex;
@@ -46,7 +46,7 @@ int CNetBan::CNetHash::MakeHashArray(const NETADDR *pAddr, CNetHash aHash[17])
 	int Length = pAddr->type==NETTYPE_IPV4 ? 4 : 16;
 	aHash[0].m_Hash = 0;
 	aHash[0].m_HashIndex = 0;
-	for(int i = 1, Sum = 0; i <= Length; ++i)
+	for (int i = 1, Sum = 0; i <= Length; ++i)
 	{
 		Sum += pAddr->ip[i-1];
 		aHash[i].m_Hash = Sum&0xFF;
@@ -59,7 +59,7 @@ int CNetBan::CNetHash::MakeHashArray(const NETADDR *pAddr, CNetHash aHash[17])
 template<class T, int HashCount>
 typename CNetBan::CBan<T> *CNetBan::CBanPool<T, HashCount>::Add(const T *pData, const CBanInfo *pInfo,  const CNetHash *pNetHash)
 {
-	if(!m_pFirstFree)
+	if (!m_pFirstFree)
 		return 0;
 
 	// create new ban
@@ -67,31 +67,31 @@ typename CNetBan::CBan<T> *CNetBan::CBanPool<T, HashCount>::Add(const T *pData, 
 	pBan->m_Data = *pData;
 	pBan->m_Info = *pInfo;
 	pBan->m_NetHash = *pNetHash;
-	if(pBan->m_pNext)
+	if (pBan->m_pNext)
 		pBan->m_pNext->m_pPrev = pBan->m_pPrev;
-	if(pBan->m_pPrev)
+	if (pBan->m_pPrev)
 		pBan->m_pPrev->m_pNext = pBan->m_pNext;
 	else
 		m_pFirstFree = pBan->m_pNext;
 
 	// add it to the hash list
-	if(m_paaHashList[pNetHash->m_HashIndex][pNetHash->m_Hash])
+	if (m_paaHashList[pNetHash->m_HashIndex][pNetHash->m_Hash])
 		m_paaHashList[pNetHash->m_HashIndex][pNetHash->m_Hash]->m_pHashPrev = pBan;
 	pBan->m_pHashPrev = 0;
 	pBan->m_pHashNext = m_paaHashList[pNetHash->m_HashIndex][pNetHash->m_Hash];
 	m_paaHashList[pNetHash->m_HashIndex][pNetHash->m_Hash] = pBan;
 
 	// insert it into the used list
-	if(m_pFirstUsed)
+	if (m_pFirstUsed)
 	{
-		for(CBan<T> *p = m_pFirstUsed; ; p = p->m_pNext)
+		for (CBan<T> *p = m_pFirstUsed; ; p = p->m_pNext)
 		{
-			if(p->m_Info.m_Expires == CBanInfo::EXPIRES_NEVER || (pInfo->m_Expires != CBanInfo::EXPIRES_NEVER && pInfo->m_Expires <= p->m_Info.m_Expires))
+			if (p->m_Info.m_Expires == CBanInfo::EXPIRES_NEVER || (pInfo->m_Expires != CBanInfo::EXPIRES_NEVER && pInfo->m_Expires <= p->m_Info.m_Expires))
 			{
 				// insert before
 				pBan->m_pNext = p;
 				pBan->m_pPrev = p->m_pPrev;
-				if(p->m_pPrev)
+				if (p->m_pPrev)
 					p->m_pPrev->m_pNext = pBan;
 				else
 					m_pFirstUsed = pBan;
@@ -99,7 +99,7 @@ typename CNetBan::CBan<T> *CNetBan::CBanPool<T, HashCount>::Add(const T *pData, 
 				break;
 			}
 
-			if(!p->m_pNext)
+			if (!p->m_pNext)
 			{
 				// last entry
 				p->m_pNext = pBan;
@@ -124,28 +124,28 @@ typename CNetBan::CBan<T> *CNetBan::CBanPool<T, HashCount>::Add(const T *pData, 
 template<class T, int HashCount>
 int CNetBan::CBanPool<T, HashCount>::Remove(CBan<T> *pBan)
 {
-	if(pBan == 0)
+	if (pBan == 0)
 		return -1;
 
 	// remove from hash list
-	if(pBan->m_pHashNext)
+	if (pBan->m_pHashNext)
 		pBan->m_pHashNext->m_pHashPrev = pBan->m_pHashPrev;
-	if(pBan->m_pHashPrev)
+	if (pBan->m_pHashPrev)
 		pBan->m_pHashPrev->m_pHashNext = pBan->m_pHashNext;
 	else
 		m_paaHashList[pBan->m_NetHash.m_HashIndex][pBan->m_NetHash.m_Hash] = pBan->m_pHashNext;
 	pBan->m_pHashNext = pBan->m_pHashPrev = 0;
 
 	// remove from used list
-	if(pBan->m_pNext)
+	if (pBan->m_pNext)
 		pBan->m_pNext->m_pPrev = pBan->m_pPrev;
-	if(pBan->m_pPrev)
+	if (pBan->m_pPrev)
 		pBan->m_pPrev->m_pNext = pBan->m_pNext;
 	else
 		m_pFirstUsed = pBan->m_pNext;
 
 	// add to recycle list
-	if(m_pFirstFree)
+	if (m_pFirstFree)
 		m_pFirstFree->m_pPrev = pBan;
 	pBan->m_pPrev = 0;
 	pBan->m_pNext = m_pFirstFree;
@@ -163,24 +163,24 @@ void CNetBan::CBanPool<T, HashCount>::Update(CBan<CDataType> *pBan, const CBanIn
 	pBan->m_Info = *pInfo;
 
 	// remove from used list
-	if(pBan->m_pNext)
+	if (pBan->m_pNext)
 		pBan->m_pNext->m_pPrev = pBan->m_pPrev;
-	if(pBan->m_pPrev)
+	if (pBan->m_pPrev)
 		pBan->m_pPrev->m_pNext = pBan->m_pNext;
 	else
 		m_pFirstUsed = pBan->m_pNext;
 
 	// insert it into the used list
-	if(m_pFirstUsed)
+	if (m_pFirstUsed)
 	{
-		for(CBan<T> *p = m_pFirstUsed; ; p = p->m_pNext)
+		for (CBan<T> *p = m_pFirstUsed; ; p = p->m_pNext)
 		{
-			if(p->m_Info.m_Expires == CBanInfo::EXPIRES_NEVER || (pInfo->m_Expires != CBanInfo::EXPIRES_NEVER && pInfo->m_Expires <= p->m_Info.m_Expires))
+			if (p->m_Info.m_Expires == CBanInfo::EXPIRES_NEVER || (pInfo->m_Expires != CBanInfo::EXPIRES_NEVER && pInfo->m_Expires <= p->m_Info.m_Expires))
 			{
 				// insert before
 				pBan->m_pNext = p;
 				pBan->m_pPrev = p->m_pPrev;
-				if(p->m_pPrev)
+				if (p->m_pPrev)
 					p->m_pPrev->m_pNext = pBan;
 				else
 					m_pFirstUsed = pBan;
@@ -188,7 +188,7 @@ void CNetBan::CBanPool<T, HashCount>::Update(CBan<CDataType> *pBan, const CBanIn
 				break;
 			}
 
-			if(!p->m_pNext)
+			if (!p->m_pNext)
 			{
 				// last entry
 				p->m_pNext = pBan;
@@ -213,7 +213,7 @@ void CNetBan::CBanPool<T, HashCount>::Reset()
 	m_pFirstUsed = 0;
 	m_CountUsed = 0;
 
-	for(int i = 1; i < MAX_BANS-1; ++i)
+	for (int i = 1; i < MAX_BANS-1; ++i)
 	{
 		m_aBans[i].m_pNext = &m_aBans[i+1];
 		m_aBans[i].m_pPrev = &m_aBans[i-1];
@@ -227,12 +227,12 @@ void CNetBan::CBanPool<T, HashCount>::Reset()
 template<class T, int HashCount>
 typename CNetBan::CBan<T> *CNetBan::CBanPool<T, HashCount>::Get(int Index) const
 {
-	if(Index < 0 || Index >= Num())
+	if (Index < 0 || Index >= Num())
 		return 0;
 
-	for(CNetBan::CBan<T> *pBan = m_pFirstUsed; pBan; pBan = pBan->m_pNext, --Index)
+	for (CNetBan::CBan<T> *pBan = m_pFirstUsed; pBan; pBan = pBan->m_pNext, --Index)
 	{
-		if(Index == 0)
+		if (Index == 0)
 			return pBan;
 	}
 
@@ -243,38 +243,38 @@ typename CNetBan::CBan<T> *CNetBan::CBanPool<T, HashCount>::Get(int Index) const
 template<class T>
 void CNetBan::MakeBanInfo(const CBan<T> *pBan, char *pBuf, unsigned BuffSize, int Type) const
 {
-	if(pBan == 0 || pBuf == 0)
+	if (pBan == 0 || pBuf == 0)
 	{
-		if(BuffSize > 0)
+		if (BuffSize > 0)
 			pBuf[0] = 0;
 		return;
 	}
-	
+
 	// build type based part
 	char aBuf[256];
-	if(Type == MSGTYPE_PLAYER)
+	if (Type == MSGTYPE_PLAYER)
 		str_copy(aBuf, "You have been banned", sizeof(aBuf));
 	else
 	{
 		char aTemp[256];
-		switch(Type)
+		switch (Type)
 		{
-		case MSGTYPE_LIST:
-			str_format(aBuf, sizeof(aBuf), "%s banned", NetToString(&pBan->m_Data, aTemp, sizeof(aTemp))); break;
-		case MSGTYPE_BANADD:
-			str_format(aBuf, sizeof(aBuf), "banned %s", NetToString(&pBan->m_Data, aTemp, sizeof(aTemp))); break;
-		case MSGTYPE_BANREM:
-			str_format(aBuf, sizeof(aBuf), "unbanned %s", NetToString(&pBan->m_Data, aTemp, sizeof(aTemp))); break;
-		default:
-			aBuf[0] = 0;
+			case MSGTYPE_LIST:
+				str_format(aBuf, sizeof(aBuf), "%s banned", NetToString(&pBan->m_Data, aTemp, sizeof(aTemp))); break;
+			case MSGTYPE_BANADD:
+				str_format(aBuf, sizeof(aBuf), "banned %s", NetToString(&pBan->m_Data, aTemp, sizeof(aTemp))); break;
+			case MSGTYPE_BANREM:
+				str_format(aBuf, sizeof(aBuf), "unbanned %s", NetToString(&pBan->m_Data, aTemp, sizeof(aTemp))); break;
+			default:
+				aBuf[0] = 0;
 		}
 	}
 
 	// add info part
-	if(pBan->m_Info.m_Expires != CBanInfo::EXPIRES_NEVER)
+	if (pBan->m_Info.m_Expires != CBanInfo::EXPIRES_NEVER)
 	{
 		int Mins = ((pBan->m_Info.m_Expires-time_timestamp()) + 59) / 60;
-		if(Mins <= 1)
+		if (Mins <= 1)
 			str_format(pBuf, BuffSize, "%s for 1 minute (%s)", aBuf, pBan->m_Info.m_aReason);
 		else
 			str_format(pBuf, BuffSize, "%s for %d minutes (%s)", aBuf, Mins, pBan->m_Info.m_aReason);
@@ -287,7 +287,7 @@ template<class T>
 int CNetBan::Ban(T *pBanPool, const typename T::CDataType *pData, int Seconds, const char *pReason)
 {
 	// do not ban localhost
-	if(NetMatch(pData, &m_LocalhostIPV4) || NetMatch(pData, &m_LocalhostIPV6))
+	if (NetMatch(pData, &m_LocalhostIPV4) || NetMatch(pData, &m_LocalhostIPV6))
 	{
 		Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "net_ban", "ban failed (localhost)");
 		return -1;
@@ -303,7 +303,7 @@ int CNetBan::Ban(T *pBanPool, const typename T::CDataType *pData, int Seconds, c
 	// check if it already exists
 	CNetHash NetHash(pData);
 	CBan<typename T::CDataType> *pBan = pBanPool->Find(pData, &NetHash);
-	if(pBan)
+	if (pBan)
 	{
 		// adjust the ban
 		pBanPool->Update(pBan, &Info);
@@ -315,7 +315,7 @@ int CNetBan::Ban(T *pBanPool, const typename T::CDataType *pData, int Seconds, c
 
 	// add ban and print result
 	pBan = pBanPool->Add(pData, &Info, &NetHash);
-	if(pBan)
+	if (pBan)
 	{
 		char aBuf[128];
 		MakeBanInfo(pBan, aBuf, sizeof(aBuf), MSGTYPE_BANADD);
@@ -332,7 +332,7 @@ int CNetBan::Unban(T *pBanPool, const typename T::CDataType *pData)
 {
 	CNetHash NetHash(pData);
 	CBan<typename T::CDataType> *pBan = pBanPool->Find(pData, &NetHash);
-	if(pBan)
+	if (pBan)
 	{
 		char aBuf[256];
 		MakeBanInfo(pBan, aBuf, sizeof(aBuf), MSGTYPE_BANREM);
@@ -370,13 +370,13 @@ void CNetBan::Update()
 
 	// remove expired bans
 	char aBuf[256], aNetStr[256];
-	while(m_BanAddrPool.First() && m_BanAddrPool.First()->m_Info.m_Expires != CBanInfo::EXPIRES_NEVER && m_BanAddrPool.First()->m_Info.m_Expires < Now)
+	while (m_BanAddrPool.First() && m_BanAddrPool.First()->m_Info.m_Expires != CBanInfo::EXPIRES_NEVER && m_BanAddrPool.First()->m_Info.m_Expires < Now)
 	{
 		str_format(aBuf, sizeof(aBuf), "ban %s expired", NetToString(&m_BanAddrPool.First()->m_Data, aNetStr, sizeof(aNetStr)));
 		Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "net_ban", aBuf);
 		m_BanAddrPool.Remove(m_BanAddrPool.First());
 	}
-	while(m_BanRangePool.First() && m_BanRangePool.First()->m_Info.m_Expires != CBanInfo::EXPIRES_NEVER && m_BanRangePool.First()->m_Info.m_Expires < Now)
+	while (m_BanRangePool.First() && m_BanRangePool.First()->m_Info.m_Expires != CBanInfo::EXPIRES_NEVER && m_BanRangePool.First()->m_Info.m_Expires < Now)
 	{
 		str_format(aBuf, sizeof(aBuf), "ban %s expired", NetToString(&m_BanRangePool.First()->m_Data, aNetStr, sizeof(aNetStr)));
 		Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "net_ban", aBuf);
@@ -391,7 +391,7 @@ int CNetBan::BanAddr(const NETADDR *pAddr, int Seconds, const char *pReason)
 
 int CNetBan::BanRange(const CNetRange *pRange, int Seconds, const char *pReason)
 {
-	if(pRange->IsValid())
+	if (pRange->IsValid())
 		return Ban(&m_BanRangePool, pRange, Seconds, pReason);
 
 	Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "net_ban", "ban failed (invalid range)");
@@ -405,9 +405,9 @@ int CNetBan::UnbanByAddr(const NETADDR *pAddr)
 
 int CNetBan::UnbanByRange(const CNetRange *pRange)
 {
-	if(pRange->IsValid())
+	if (pRange->IsValid())
 		return Unban(&m_BanRangePool, pRange);
-	
+
 	Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "net_ban", "ban failed (invalid range)");
 	return -1;
 }
@@ -417,7 +417,7 @@ int CNetBan::UnbanByIndex(int Index)
 	int Result;
 	char aBuf[256];
 	CBanAddr *pBan = m_BanAddrPool.Get(Index);
-	if(pBan)
+	if (pBan)
 	{
 		NetToString(&pBan->m_Data, aBuf, sizeof(aBuf));
 		Result = m_BanAddrPool.Remove(pBan);
@@ -425,7 +425,7 @@ int CNetBan::UnbanByIndex(int Index)
 	else
 	{
 		CBanRange *pBan = m_BanRangePool.Get(Index-m_BanAddrPool.Num());
-		if(pBan)
+		if (pBan)
 		{
 			NetToString(&pBan->m_Data, aBuf, sizeof(aBuf));
 			Result = m_BanRangePool.Remove(pBan);
@@ -456,25 +456,25 @@ bool CNetBan::IsBanned(const NETADDR *pAddr, char *pBuf, unsigned BufferSize) co
 
 	// check ban adresses
 	CBanAddr *pBan = m_BanAddrPool.Find(pAddr, &aHash[Length]);
-	if(pBan)
+	if (pBan)
 	{
 		MakeBanInfo(pBan, pBuf, BufferSize, MSGTYPE_PLAYER);
 		return true;
 	}
 
 	// check ban ranges
-	for(int i = Length-1; i >= 0; --i)
+	for (int i = Length-1; i >= 0; --i)
 	{
-		for(CBanRange *pBan = m_BanRangePool.First(&aHash[i]); pBan; pBan = pBan->m_pHashNext)
+		for (CBanRange *pBan = m_BanRangePool.First(&aHash[i]); pBan; pBan = pBan->m_pHashNext)
 		{
-			if(NetMatch(&pBan->m_Data, pAddr, i, Length))
+			if (NetMatch(&pBan->m_Data, pAddr, i, Length))
 			{
 				MakeBanInfo(pBan, pBuf, BufferSize, MSGTYPE_PLAYER);
 				return true;
 			}
 		}
 	}
-	
+
 	return false;
 }
 
@@ -487,7 +487,7 @@ void CNetBan::ConBan(IConsole::IResult *pResult, void *pUser)
 	const char *pReason = pResult->NumArguments()>2 ? pResult->GetString(2) : "No reason given";
 
 	NETADDR Addr;
-	if(net_addr_from_str(&Addr, pStr) == 0)
+	if (net_addr_from_str(&Addr, pStr) == 0)
 		pThis->BanAddr(&Addr, Minutes*60, pReason);
 	else
 		pThis->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "net_ban", "ban error (invalid network address)");
@@ -503,7 +503,7 @@ void CNetBan::ConBanRange(IConsole::IResult *pResult, void *pUser)
 	const char *pReason = pResult->NumArguments()>3 ? pResult->GetString(3) : "No reason given";
 
 	CNetRange Range;
-	if(net_addr_from_str(&Range.m_LB, pStr1) == 0 && net_addr_from_str(&Range.m_UB, pStr2) == 0)
+	if (net_addr_from_str(&Range.m_LB, pStr1) == 0 && net_addr_from_str(&Range.m_UB, pStr2) == 0)
 		pThis->BanRange(&Range, Minutes*60, pReason);
 	else
 		pThis->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "net_ban", "ban error (invalid range)");
@@ -514,12 +514,12 @@ void CNetBan::ConUnban(IConsole::IResult *pResult, void *pUser)
 	CNetBan *pThis = static_cast<CNetBan *>(pUser);
 
 	const char *pStr = pResult->GetString(0);
-	if(StrAllnum(pStr))
+	if (StrAllnum(pStr))
 		pThis->UnbanByIndex(str_toint(pStr));
 	else
 	{
 		NETADDR Addr;
-		if(net_addr_from_str(&Addr, pStr) == 0)
+		if (net_addr_from_str(&Addr, pStr) == 0)
 			pThis->UnbanByAddr(&Addr);
 		else
 			pThis->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "net_ban", "unban error (invalid network address)");
@@ -534,7 +534,7 @@ void CNetBan::ConUnbanRange(IConsole::IResult *pResult, void *pUser)
 	const char *pStr2 = pResult->GetString(1);
 
 	CNetRange Range;
-	if(net_addr_from_str(&Range.m_LB, pStr1) == 0 && net_addr_from_str(&Range.m_UB, pStr2) == 0)
+	if (net_addr_from_str(&Range.m_LB, pStr1) == 0 && net_addr_from_str(&Range.m_UB, pStr2) == 0)
 		pThis->UnbanByRange(&Range);
 	else
 		pThis->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "net_ban", "unban error (invalid range)");
@@ -554,13 +554,13 @@ void CNetBan::ConBans(IConsole::IResult *pResult, void *pUser)
 
 	int Count = 0;
 	char aBuf[256], aMsg[256];
-	for(CBanAddr *pBan = pThis->m_BanAddrPool.First(); pBan; pBan = pBan->m_pNext)
+	for (CBanAddr *pBan = pThis->m_BanAddrPool.First(); pBan; pBan = pBan->m_pNext)
 	{
 		pThis->MakeBanInfo(pBan, aBuf, sizeof(aBuf), MSGTYPE_LIST);
 		str_format(aMsg, sizeof(aMsg), "#%i %s", Count++, aBuf);
 		pThis->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "net_ban", aMsg);
 	}
-	for(CBanRange *pBan = pThis->m_BanRangePool.First(); pBan; pBan = pBan->m_pNext)
+	for (CBanRange *pBan = pThis->m_BanRangePool.First(); pBan; pBan = pBan->m_pNext)
 	{
 		pThis->MakeBanInfo(pBan, aBuf, sizeof(aBuf), MSGTYPE_LIST);
 		str_format(aMsg, sizeof(aMsg), "#%i %s", Count++, aBuf);
@@ -575,9 +575,9 @@ void CNetBan::ConBansSave(IConsole::IResult *pResult, void *pUser)
 	CNetBan *pThis = static_cast<CNetBan *>(pUser);
 	char aBuf[256];
 	const char *pFilename = pResult->GetString(0);
-	
+
 	IOHANDLE File = pThis->Storage()->OpenFile(pFilename, IOFLAG_WRITE, IStorage::TYPE_SAVE);
-	if(!File)
+	if (!File)
 	{
 		str_format(aBuf, sizeof(aBuf), "failed to save banlist to '%s'", pFilename);
 		pThis->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "net_ban", aBuf);
@@ -586,7 +586,7 @@ void CNetBan::ConBansSave(IConsole::IResult *pResult, void *pUser)
 
 	int Now = time_timestamp();
 	char aAddrStr1[NETADDR_MAXSTRSIZE], aAddrStr2[NETADDR_MAXSTRSIZE];
-	for(CBanAddr *pBan = pThis->m_BanAddrPool.First(); pBan; pBan = pBan->m_pNext)
+	for (CBanAddr *pBan = pThis->m_BanAddrPool.First(); pBan; pBan = pBan->m_pNext)
 	{
 		int Min = pBan->m_Info.m_Expires>-1 ? (pBan->m_Info.m_Expires-Now+59)/60 : -1;
 		net_addr_str(&pBan->m_Data, aAddrStr1, sizeof(aAddrStr1), false);
@@ -594,7 +594,7 @@ void CNetBan::ConBansSave(IConsole::IResult *pResult, void *pUser)
 		io_write(File, aBuf, str_length(aBuf));
 		io_write_newline(File);
 	}
-	for(CBanRange *pBan = pThis->m_BanRangePool.First(); pBan; pBan = pBan->m_pNext)
+	for (CBanRange *pBan = pThis->m_BanRangePool.First(); pBan; pBan = pBan->m_pNext)
 	{
 		int Min = pBan->m_Info.m_Expires>-1 ? (pBan->m_Info.m_Expires-Now+59)/60 : -1;
 		net_addr_str(&pBan->m_Data.m_LB, aAddrStr1, sizeof(aAddrStr1), false);

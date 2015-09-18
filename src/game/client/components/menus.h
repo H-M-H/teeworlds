@@ -95,7 +95,7 @@ class CMenus : public CComponent
 
 	void UiDoListboxHeader(const CUIRect *pRect, const char *pTitle, float HeaderHeight, float Spacing);
 	void UiDoListboxStart(const void *pID, float RowHeight, const char *pBottomText, int NumItems,
-						int ItemsPerRow, int SelectedIndex, float ScrollValue, const CUIRect *pRect=0, bool Background=true);
+						  int ItemsPerRow, int SelectedIndex, float ScrollValue, const CUIRect *pRect=0, bool Background=true);
 	CListboxItem UiDoListboxNextItem(const void *pID, bool Selected = false);
 	CListboxItem UiDoListboxNextRow();
 	int UiDoListboxEnd(float *pScrollValue, bool *pItemActivated);
@@ -172,7 +172,7 @@ class CMenus : public CComponent
 
 	static int MenuImageScan(const char *pName, int IsDir, int DirType, void *pUser);
 
-	const CMenuImage *FindMenuImage(const char* pName);
+	const CMenuImage *FindMenuImage(const char *pName);
 
 	int64 m_LastInput;
 
@@ -238,9 +238,12 @@ class CMenus : public CComponent
 		bool m_Valid;
 		CDemoHeader m_Info;
 
-		bool operator<(const CDemoItem &Other) { return !str_comp(m_aFilename, "..") ? true : !str_comp(Other.m_aFilename, "..") ? false :
-														m_IsDir && !Other.m_IsDir ? true : !m_IsDir && Other.m_IsDir ? false :
-														str_comp_filenames(m_aFilename, Other.m_aFilename) < 0; }
+		bool operator<(const CDemoItem &Other)
+		{
+			return !str_comp(m_aFilename, "..") ? true : !str_comp(Other.m_aFilename, "..") ? false :
+				   m_IsDir && !Other.m_IsDir ? true : !m_IsDir && Other.m_IsDir ? false :
+				   str_comp_filenames(m_aFilename, Other.m_aFilename) < 0;
+		}
 	};
 
 	sorted_array<CDemoItem> m_lDemos;
@@ -264,14 +267,14 @@ class CMenus : public CComponent
 
 		bool operator<(const CFriendItem &Other)
 		{
-			if(m_NumFound && !Other.m_NumFound)
+			if (m_NumFound && !Other.m_NumFound)
 				return true;
-			else if(!m_NumFound && Other.m_NumFound)
+			else if (!m_NumFound && Other.m_NumFound)
 				return false;
 			else
 			{
 				int Result = str_comp_nocase(m_pFriendInfo->m_aName, Other.m_pFriendInfo->m_aName);
-				if(Result)
+				if (Result)
 					return Result < 0;
 				else
 					return str_comp_nocase(m_pFriendInfo->m_aClan, Other.m_pFriendInfo->m_aClan) < 0;
@@ -305,12 +308,12 @@ class CMenus : public CComponent
 		int m_SwitchButton;
 
 		CBrowserFilter() {}
-		CBrowserFilter(int Custom, const char* pName, IServerBrowser *pServerBrowser, int Filter, int Ping, int Country, const char* pGametype, const char* pServerAddress);
+		CBrowserFilter(int Custom, const char *pName, IServerBrowser *pServerBrowser, int Filter, int Ping, int Country, const char *pGametype, const char *pServerAddress);
 		void Switch();
 		bool Extended() const;
 		int Custom() const;
 		int Filter() const;
-		const char* Name() const;
+		const char *Name() const;
 
 		void SetFilterNum(int Num);
 
@@ -319,8 +322,8 @@ class CMenus : public CComponent
 		const CServerInfo *SortedGet(int Index) const;
 		const void *ID(int Index) const;
 
-		void GetFilter(int *pSortHash, int *pPing, int *pCountry, char* pGametype, char* pServerAddress);
-		void SetFilter(int SortHash, int Ping, int Country, const char* pGametype, const char* pServerAddress);
+		void GetFilter(int *pSortHash, int *pPing, int *pCountry, char *pGametype, char *pServerAddress);
+		void SetFilter(int SortHash, int Ping, int Country, const char *pGametype, const char *pServerAddress);
 	};
 
 	array<CBrowserFilter> m_lFilters;
@@ -403,7 +406,7 @@ class CMenus : public CComponent
 		int m_WidthValue;
 		int m_HeightValue;
 	};
-	
+
 	CVideoFormat m_aVideoFormats[MAX_RESOLUTIONS];
 	sorted_array<CVideoMode> m_lFilteredVideoModes;
 	int m_NumVideoFormats;

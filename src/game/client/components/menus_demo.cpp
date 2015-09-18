@@ -39,7 +39,7 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 	const float Margins = 5.0f;
 	float TotalHeight;
 
-	if(m_MenuActive)
+	if (m_MenuActive)
 		TotalHeight = SeekBarHeight+ButtonbarHeight+NameBarHeight+Margins*3;
 	else
 		TotalHeight = SeekBarHeight+Margins*2;
@@ -59,7 +59,7 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 	int TotalTicks = pInfo->m_LastTick - pInfo->m_FirstTick;
 
 	// we can toggle the seekbar using CTRL
-	if(!m_MenuActive && (Input()->KeyDown(KEY_LCTRL) || Input()->KeyDown(KEY_RCTRL)))
+	if (!m_MenuActive && (Input()->KeyDown(KEY_LCTRL) || Input()->KeyDown(KEY_RCTRL)))
 	{
 		if (m_SeekBarActive)
 			m_SeekBarActive = false;
@@ -70,10 +70,10 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 		}
 	}
 
-	if(m_SeekBarActivatedTime < time_get() - 5*time_freq())
+	if (m_SeekBarActivatedTime < time_get() - 5*time_freq())
 		m_SeekBarActive = false;
-	
-	if(m_MenuActive)
+
+	if (m_MenuActive)
 	{
 		MainView.HSplitTop(SeekBarHeight, &SeekBar, &ButtonBar);
 		ButtonBar.HSplitTop(Margins, 0, &ButtonBar);
@@ -86,7 +86,7 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 		SeekBar = MainView;
 
 	// do seekbar
-	if(m_SeekBarActive || m_MenuActive)
+	if (m_SeekBarActive || m_MenuActive)
 	{
 		static int s_SeekBarID = 0;
 		void *id = &s_SeekBarID;
@@ -103,7 +103,7 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 		RenderTools()->DrawUIRect(&FilledBar, vec4(1,1,1,0.5f), CUI::CORNER_ALL, Rounding);
 
 		// draw markers
-		for(int i = 0; i < pInfo->m_NumTimelineMarkers; i++)
+		for (int i = 0; i < pInfo->m_NumTimelineMarkers; i++)
 		{
 			float Ratio = (pInfo->m_aTimelineMarkers[i]-pInfo->m_FirstTick) / (float)TotalTicks;
 			Graphics()->TextureClear();
@@ -116,22 +116,22 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 
 		// draw time
 		str_format(aBuffer, sizeof(aBuffer), "%d:%02d / %d:%02d",
-			CurrentTick/SERVER_TICK_SPEED/60, (CurrentTick/SERVER_TICK_SPEED)%60,
-			TotalTicks/SERVER_TICK_SPEED/60, (TotalTicks/SERVER_TICK_SPEED)%60);
+				   CurrentTick/SERVER_TICK_SPEED/60, (CurrentTick/SERVER_TICK_SPEED)%60,
+				   TotalTicks/SERVER_TICK_SPEED/60, (TotalTicks/SERVER_TICK_SPEED)%60);
 		UI()->DoLabel(&SeekBar, aBuffer, SeekBar.h*0.70f, CUI::ALIGN_CENTER);
 
 		// do the logic
 		int Inside = UI()->MouseInside(&SeekBar);
 
-		if(UI()->ActiveItem() == id)
+		if (UI()->ActiveItem() == id)
 		{
-			if(!UI()->MouseButton(0))
+			if (!UI()->MouseButton(0))
 				UI()->SetActiveItem(0);
 			else
 			{
 				static float PrevAmount = 0.0f;
 				float Amount = (UI()->MouseX()-SeekBar.x)/(float)SeekBar.w;
-				if(Amount > 0.0f && Amount < 1.0f && absolute(PrevAmount-Amount) >= (1.0f/UI()->Screen()->w))
+				if (Amount > 0.0f && Amount < 1.0f && absolute(PrevAmount-Amount) >= (1.0f/UI()->Screen()->w))
 				{
 					PrevAmount = Amount;
 					m_pClient->OnReset();
@@ -143,17 +143,17 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 				}
 			}
 		}
-		else if(UI()->HotItem() == id)
+		else if (UI()->HotItem() == id)
 		{
-			if(UI()->MouseButton(0))
+			if (UI()->MouseButton(0))
 				UI()->SetActiveItem(id);
 		}
 
-		if(Inside)
+		if (Inside)
 			UI()->SetHotItem(id);
 	}
 
-	if(CurrentTick == TotalTicks)
+	if (CurrentTick == TotalTicks)
 	{
 		m_pClient->OnReset();
 		DemoPlayer()->Pause();
@@ -163,15 +163,15 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 	bool IncreaseDemoSpeed = false, DecreaseDemoSpeed = false;
 
 	//add spacebar for toggling Play/Pause
-	if(Input()->KeyDown(KEY_SPACE))
+	if (Input()->KeyDown(KEY_SPACE))
 	{
-		if(!pInfo->m_Paused)
+		if (!pInfo->m_Paused)
 			DemoPlayer()->Pause();
 		else
 			DemoPlayer()->Unpause();
 	}
-	
-	if(m_MenuActive)
+
+	if (m_MenuActive)
 	{
 		// do buttons
 		CUIRect Button;
@@ -179,14 +179,14 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 		// combined play and pause button
 		ButtonBar.VSplitLeft(ButtonbarHeight, &Button, &ButtonBar);
 		static int s_PlayPauseButton = 0;
-		if(!pInfo->m_Paused)
+		if (!pInfo->m_Paused)
 		{
-			if(DoButton_SpriteID(&s_PlayPauseButton, IMAGE_DEMOBUTTONS, SPRITE_DEMOBUTTON_PAUSE, &Button, CUI::CORNER_ALL))
+			if (DoButton_SpriteID(&s_PlayPauseButton, IMAGE_DEMOBUTTONS, SPRITE_DEMOBUTTON_PAUSE, &Button, CUI::CORNER_ALL))
 				DemoPlayer()->Pause();
 		}
 		else
 		{
-			if(DoButton_SpriteID(&s_PlayPauseButton, IMAGE_DEMOBUTTONS, SPRITE_DEMOBUTTON_PLAY, &Button, CUI::CORNER_ALL))
+			if (DoButton_SpriteID(&s_PlayPauseButton, IMAGE_DEMOBUTTONS, SPRITE_DEMOBUTTON_PLAY, &Button, CUI::CORNER_ALL))
 				DemoPlayer()->Unpause();
 		}
 
@@ -195,7 +195,7 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 		ButtonBar.VSplitLeft(Margins, 0, &ButtonBar);
 		ButtonBar.VSplitLeft(ButtonbarHeight, &Button, &ButtonBar);
 		static int s_ResetButton = 0;
-		if(DoButton_SpriteID(&s_ResetButton, IMAGE_DEMOBUTTONS, SPRITE_DEMOBUTTON_STOP, &Button, CUI::CORNER_ALL))
+		if (DoButton_SpriteID(&s_ResetButton, IMAGE_DEMOBUTTONS, SPRITE_DEMOBUTTON_STOP, &Button, CUI::CORNER_ALL))
 		{
 			m_pClient->OnReset();
 			DemoPlayer()->Pause();
@@ -206,20 +206,20 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 		ButtonBar.VSplitLeft(Margins, 0, &ButtonBar);
 		ButtonBar.VSplitLeft(ButtonbarHeight, &Button, &ButtonBar);
 		static int s_SlowDownButton = 0;
-		if(DoButton_SpriteID(&s_SlowDownButton, IMAGE_DEMOBUTTONS, SPRITE_DEMOBUTTON_SLOWER, &Button, CUI::CORNER_ALL) || Input()->KeyPresses(KEY_MOUSE_WHEEL_DOWN))
+		if (DoButton_SpriteID(&s_SlowDownButton, IMAGE_DEMOBUTTONS, SPRITE_DEMOBUTTON_SLOWER, &Button, CUI::CORNER_ALL) || Input()->KeyPresses(KEY_MOUSE_WHEEL_DOWN))
 			DecreaseDemoSpeed = true;
 
 		// fastforward
 		ButtonBar.VSplitLeft(Margins, 0, &ButtonBar);
 		ButtonBar.VSplitLeft(ButtonbarHeight, &Button, &ButtonBar);
 		static int s_FastForwardButton = 0;
-		if(DoButton_SpriteID(&s_FastForwardButton, IMAGE_DEMOBUTTONS, SPRITE_DEMOBUTTON_FASTER, &Button, CUI::CORNER_ALL))
+		if (DoButton_SpriteID(&s_FastForwardButton, IMAGE_DEMOBUTTONS, SPRITE_DEMOBUTTON_FASTER, &Button, CUI::CORNER_ALL))
 			IncreaseDemoSpeed = true;
 
 		// speed meter
 		ButtonBar.VSplitLeft(Margins*3, 0, &ButtonBar);
 		char aBuffer[64];
-		if(pInfo->m_Speed >= 1.0f)
+		if (pInfo->m_Speed >= 1.0f)
 			str_format(aBuffer, sizeof(aBuffer), "x%.0f", pInfo->m_Speed);
 		else
 			str_format(aBuffer, sizeof(aBuffer), "x%.2f", pInfo->m_Speed);
@@ -228,7 +228,7 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 		// close button
 		ButtonBar.VSplitRight(ButtonbarHeight*3, &ButtonBar, &Button);
 		static int s_ExitButton = 0;
-		if(DoButton_DemoPlayer(&s_ExitButton, Localize("Close"), &Button))
+		if (DoButton_DemoPlayer(&s_ExitButton, Localize("Close"), &Button))
 			Client()->Disconnect();
 
 		// demo name
@@ -242,26 +242,26 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 		TextRender()->TextEx(&Cursor, aBuf, -1);
 	}
 
-	if(IncreaseDemoSpeed || Input()->KeyPresses(KEY_MOUSE_WHEEL_UP) /*TODO: Fix me|| Input()->KeyDown(KEY_PLUS)*/ || Input()->KeyDown(KEY_KP_PLUS))
+	if (IncreaseDemoSpeed || Input()->KeyPresses(KEY_MOUSE_WHEEL_UP) /*TODO: Fix me|| Input()->KeyDown(KEY_PLUS)*/ || Input()->KeyDown(KEY_KP_PLUS))
 	{
-		if(pInfo->m_Speed < 0.1f) DemoPlayer()->SetSpeed(0.1f);
-		else if(pInfo->m_Speed < 0.25f) DemoPlayer()->SetSpeed(0.25f);
-		else if(pInfo->m_Speed < 0.5f) DemoPlayer()->SetSpeed(0.5f);
-		else if(pInfo->m_Speed < 0.75f) DemoPlayer()->SetSpeed(0.75f);
-		else if(pInfo->m_Speed < 1.0f) DemoPlayer()->SetSpeed(1.0f);
-		else if(pInfo->m_Speed < 2.0f) DemoPlayer()->SetSpeed(2.0f);
-		else if(pInfo->m_Speed < 4.0f) DemoPlayer()->SetSpeed(4.0f);
+		if (pInfo->m_Speed < 0.1f) DemoPlayer()->SetSpeed(0.1f);
+		else if (pInfo->m_Speed < 0.25f) DemoPlayer()->SetSpeed(0.25f);
+		else if (pInfo->m_Speed < 0.5f) DemoPlayer()->SetSpeed(0.5f);
+		else if (pInfo->m_Speed < 0.75f) DemoPlayer()->SetSpeed(0.75f);
+		else if (pInfo->m_Speed < 1.0f) DemoPlayer()->SetSpeed(1.0f);
+		else if (pInfo->m_Speed < 2.0f) DemoPlayer()->SetSpeed(2.0f);
+		else if (pInfo->m_Speed < 4.0f) DemoPlayer()->SetSpeed(4.0f);
 		else DemoPlayer()->SetSpeed(8.0f);
 	}
-	else if(DecreaseDemoSpeed || Input()->KeyPresses(KEY_MOUSE_WHEEL_DOWN) || Input()->KeyDown(KEY_MINUS) || Input()->KeyDown(KEY_KP_MINUS))
+	else if (DecreaseDemoSpeed || Input()->KeyPresses(KEY_MOUSE_WHEEL_DOWN) || Input()->KeyDown(KEY_MINUS) || Input()->KeyDown(KEY_KP_MINUS))
 	{
-		if(pInfo->m_Speed > 4.0f) DemoPlayer()->SetSpeed(4.0f);
-		else if(pInfo->m_Speed > 2.0f) DemoPlayer()->SetSpeed(2.0f);
-		else if(pInfo->m_Speed > 1.0f) DemoPlayer()->SetSpeed(1.0f);
-		else if(pInfo->m_Speed > 0.75f) DemoPlayer()->SetSpeed(0.75f);
-		else if(pInfo->m_Speed > 0.5f) DemoPlayer()->SetSpeed(0.5f);
-		else if(pInfo->m_Speed > 0.25f) DemoPlayer()->SetSpeed(0.25f);
-		else if(pInfo->m_Speed > 0.1f) DemoPlayer()->SetSpeed(0.1f);
+		if (pInfo->m_Speed > 4.0f) DemoPlayer()->SetSpeed(4.0f);
+		else if (pInfo->m_Speed > 2.0f) DemoPlayer()->SetSpeed(2.0f);
+		else if (pInfo->m_Speed > 1.0f) DemoPlayer()->SetSpeed(1.0f);
+		else if (pInfo->m_Speed > 0.75f) DemoPlayer()->SetSpeed(0.75f);
+		else if (pInfo->m_Speed > 0.5f) DemoPlayer()->SetSpeed(0.5f);
+		else if (pInfo->m_Speed > 0.25f) DemoPlayer()->SetSpeed(0.25f);
+		else if (pInfo->m_Speed > 0.1f) DemoPlayer()->SetSpeed(0.1f);
 		else DemoPlayer()->SetSpeed(0.05f);
 	}
 }
@@ -270,14 +270,14 @@ int CMenus::DemolistFetchCallback(const char *pName, int IsDir, int StorageType,
 {
 	CMenus *pSelf = (CMenus *)pUser;
 	int Length = str_length(pName);
-	if((pName[0] == '.' && (pName[1] == 0 ||
-		(pName[1] == '.' && pName[2] == 0 && !str_comp(pSelf->m_aCurrentDemoFolder, "demos")))) ||
-		(!IsDir && (Length < 5 || str_comp(pName+Length-5, ".demo"))))
+	if ((pName[0] == '.' && (pName[1] == 0 ||
+							 (pName[1] == '.' && pName[2] == 0 && !str_comp(pSelf->m_aCurrentDemoFolder, "demos")))) ||
+			(!IsDir && (Length < 5 || str_comp(pName+Length-5, ".demo"))))
 		return 0;
 
 	CDemoItem Item;
 	str_copy(Item.m_aFilename, pName, sizeof(Item.m_aFilename));
-	if(IsDir)
+	if (IsDir)
 	{
 		str_format(Item.m_aName, sizeof(Item.m_aName), "%s/", pName);
 		Item.m_Valid = false;
@@ -297,7 +297,7 @@ int CMenus::DemolistFetchCallback(const char *pName, int IsDir, int StorageType,
 void CMenus::DemolistPopulate()
 {
 	m_lDemos.clear();
-	if(!str_comp(m_aCurrentDemoFolder, "demos"))
+	if (!str_comp(m_aCurrentDemoFolder, "demos"))
 		m_DemolistStorageType = IStorage::TYPE_ALL;
 	Storage()->ListDirectory(m_DemolistStorageType, m_aCurrentDemoFolder, DemolistFetchCallback, this);
 	m_lDemos.sort_range();
@@ -306,7 +306,7 @@ void CMenus::DemolistPopulate()
 void CMenus::DemolistOnUpdate(bool Reset)
 {
 	m_DemolistSelectedIndex = Reset ? m_lDemos.size() > 0 ? 0 : -1 :
-										m_DemolistSelectedIndex >= m_lDemos.size() ? m_lDemos.size()-1 : m_DemolistSelectedIndex;
+							  m_DemolistSelectedIndex >= m_lDemos.size() ? m_lDemos.size()-1 : m_DemolistSelectedIndex;
 	m_DemolistSelectedIsDir = m_DemolistSelectedIndex < 0 ? false : m_lDemos[m_DemolistSelectedIndex].m_IsDir;
 }
 
@@ -323,7 +323,7 @@ void CMenus::RenderDemoList(CUIRect MainView)
 	BottomView.HSplitTop(20.f, 0, &BottomView);
 
 	static int s_Inited = 0;
-	if(!s_Inited)
+	if (!s_Inited)
 	{
 		DemolistPopulate();
 		DemolistOnUpdate(true);
@@ -331,23 +331,23 @@ void CMenus::RenderDemoList(CUIRect MainView)
 	}
 
 	char aFooterLabel[128] = {0};
-	if(m_DemolistSelectedIndex >= 0)
+	if (m_DemolistSelectedIndex >= 0)
 	{
 		CDemoItem *Item = &m_lDemos[m_DemolistSelectedIndex];
-		if(str_comp(Item->m_aFilename, "..") == 0)
+		if (str_comp(Item->m_aFilename, "..") == 0)
 			str_copy(aFooterLabel, Localize("Parent Folder"), sizeof(aFooterLabel));
-		else if(m_DemolistSelectedIsDir)
+		else if (m_DemolistSelectedIsDir)
 			str_copy(aFooterLabel, Localize("Folder"), sizeof(aFooterLabel));
 		else
 		{
-			if(!Item->m_InfosLoaded)
+			if (!Item->m_InfosLoaded)
 			{
 				char aBuffer[512];
 				str_format(aBuffer, sizeof(aBuffer), "%s/%s", m_aCurrentDemoFolder, Item->m_aFilename);
 				Item->m_Valid = DemoPlayer()->GetDemoInfo(Storage(), aBuffer, Item->m_StorageType, &Item->m_Info);
 				Item->m_InfosLoaded = true;
 			}
-			if(!Item->m_Valid)
+			if (!Item->m_Valid)
 				str_copy(aFooterLabel, Localize("Invalid Demo"), sizeof(aFooterLabel));
 			else
 				str_copy(aFooterLabel, Localize("Demo details"), sizeof(aFooterLabel));
@@ -361,17 +361,17 @@ void CMenus::RenderDemoList(CUIRect MainView)
 	static float s_ScrollValue = 0;
 	UiDoListboxHeader(&ListBox, Localize("Recorded"), 20.0f, 2.0f);
 	UiDoListboxStart(&s_DemoListId, 20.0f, 0, m_lDemos.size(), 1, m_DemolistSelectedIndex, s_ScrollValue);
-	for(sorted_array<CDemoItem>::range r = m_lDemos.all(); !r.empty(); r.pop_front())
+	for (sorted_array<CDemoItem>::range r = m_lDemos.all(); !r.empty(); r.pop_front())
 	{
-		CListboxItem Item = UiDoListboxNextItem((void*)(&r.front()));
-		if(Item.m_Visible)
+		CListboxItem Item = UiDoListboxNextItem((void *)(&r.front()));
+		if (Item.m_Visible)
 		{
 			Item.m_Rect.VSplitLeft(Item.m_Rect.h, &FileIcon, &Item.m_Rect);
 			Item.m_Rect.VSplitLeft(5.0f, 0, &Item.m_Rect);
 			FileIcon.Margin(3.0f, &FileIcon);
 			FileIcon.x += 3.0f;
 			DoIcon(IMAGE_FILEICONS, r.front().m_IsDir?SPRITE_FILE_FOLDER:SPRITE_FILE_DEMO1, &FileIcon);
-			if(!str_comp(m_lDemos[m_DemolistSelectedIndex].m_aName, r.front().m_aName))
+			if (!str_comp(m_lDemos[m_DemolistSelectedIndex].m_aName, r.front().m_aName))
 			{
 				TextRender()->TextColor(0.0f, 0.0f, 0.0f, 1.0f);
 				TextRender()->TextOutlineColor(1.0f, 1.0f, 1.0f, 0.25f);
@@ -404,7 +404,7 @@ void CMenus::RenderDemoList(CUIRect MainView)
 	MainView.HSplitTop(ButtonHeight, &Label, &MainView);
 	Label.y += 2.0f;
 	UI()->DoLabel(&Label, aFooterLabel, ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
-	if(!m_DemolistSelectedIsDir && m_DemolistSelectedIndex >= 0 && m_lDemos[m_DemolistSelectedIndex].m_Valid)
+	if (!m_DemolistSelectedIsDir && m_DemolistSelectedIndex >= 0 && m_lDemos[m_DemolistSelectedIndex].m_Valid)
 	{
 		MainView.HSplitTop(Spacing, 0, &MainView);
 		MainView.HSplitTop(ButtonHeight, &Button, &MainView);
@@ -417,7 +417,7 @@ void CMenus::RenderDemoList(CUIRect MainView)
 		MainView.HSplitTop(Spacing, 0, &MainView);
 		MainView.HSplitTop(ButtonHeight, &Button, &MainView);
 		int Length = ((m_lDemos[m_DemolistSelectedIndex].m_Info.m_aLength[0]<<24)&0xFF000000) | ((m_lDemos[m_DemolistSelectedIndex].m_Info.m_aLength[1]<<16)&0xFF0000) |
-					((m_lDemos[m_DemolistSelectedIndex].m_Info.m_aLength[2]<<8)&0xFF00) | (m_lDemos[m_DemolistSelectedIndex].m_Info.m_aLength[3]&0xFF);
+					 ((m_lDemos[m_DemolistSelectedIndex].m_Info.m_aLength[2]<<8)&0xFF00) | (m_lDemos[m_DemolistSelectedIndex].m_Info.m_aLength[3]&0xFF);
 		char aBuf[64];
 		str_format(aBuf, sizeof(aBuf), "%d:%02d", Length/60, Length%60);
 		DoInfoBox(&Button, Localize("Length"), aBuf);
@@ -439,7 +439,7 @@ void CMenus::RenderDemoList(CUIRect MainView)
 		MainView.HSplitTop(ButtonHeight, &Button, &MainView);
 		Button.VSplitLeft(ButtonHeight, 0, &Button);
 		float Size = float((m_lDemos[m_DemolistSelectedIndex].m_Info.m_aMapSize[0]<<24) | (m_lDemos[m_DemolistSelectedIndex].m_Info.m_aMapSize[1]<<16) |
-					(m_lDemos[m_DemolistSelectedIndex].m_Info.m_aMapSize[2]<<8) | (m_lDemos[m_DemolistSelectedIndex].m_Info.m_aMapSize[3]))/1024.0f;
+						   (m_lDemos[m_DemolistSelectedIndex].m_Info.m_aMapSize[2]<<8) | (m_lDemos[m_DemolistSelectedIndex].m_Info.m_aMapSize[3]))/1024.0f;
 		str_format(aBuf, sizeof(aBuf), Localize("%.3f KiB"), Size);
 		DoInfoBox(&Button, Localize("Size"), aBuf);
 
@@ -447,7 +447,7 @@ void CMenus::RenderDemoList(CUIRect MainView)
 		MainView.HSplitTop(ButtonHeight, &Button, &MainView);
 		Button.VSplitLeft(ButtonHeight, 0, &Button);
 		unsigned Crc = (m_lDemos[m_DemolistSelectedIndex].m_Info.m_aMapCrc[0]<<24) | (m_lDemos[m_DemolistSelectedIndex].m_Info.m_aMapCrc[1]<<16) |
-					(m_lDemos[m_DemolistSelectedIndex].m_Info.m_aMapCrc[2]<<8) | (m_lDemos[m_DemolistSelectedIndex].m_Info.m_aMapCrc[3]);
+					   (m_lDemos[m_DemolistSelectedIndex].m_Info.m_aMapCrc[2]<<8) | (m_lDemos[m_DemolistSelectedIndex].m_Info.m_aMapCrc[3]);
 		str_format(aBuf, sizeof(aBuf), "%08x", Crc);
 		DoInfoBox(&Button, Localize("Crc"), aBuf);
 	}
@@ -464,20 +464,20 @@ void CMenus::RenderDemoList(CUIRect MainView)
 	BottomView.HSplitTop(25.0f, &BottomView, 0);
 	BottomView.VSplitLeft(ButtonWidth, &Button, &BottomView);
 	static int s_RefreshButton = 0;
-	if(DoButton_Menu(&s_RefreshButton, Localize("Refresh"), 0, &Button))
+	if (DoButton_Menu(&s_RefreshButton, Localize("Refresh"), 0, &Button))
 	{
 		DemolistPopulate();
 		DemolistOnUpdate(false);
 	}
 
-	if(!m_DemolistSelectedIsDir)
+	if (!m_DemolistSelectedIsDir)
 	{
 		BottomView.VSplitLeft(Spacing, 0, &BottomView);
 		BottomView.VSplitLeft(ButtonWidth, &Button, &BottomView);
 		static int s_DeleteButton = 0;
-		if(DoButton_Menu(&s_DeleteButton, Localize("Delete"), 0, &Button) || m_DeletePressed)
+		if (DoButton_Menu(&s_DeleteButton, Localize("Delete"), 0, &Button) || m_DeletePressed)
 		{
-			if(m_DemolistSelectedIndex >= 0)
+			if (m_DemolistSelectedIndex >= 0)
 			{
 				UI()->SetActiveItem(0);
 				m_Popup = POPUP_DELETE_DEMO;
@@ -488,9 +488,9 @@ void CMenus::RenderDemoList(CUIRect MainView)
 		BottomView.VSplitLeft(Spacing, 0, &BottomView);
 		BottomView.VSplitLeft(ButtonWidth, &Button, &BottomView);
 		static int s_RenameButton = 0;
-		if(DoButton_Menu(&s_RenameButton, Localize("Rename"), 0, &Button))
+		if (DoButton_Menu(&s_RenameButton, Localize("Rename"), 0, &Button))
 		{
-			if(m_DemolistSelectedIndex >= 0)
+			if (m_DemolistSelectedIndex >= 0)
 			{
 				UI()->SetActiveItem(0);
 				m_Popup = POPUP_RENAME_DEMO;
@@ -503,13 +503,13 @@ void CMenus::RenderDemoList(CUIRect MainView)
 	BottomView.VSplitLeft(Spacing, 0, &BottomView);
 	BottomView.VSplitLeft(ButtonWidth, &Button, &BottomView);
 	static int s_PlayButton = 0;
-	if(DoButton_Menu(&s_PlayButton, m_DemolistSelectedIsDir?Localize("Open"):Localize("Play", "DemoBrowser"), 0, &Button) || Activated)
+	if (DoButton_Menu(&s_PlayButton, m_DemolistSelectedIsDir?Localize("Open"):Localize("Play", "DemoBrowser"), 0, &Button) || Activated)
 	{
-		if(m_DemolistSelectedIndex >= 0)
+		if (m_DemolistSelectedIndex >= 0)
 		{
-			if(m_DemolistSelectedIsDir)	// folder
+			if (m_DemolistSelectedIsDir)	// folder
 			{
-				if(str_comp(m_lDemos[m_DemolistSelectedIndex].m_aFilename, "..") == 0)	// parent folder
+				if (str_comp(m_lDemos[m_DemolistSelectedIndex].m_aFilename, "..") == 0)	// parent folder
 					fs_parent_dir(m_aCurrentDemoFolder);
 				else	// sub folder
 				{
@@ -526,7 +526,7 @@ void CMenus::RenderDemoList(CUIRect MainView)
 				char aBuf[512];
 				str_format(aBuf, sizeof(aBuf), "%s/%s", m_aCurrentDemoFolder, m_lDemos[m_DemolistSelectedIndex].m_aFilename);
 				const char *pError = Client()->DemoPlayer_Play(aBuf, m_lDemos[m_DemolistSelectedIndex].m_StorageType);
-				if(pError)
+				if (pError)
 					PopupMessage(Localize("Error loading demo"), pError, Localize("Ok"));
 				else
 				{

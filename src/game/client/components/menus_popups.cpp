@@ -30,9 +30,9 @@ static int g_NumPopups = 0;
 
 void CMenus::InvokePopupMenu(void *pID, int Flags, float x, float y, float Width, float Height, int (*pfnFunc)(CMenus *pMenu, CUIRect Rect), void *pExtra)
 {
-	if(x + Width > UI()->Screen()->w)
+	if (x + Width > UI()->Screen()->w)
 		x -= Width;
-	if(y + Height > UI()->Screen()->h)
+	if (y + Height > UI()->Screen()->h)
 		y -= Height;
 	s_Popups[g_NumPopups].m_pId = pID;
 	s_Popups[g_NumPopups].m_IsMenu = Flags;
@@ -47,28 +47,28 @@ void CMenus::InvokePopupMenu(void *pID, int Flags, float x, float y, float Width
 
 void CMenus::DoPopupMenu()
 {
-	for(int i = 0; i < g_NumPopups; i++)
+	for (int i = 0; i < g_NumPopups; i++)
 	{
 		bool Inside = UI()->MouseInside(&s_Popups[i].m_Rect);
 		UI()->SetHotItem(&s_Popups[i].m_pId);
 
-		if(UI()->ActiveItem() == &s_Popups[i].m_pId)
+		if (UI()->ActiveItem() == &s_Popups[i].m_pId)
 		{
-			if(!UI()->MouseButton(0))
+			if (!UI()->MouseButton(0))
 			{
-				if(!Inside)
+				if (!Inside)
 					g_NumPopups--;
 				UI()->SetActiveItem(0);
 			}
 		}
-		else if(UI()->HotItem() == &s_Popups[i].m_pId)
+		else if (UI()->HotItem() == &s_Popups[i].m_pId)
 		{
-			if(UI()->MouseButton(0))
+			if (UI()->MouseButton(0))
 				UI()->SetActiveItem(&s_Popups[i].m_pId);
 		}
 
 		int Corners = CUI::CORNER_ALL;
-		if(s_Popups[i].m_IsMenu)
+		if (s_Popups[i].m_IsMenu)
 			Corners = CUI::CORNER_R|CUI::CORNER_B;
 
 		CUIRect r = s_Popups[i].m_Rect;
@@ -77,10 +77,10 @@ void CMenus::DoPopupMenu()
 		RenderTools()->DrawUIRect(&r, vec4(0,0,0,0.75f), Corners, 3.0f);
 		r.Margin(4.0f, &r);
 
-		if(s_Popups[i].m_pfnFunc(this, r))
+		if (s_Popups[i].m_pfnFunc(this, r))
 			g_NumPopups--;
 
-		if(Input()->KeyDown(KEY_ESCAPE))
+		if (Input()->KeyDown(KEY_ESCAPE))
 			g_NumPopups--;
 	}
 }
@@ -112,47 +112,47 @@ int CMenus::PopupFilter(CMenus *pMenus, CUIRect View)
 
 	ServerFilter.HSplitTop(20.0f, &Button, &ServerFilter);
 	static int s_BrFilterEmpty = 0;
-	if(pMenus->DoButton_CheckBox(&s_BrFilterEmpty, Localize("Has people playing"), SortHash&IServerBrowser::FILTER_EMPTY, &Button))
+	if (pMenus->DoButton_CheckBox(&s_BrFilterEmpty, Localize("Has people playing"), SortHash&IServerBrowser::FILTER_EMPTY, &Button))
 		pFilter->SetFilter(SortHash^IServerBrowser::FILTER_EMPTY, Ping, Country, aGametype, aServerAddress);
 
 	ServerFilter.HSplitTop(20.0f, &Button, &ServerFilter);
 	static int s_BrFilterSpectators = 0;
-	if(pMenus->DoButton_CheckBox(&s_BrFilterSpectators, Localize("Count players only"), SortHash&IServerBrowser::FILTER_SPECTATORS, &Button))
+	if (pMenus->DoButton_CheckBox(&s_BrFilterSpectators, Localize("Count players only"), SortHash&IServerBrowser::FILTER_SPECTATORS, &Button))
 		pFilter->SetFilter(SortHash^IServerBrowser::FILTER_SPECTATORS, Ping, Country, aGametype, aServerAddress);
 
 	ServerFilter.HSplitTop(20.0f, &Button, &ServerFilter);
 	static int s_BrFilterFull = 0;
-	if(pMenus->DoButton_CheckBox(&s_BrFilterFull, Localize("Server not full"), SortHash&IServerBrowser::FILTER_FULL, &Button))
+	if (pMenus->DoButton_CheckBox(&s_BrFilterFull, Localize("Server not full"), SortHash&IServerBrowser::FILTER_FULL, &Button))
 		pFilter->SetFilter(SortHash^IServerBrowser::FILTER_FULL, Ping, Country, aGametype, aServerAddress);
 
 	ServerFilter.HSplitTop(20.0f, &Button, &ServerFilter);
 	static int s_BrFilterFriends = 0;
-	if(pMenus->DoButton_CheckBox(&s_BrFilterFriends, Localize("Show friends only"), SortHash&IServerBrowser::FILTER_FRIENDS, &Button))
+	if (pMenus->DoButton_CheckBox(&s_BrFilterFriends, Localize("Show friends only"), SortHash&IServerBrowser::FILTER_FRIENDS, &Button))
 		pFilter->SetFilter(SortHash^IServerBrowser::FILTER_FRIENDS, Ping, Country, aGametype, aServerAddress);
 
 	ServerFilter.HSplitTop(20.0f, &Button, &ServerFilter);
 	static int s_BrFilterPw = 0;
-	if(pMenus->DoButton_CheckBox(&s_BrFilterPw, Localize("No password"), SortHash&IServerBrowser::FILTER_PW, &Button))
+	if (pMenus->DoButton_CheckBox(&s_BrFilterPw, Localize("No password"), SortHash&IServerBrowser::FILTER_PW, &Button))
 		pFilter->SetFilter(SortHash^IServerBrowser::FILTER_PW, Ping, Country, aGametype, aServerAddress);
 
 	ServerFilter.HSplitTop(20.0f, &Button, &ServerFilter);
 	static int s_BrFilterCompatversion = 0;
-	if(pMenus->DoButton_CheckBox(&s_BrFilterCompatversion, Localize("Compatible version"), SortHash&IServerBrowser::FILTER_COMPAT_VERSION, &Button))
+	if (pMenus->DoButton_CheckBox(&s_BrFilterCompatversion, Localize("Compatible version"), SortHash&IServerBrowser::FILTER_COMPAT_VERSION, &Button))
 		pFilter->SetFilter(SortHash^IServerBrowser::FILTER_COMPAT_VERSION, Ping, Country, aGametype, aServerAddress);
 
 	ServerFilter.HSplitTop(20.0f, &Button, &ServerFilter);
 	static int s_BrFilterPure = 0;
-	if(pMenus->DoButton_CheckBox(&s_BrFilterPure, Localize("Standard gametype"), SortHash&IServerBrowser::FILTER_PURE, &Button))
+	if (pMenus->DoButton_CheckBox(&s_BrFilterPure, Localize("Standard gametype"), SortHash&IServerBrowser::FILTER_PURE, &Button))
 		pFilter->SetFilter(SortHash^IServerBrowser::FILTER_PURE, Ping, Country, aGametype, aServerAddress);
 
 	ServerFilter.HSplitTop(20.0f, &Button, &ServerFilter);
 	static int s_BrFilterPureMap = 0;
-	if(pMenus->DoButton_CheckBox(&s_BrFilterPureMap, Localize("Standard map"), SortHash&IServerBrowser::FILTER_PURE_MAP, &Button))
+	if (pMenus->DoButton_CheckBox(&s_BrFilterPureMap, Localize("Standard map"), SortHash&IServerBrowser::FILTER_PURE_MAP, &Button))
 		pFilter->SetFilter(SortHash^IServerBrowser::FILTER_PURE_MAP, Ping, Country, aGametype, aServerAddress);
 
 	ServerFilter.HSplitTop(20.0f, &Button, &ServerFilter);
 	static int s_BrFilterGametypeStrict = 0;
-	if(pMenus->DoButton_CheckBox(&s_BrFilterGametypeStrict, Localize("Strict gametype filter"), SortHash&IServerBrowser::FILTER_GAMETYPE_STRICT, &Button))
+	if (pMenus->DoButton_CheckBox(&s_BrFilterGametypeStrict, Localize("Strict gametype filter"), SortHash&IServerBrowser::FILTER_GAMETYPE_STRICT, &Button))
 		pFilter->SetFilter(SortHash^IServerBrowser::FILTER_GAMETYPE_STRICT, Ping, Country, aGametype, aServerAddress);
 
 	ServerFilter.HSplitTop(5.0f, 0, &ServerFilter);
@@ -163,7 +163,7 @@ int CMenus::PopupFilter(CMenus *pMenus, CUIRect View)
 	ServerFilter.HSplitTop(3.0f, 0, &ServerFilter);
 	static float Offset = 0.0f;
 	static int s_BrFilterGametype = 0;
-	if(pMenus->DoEditBox(&s_BrFilterGametype, &Button, aGametype, sizeof(aGametype), FontSize, &Offset))
+	if (pMenus->DoEditBox(&s_BrFilterGametype, &Button, aGametype, sizeof(aGametype), FontSize, &Offset))
 		pFilter->SetFilter(SortHash, Ping, Country, aGametype, aServerAddress);
 
 	{
@@ -179,7 +179,7 @@ int CMenus::PopupFilter(CMenus *pMenus, CUIRect View)
 		static int s_BrFilterPing = 0;
 		pMenus->DoEditBox(&s_BrFilterPing, &EditBox, aBuf, sizeof(aBuf), FontSize, &Offset);
 		int NewPing = clamp(str_toint(aBuf), 0, 999);
-		if(NewPing != Ping)
+		if (NewPing != Ping)
 			pFilter->SetFilter(SortHash, NewPing, Country, aGametype, aServerAddress);
 	}
 
@@ -190,7 +190,7 @@ int CMenus::PopupFilter(CMenus *pMenus, CUIRect View)
 	Button.VSplitRight(60.0f, 0, &Button);
 	static float OffsetAddr = 0.0f;
 	static int s_BrFilterServerAddress = 0;
-	if(pMenus->DoEditBox(&s_BrFilterServerAddress, &Button, aServerAddress, sizeof(aServerAddress), FontSize, &OffsetAddr))
+	if (pMenus->DoEditBox(&s_BrFilterServerAddress, &Button, aServerAddress, sizeof(aServerAddress), FontSize, &OffsetAddr))
 		pFilter->SetFilter(SortHash, Ping, Country, aGametype, aServerAddress);
 
 	// player country
@@ -201,7 +201,7 @@ int CMenus::PopupFilter(CMenus *pMenus, CUIRect View)
 		Button.VSplitRight(60.0f, &Button, &Rect);
 		Button.HMargin(3.0f, &Button);
 		static int s_BrFilterCountry = 0;
-		if(pMenus->DoButton_CheckBox(&s_BrFilterCountry, Localize("Player country:"), SortHash&IServerBrowser::FILTER_COUNTRY, &Button))
+		if (pMenus->DoButton_CheckBox(&s_BrFilterCountry, Localize("Player country:"), SortHash&IServerBrowser::FILTER_COUNTRY, &Button))
 			pFilter->SetFilter(SortHash^IServerBrowser::FILTER_COUNTRY, Ping, Country, aGametype, aServerAddress);
 
 		float OldWidth = Rect.w;
@@ -211,7 +211,7 @@ int CMenus::PopupFilter(CMenus *pMenus, CUIRect View)
 		pMenus->m_pClient->m_pCountryFlags->Render(Country, &Color, Rect.x, Rect.y, Rect.w, Rect.h);
 
 		static int s_BrFilterCountryIndex = 0;
-		if(SortHash^IServerBrowser::FILTER_COUNTRY && pMenus->UI()->DoButtonLogic(&s_BrFilterCountryIndex, "", 0, &Rect))
+		if (SortHash^IServerBrowser::FILTER_COUNTRY && pMenus->UI()->DoButtonLogic(&s_BrFilterCountryIndex, "", 0, &Rect))
 			pMenus->m_Popup = POPUP_COUNTRY;
 	}
 

@@ -29,16 +29,16 @@ public:
 	CTuningParams()
 	{
 		const float TicksPerSecond = 50.0f;
-		#define MACRO_TUNING_PARAM(Name,ScriptName,Value) m_##Name.Set((int)(Value*100.0f));
-		#include "tuning.h"
-		#undef MACRO_TUNING_PARAM
+#define MACRO_TUNING_PARAM(Name,ScriptName,Value) m_##Name.Set((int)(Value*100.0f));
+#include "tuning.h"
+#undef MACRO_TUNING_PARAM
 	}
 
 	static const char *m_apNames[];
 
-	#define MACRO_TUNING_PARAM(Name,ScriptName,Value) CTuneParam m_##Name;
-	#include "tuning.h"
-	#undef MACRO_TUNING_PARAM
+#define MACRO_TUNING_PARAM(Name,ScriptName,Value) CTuneParam m_##Name;
+#include "tuning.h"
+#undef MACRO_TUNING_PARAM
 
 	static int Num() { return sizeof(CTuningParams)/sizeof(int); }
 	bool Set(int Index, float Value);
@@ -50,10 +50,10 @@ public:
 inline void StrToInts(int *pInts, int Num, const char *pStr)
 {
 	int Index = 0;
-	while(Num)
+	while (Num)
 	{
 		char aBuf[4] = {0,0,0,0};
-		for(int c = 0; c < 4 && pStr[Index]; c++, Index++)
+		for (int c = 0; c < 4 && pStr[Index]; c++, Index++)
 			aBuf[c] = pStr[Index];
 		*pInts = ((aBuf[0]+128)<<24)|((aBuf[1]+128)<<16)|((aBuf[2]+128)<<8)|(aBuf[3]+128);
 		pInts++;
@@ -66,7 +66,7 @@ inline void StrToInts(int *pInts, int Num, const char *pStr)
 
 inline void IntsToStr(const int *pInts, int Num, char *pStr)
 {
-	while(Num)
+	while (Num)
 	{
 		pStr[0] = (((*pInts)>>24)&0xff)-128;
 		pStr[1] = (((*pInts)>>16)&0xff)-128;
@@ -96,21 +96,21 @@ inline vec2 CalcPos(vec2 Pos, vec2 Velocity, float Curvature, float Speed, float
 template<typename T>
 inline T SaturatedAdd(T Min, T Max, T Current, T Modifier)
 {
-	if(Modifier < 0)
+	if (Modifier < 0)
 	{
-		if(Current < Min)
+		if (Current < Min)
 			return Current;
 		Current += Modifier;
-		if(Current < Min)
+		if (Current < Min)
 			Current = Min;
 		return Current;
 	}
 	else
 	{
-		if(Current > Max)
+		if (Current > Max)
 			return Current;
 		Current += Modifier;
-		if(Current > Max)
+		if (Current > Max)
 			Current = Max;
 		return Current;
 	}

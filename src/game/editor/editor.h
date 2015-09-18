@@ -73,33 +73,33 @@ public:
 	{
 		m_Top = -1000000000.0f;
 		m_Bottom = 1000000000.0f;
-		for(int i = 0; i < m_lPoints.size(); i++)
+		for (int i = 0; i < m_lPoints.size(); i++)
 		{
-			for(int c = 0; c < m_Channels; c++)
+			for (int c = 0; c < m_Channels; c++)
 			{
-				if(ChannelMask&(1<<c))
+				if (ChannelMask&(1<<c))
 				{
 					{
 						// value handle
 						float v = fx2f(m_lPoints[i].m_aValues[c]);
-						if(v > m_Top) m_Top = v;
-						if(v < m_Bottom) m_Bottom = v;
+						if (v > m_Top) m_Top = v;
+						if (v < m_Bottom) m_Bottom = v;
 					}
 
-					if(m_lPoints[i].m_Curvetype == CURVETYPE_BEZIER)
+					if (m_lPoints[i].m_Curvetype == CURVETYPE_BEZIER)
 					{
 						// out-tangent handle
 						float v = fx2f(m_lPoints[i].m_aValues[c]+m_lPoints[i].m_aOutTangentdy[c]);
-						if(v > m_Top) m_Top = v;
-						if(v < m_Bottom) m_Bottom = v;
+						if (v > m_Top) m_Top = v;
+						if (v < m_Bottom) m_Bottom = v;
 					}
 
-					if((i>0) && m_lPoints[i-1].m_Curvetype == CURVETYPE_BEZIER)
+					if ((i>0) && m_lPoints[i-1].m_Curvetype == CURVETYPE_BEZIER)
 					{
 						// in-tangent handle
 						float v = fx2f(m_lPoints[i].m_aValues[c]+m_lPoints[i].m_aInTangentdy[c]);
-						if(v > m_Top) m_Top = v;
-						if(v < m_Bottom) m_Bottom = v;
+						if (v > m_Top) m_Top = v;
+						if (v < m_Bottom) m_Bottom = v;
 					}
 				}
 			}
@@ -121,7 +121,7 @@ public:
 		p.m_aValues[2] = v2;
 		p.m_aValues[3] = v3;
 		p.m_Curvetype = CURVETYPE_LINEAR;
-		for(int c = 0; c < 4; c++)
+		for (int c = 0; c < 4; c++)
 		{
 			p.m_aInTangentdx[c] = 0;
 			p.m_aInTangentdy[c] = 0;
@@ -134,7 +134,7 @@ public:
 
 	float EndTime()
 	{
-		if(m_lPoints.size())
+		if (m_lPoints.size())
 			return m_lPoints[m_lPoints.size()-1].m_Time*(1.0f/1000.0f);
 		return 0;
 	}
@@ -199,7 +199,7 @@ class CLayerGroup
 public:
 	class CEditorMap *m_pMap;
 
-	array<CLayer*> m_lLayers;
+	array<CLayer *> m_lLayers;
 
 	int m_OffsetX;
 	int m_OffsetY;
@@ -246,13 +246,13 @@ public:
 
 	void ModifyImageIndex(INDEX_MODIFY_FUNC Func)
 	{
-		for(int i = 0; i < m_lLayers.size(); i++)
+		for (int i = 0; i < m_lLayers.size(); i++)
 			m_lLayers[i]->ModifyImageIndex(Func);
 	}
 
 	void ModifyEnvelopeIndex(INDEX_MODIFY_FUNC Func)
 	{
-		for(int i = 0; i < m_lLayers.size(); i++)
+		for (int i = 0; i < m_lLayers.size(); i++)
 			m_lLayers[i]->ModifyEnvelopeIndex(Func);
 	}
 };
@@ -299,9 +299,9 @@ public:
 		Clean();
 	}
 
-	array<CLayerGroup*> m_lGroups;
-	array<CEditorImage*> m_lImages;
-	array<CEnvelope*> m_lEnvelopes;
+	array<CLayerGroup *> m_lGroups;
+	array<CEditorImage *> m_lImages;
+	array<CEnvelope *> m_lEnvelopes;
 
 	class CMapInfo
 	{
@@ -346,9 +346,9 @@ public:
 
 	int SwapGroups(int Index0, int Index1)
 	{
-		if(Index0 < 0 || Index0 >= m_lGroups.size()) return Index0;
-		if(Index1 < 0 || Index1 >= m_lGroups.size()) return Index0;
-		if(Index0 == Index1) return Index0;
+		if (Index0 < 0 || Index0 >= m_lGroups.size()) return Index0;
+		if (Index1 < 0 || Index1 >= m_lGroups.size()) return Index0;
+		if (Index0 == Index1) return Index0;
 		m_Modified = true;
 		swap(m_lGroups[Index0], m_lGroups[Index1]);
 		return Index1;
@@ -356,7 +356,7 @@ public:
 
 	void DeleteGroup(int Index)
 	{
-		if(Index < 0 || Index >= m_lGroups.size()) return;
+		if (Index < 0 || Index >= m_lGroups.size()) return;
 		m_Modified = true;
 		delete m_lGroups[Index];
 		m_lGroups.remove_index(Index);
@@ -365,14 +365,14 @@ public:
 	void ModifyImageIndex(INDEX_MODIFY_FUNC pfnFunc)
 	{
 		m_Modified = true;
-		for(int i = 0; i < m_lGroups.size(); i++)
+		for (int i = 0; i < m_lGroups.size(); i++)
 			m_lGroups[i]->ModifyImageIndex(pfnFunc);
 	}
 
 	void ModifyEnvelopeIndex(INDEX_MODIFY_FUNC pfnFunc)
 	{
 		m_Modified = true;
-		for(int i = 0; i < m_lGroups.size(); i++)
+		for (int i = 0; i < m_lGroups.size(); i++)
 			m_lGroups[i]->ModifyEnvelopeIndex(pfnFunc);
 	}
 
@@ -593,8 +593,8 @@ public:
 
 	void FilelistPopulate(int StorageType);
 	void InvokeFileDialog(int StorageType, int FileType, const char *pTitle, const char *pButtonText,
-		const char *pBasepath, const char *pDefaultName,
-		void (*pfnFunc)(const char *pFilename, int StorageType, void *pUser), void *pUser);
+						  const char *pBasepath, const char *pDefaultName,
+						  void (*pfnFunc)(const char *pFilename, int StorageType, void *pUser), void *pUser);
 
 	void Reset(bool CreateDefault=true);
 	int Save(const char *pFilename);
@@ -665,9 +665,12 @@ public:
 		bool m_IsLink;
 		int m_StorageType;
 
-		bool operator<(const CFilelistItem &Other) { return !str_comp(m_aFilename, "..") ? true : !str_comp(Other.m_aFilename, "..") ? false :
-														m_IsDir && !Other.m_IsDir ? true : !m_IsDir && Other.m_IsDir ? false :
-														str_comp_filenames(m_aFilename, Other.m_aFilename) < 0; }
+		bool operator<(const CFilelistItem &Other)
+		{
+			return !str_comp(m_aFilename, "..") ? true : !str_comp(Other.m_aFilename, "..") ? false :
+				   m_IsDir && !Other.m_IsDir ? true : !m_IsDir && Other.m_IsDir ? false :
+				   str_comp_filenames(m_aFilename, Other.m_aFilename) < 0;
+		}
 	};
 	sorted_array<CFilelistItem> m_FileList;
 	int m_FilesStartAt;
@@ -713,7 +716,7 @@ public:
 	int m_SelectedPoints;
 	int m_SelectedEnvelope;
 	int m_SelectedEnvelopePoint;
-    int m_SelectedQuadEnvelope;
+	int m_SelectedQuadEnvelope;
 	int m_SelectedImage;
 
 	IGraphics::CTextureHandle m_CheckerTexture;
@@ -815,11 +818,11 @@ public:
 	{
 		const char *pExtractedName = pFileName;
 		const char *pEnd = 0;
-		for(; *pFileName; ++pFileName)
+		for (; *pFileName; ++pFileName)
 		{
-			if(*pFileName == '/' || *pFileName == '\\')
+			if (*pFileName == '/' || *pFileName == '\\')
 				pExtractedName = pFileName+1;
-			else if(*pFileName == '.')
+			else if (*pFileName == '.')
 				pEnd = pFileName;
 		}
 

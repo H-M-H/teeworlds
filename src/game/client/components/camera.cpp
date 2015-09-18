@@ -26,14 +26,14 @@ CCamera::CCamera()
 
 void CCamera::OnRender()
 {
-	if(Client()->State() == IClient::STATE_ONLINE || Client()->State() == IClient::STATE_DEMOPLAYBACK)
+	if (Client()->State() == IClient::STATE_ONLINE || Client()->State() == IClient::STATE_DEMOPLAYBACK)
 	{
 		m_Zoom = 1.0f;
 
 		// update camera center
-		if(m_pClient->m_Snap.m_SpecInfo.m_Active && !m_pClient->m_Snap.m_SpecInfo.m_UsePosition)
+		if (m_pClient->m_Snap.m_SpecInfo.m_Active && !m_pClient->m_Snap.m_SpecInfo.m_UsePosition)
 		{
-			if(m_CamType != CAMTYPE_SPEC)
+			if (m_CamType != CAMTYPE_SPEC)
 			{
 				m_pClient->m_pControls->m_MousePos = m_PrevCenter;
 				m_pClient->m_pControls->ClampMousePos();
@@ -43,7 +43,7 @@ void CCamera::OnRender()
 		}
 		else
 		{
-			if(m_CamType != CAMTYPE_PLAYER)
+			if (m_CamType != CAMTYPE_PLAYER)
 			{
 				m_pClient->m_pControls->ClampMousePos();
 				m_CamType = CAMTYPE_PLAYER;
@@ -52,7 +52,7 @@ void CCamera::OnRender()
 			vec2 CameraOffset(0, 0);
 
 			float l = length(m_pClient->m_pControls->m_MousePos);
-			if(l > 0.0001f) // make sure that this isn't 0
+			if (l > 0.0001f) // make sure that this isn't 0
 			{
 				float DeadZone = g_Config.m_ClMouseDeadzone;
 				float FollowFactor = g_Config.m_ClMouseFollowfactor/100.0f;
@@ -61,7 +61,7 @@ void CCamera::OnRender()
 				CameraOffset = normalize(m_pClient->m_pControls->m_MousePos)*OffsetAmount;
 			}
 
-			if(m_pClient->m_Snap.m_SpecInfo.m_Active)
+			if (m_pClient->m_Snap.m_SpecInfo.m_Active)
 				m_Center = m_pClient->m_Snap.m_SpecInfo.m_Position + CameraOffset;
 			else
 				m_Center = m_pClient->m_LocalCharacterPos + CameraOffset;
@@ -72,7 +72,7 @@ void CCamera::OnRender()
 		m_Zoom = 0.7f;
 		static vec2 Dir = vec2(1.0f, 0.0f);
 
-		if(distance(m_Center, m_RotationCenter) <= (float)g_Config.m_ClRotationRadius+0.5f)
+		if (distance(m_Center, m_RotationCenter) <= (float)g_Config.m_ClRotationRadius+0.5f)
 		{
 			// do little rotation
 			float RotPerTick = 360.0f/(float)g_Config.m_ClRotationSpeed * Client()->RenderFrameTime();
@@ -109,7 +109,7 @@ void CCamera::ConSetPosition(IConsole::IResult *pResult, void *pUserData)
 	pSelf->m_Positions[PositionNumber] = Position;
 
 	// update
-	if(pSelf->GetCurrentPosition() == PositionNumber)
+	if (pSelf->GetCurrentPosition() == PositionNumber)
 		pSelf->ChangePosition(PositionNumber);
 }
 
@@ -120,8 +120,8 @@ void CCamera::OnConsoleInit()
 
 void CCamera::OnStateChange(int NewState, int OldState)
 {
-	if(OldState == IClient::STATE_OFFLINE)
+	if (OldState == IClient::STATE_OFFLINE)
 		m_MenuCenter = m_Center;
-	else if(NewState != IClient::STATE_ONLINE && Client()->State() != IClient::STATE_DEMOPLAYBACK)
+	else if (NewState != IClient::STATE_ONLINE && Client()->State() != IClient::STATE_DEMOPLAYBACK)
 		m_Center = m_MenuCenter;
 }

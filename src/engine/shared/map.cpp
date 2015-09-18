@@ -27,17 +27,17 @@ public:
 
 	virtual bool Load(const char *pMapName, IStorage *pStorage)
 	{
-		if(!pStorage)
+		if (!pStorage)
 			pStorage = Kernel()->RequestInterface<IStorage>();
-		if(!pStorage)
+		if (!pStorage)
 			return false;
-		if(!m_DataFile.Open(pStorage, pMapName, IStorage::TYPE_ALL))
+		if (!m_DataFile.Open(pStorage, pMapName, IStorage::TYPE_ALL))
 			return false;
 		// check version
 		CMapItemVersion *pItem = (CMapItemVersion *)m_DataFile.FindItem(MAPITEMTYPE_VERSION, 0);
-		if(!pItem || pItem->m_Version != CMapItemVersion::CURRENT_VERSION)
+		if (!pItem || pItem->m_Version != CMapItemVersion::CURRENT_VERSION)
 			return false;
-		
+
 		return true;
 	}
 

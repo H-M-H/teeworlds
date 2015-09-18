@@ -73,11 +73,11 @@ void CMenus::UiDoGetButtons(int Start, int Stop, CUIRect View, float ButtonHeigh
 		UI()->DoLabelScaled(&Label, aBuf, 13.0f, CUI::ALIGN_CENTER);
 		int OldId = Key.m_KeyId;
 		int NewId = DoKeyReader((void *)&gs_aKeys[i].m_Name, &Button, OldId);
-		if(NewId != OldId)
+		if (NewId != OldId)
 		{
-			if(OldId != 0 || NewId == 0)
+			if (OldId != 0 || NewId == 0)
 				m_pClient->m_pBinds->Bind(OldId, "");
-			if(NewId != 0)
+			if (NewId != 0)
 				m_pClient->m_pBinds->Bind(NewId, gs_aKeys[i].m_pCommand);
 		}
 	}
@@ -85,20 +85,20 @@ void CMenus::UiDoGetButtons(int Start, int Stop, CUIRect View, float ButtonHeigh
 
 float CMenus::RenderSettingsControlsMovement(CUIRect View, void *pUser)
 {
-	CMenus *pSelf = (CMenus*)pUser;
+	CMenus *pSelf = (CMenus *)pUser;
 
 	// this is kinda slow, but whatever
-	for(int i = 0; i < g_KeyCount; i++)
+	for (int i = 0; i < g_KeyCount; i++)
 		gs_aKeys[i].m_KeyId = 0;
 
-	for(int KeyId = 0; KeyId < KEY_LAST; KeyId++)
+	for (int KeyId = 0; KeyId < KEY_LAST; KeyId++)
 	{
 		const char *pBind = pSelf->m_pClient->m_pBinds->Get(KeyId);
-		if(!pBind[0])
+		if (!pBind[0])
 			continue;
 
-		for(int i = 0; i < g_KeyCount; i++)
-			if(str_comp(pBind, gs_aKeys[i].m_pCommand) == 0)
+		for (int i = 0; i < g_KeyCount; i++)
+			if (str_comp(pBind, gs_aKeys[i].m_pCommand) == 0)
 			{
 				gs_aKeys[i].m_KeyId = KeyId;
 				break;
@@ -125,20 +125,20 @@ float CMenus::RenderSettingsControlsMovement(CUIRect View, void *pUser)
 
 float CMenus::RenderSettingsControlsWeapon(CUIRect View, void *pUser)
 {
-	CMenus *pSelf = (CMenus*)pUser;
+	CMenus *pSelf = (CMenus *)pUser;
 
 	// this is kinda slow, but whatever
-	for(int i = 0; i < g_KeyCount; i++)
+	for (int i = 0; i < g_KeyCount; i++)
 		gs_aKeys[i].m_KeyId = 0;
 
-	for(int KeyId = 0; KeyId < KEY_LAST; KeyId++)
+	for (int KeyId = 0; KeyId < KEY_LAST; KeyId++)
 	{
 		const char *pBind = pSelf->m_pClient->m_pBinds->Get(KeyId);
-		if(!pBind[0])
+		if (!pBind[0])
 			continue;
 
-		for(int i = 0; i < g_KeyCount; i++)
-			if(str_comp(pBind, gs_aKeys[i].m_pCommand) == 0)
+		for (int i = 0; i < g_KeyCount; i++)
+			if (str_comp(pBind, gs_aKeys[i].m_pCommand) == 0)
 			{
 				gs_aKeys[i].m_KeyId = KeyId;
 				break;
@@ -160,20 +160,20 @@ float CMenus::RenderSettingsControlsWeapon(CUIRect View, void *pUser)
 
 float CMenus::RenderSettingsControlsVoting(CUIRect View, void *pUser)
 {
-	CMenus *pSelf = (CMenus*)pUser;
+	CMenus *pSelf = (CMenus *)pUser;
 
 	// this is kinda slow, but whatever
-	for(int i = 0; i < g_KeyCount; i++)
+	for (int i = 0; i < g_KeyCount; i++)
 		gs_aKeys[i].m_KeyId = 0;
 
-	for(int KeyId = 0; KeyId < KEY_LAST; KeyId++)
+	for (int KeyId = 0; KeyId < KEY_LAST; KeyId++)
 	{
 		const char *pBind = pSelf->m_pClient->m_pBinds->Get(KeyId);
-		if(!pBind[0])
+		if (!pBind[0])
 			continue;
 
-		for(int i = 0; i < g_KeyCount; i++)
-			if(str_comp(pBind, gs_aKeys[i].m_pCommand) == 0)
+		for (int i = 0; i < g_KeyCount; i++)
+			if (str_comp(pBind, gs_aKeys[i].m_pCommand) == 0)
 			{
 				gs_aKeys[i].m_KeyId = KeyId;
 				break;
@@ -195,20 +195,20 @@ float CMenus::RenderSettingsControlsVoting(CUIRect View, void *pUser)
 
 float CMenus::RenderSettingsControlsChat(CUIRect View, void *pUser)
 {
-	CMenus *pSelf = (CMenus*)pUser;
+	CMenus *pSelf = (CMenus *)pUser;
 
 	// this is kinda slow, but whatever
-	for(int i = 0; i < g_KeyCount; i++)
+	for (int i = 0; i < g_KeyCount; i++)
 		gs_aKeys[i].m_KeyId = 0;
 
-	for(int KeyId = 0; KeyId < KEY_LAST; KeyId++)
+	for (int KeyId = 0; KeyId < KEY_LAST; KeyId++)
 	{
 		const char *pBind = pSelf->m_pClient->m_pBinds->Get(KeyId);
-		if(!pBind[0])
+		if (!pBind[0])
 			continue;
 
-		for(int i = 0; i < g_KeyCount; i++)
-			if(str_comp(pBind, gs_aKeys[i].m_pCommand) == 0)
+		for (int i = 0; i < g_KeyCount; i++)
+			if (str_comp(pBind, gs_aKeys[i].m_pCommand) == 0)
 			{
 				gs_aKeys[i].m_KeyId = KeyId;
 				break;
@@ -230,20 +230,20 @@ float CMenus::RenderSettingsControlsChat(CUIRect View, void *pUser)
 
 float CMenus::RenderSettingsControlsMisc(CUIRect View, void *pUser)
 {
-	CMenus *pSelf = (CMenus*)pUser;
+	CMenus *pSelf = (CMenus *)pUser;
 
 	// this is kinda slow, but whatever
-	for(int i = 0; i < g_KeyCount; i++)
+	for (int i = 0; i < g_KeyCount; i++)
 		gs_aKeys[i].m_KeyId = 0;
 
-	for(int KeyId = 0; KeyId < KEY_LAST; KeyId++)
+	for (int KeyId = 0; KeyId < KEY_LAST; KeyId++)
 	{
 		const char *pBind = pSelf->m_pClient->m_pBinds->Get(KeyId);
-		if(!pBind[0])
+		if (!pBind[0])
 			continue;
 
-		for(int i = 0; i < g_KeyCount; i++)
-			if(str_comp(pBind, gs_aKeys[i].m_pCommand) == 0)
+		for (int i = 0; i < g_KeyCount; i++)
+			if (str_comp(pBind, gs_aKeys[i].m_pCommand) == 0)
 			{
 				gs_aKeys[i].m_KeyId = KeyId;
 				break;

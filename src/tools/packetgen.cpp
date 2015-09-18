@@ -8,13 +8,13 @@ void Run(NETADDR Dest)
 {
 	NETSOCKET aSockets[NUM_SOCKETS];
 
-	for(int i = 0; i < NUM_SOCKETS; i++)
+	for (int i = 0; i < NUM_SOCKETS; i++)
 	{
 		NETADDR BindAddr = {NETTYPE_IPV4, {0}, 0};
-	 	aSockets[i] = net_udp_create(BindAddr, 0);
+		aSockets[i] = net_udp_create(BindAddr, 0);
 	}
 
-	while(1)
+	while (1)
 	{
 		unsigned char aData[1024];
 		int Size = 0;

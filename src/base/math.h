@@ -8,9 +8,9 @@
 template <typename T>
 inline T clamp(T val, T min, T max)
 {
-	if(val < min)
+	if (val < min)
 		return min;
-	if(val > max)
+	if (val > max)
 		return max;
 	return val;
 }
@@ -22,7 +22,7 @@ inline float sign(float f)
 
 inline int round_to_int(float f)
 {
-	if(f > 0)
+	if (f > 0)
 		return (int)(f+0.5f);
 	return (int)(f-0.5f);
 }
@@ -59,7 +59,7 @@ inline int fx2i(int v) { return v>>10; }
 
 inline int gcd(int a, int b)
 {
-	while(b != 0)
+	while (b != 0)
 	{
 		int c = a % b;
 		a = b;

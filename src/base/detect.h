@@ -142,15 +142,15 @@
 
 
 #ifndef CONF_FAMILY_STRING
-#define CONF_FAMILY_STRING "unknown"
+	#define CONF_FAMILY_STRING "unknown"
 #endif
 
 #ifndef CONF_PLATFORM_STRING
-#define CONF_PLATFORM_STRING "unknown"
+	#define CONF_PLATFORM_STRING "unknown"
 #endif
 
 #ifndef CONF_ARCH_STRING
-#define CONF_ARCH_STRING "unknown"
+	#define CONF_ARCH_STRING "unknown"
 #endif
 
 #endif

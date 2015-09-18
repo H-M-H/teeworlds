@@ -55,13 +55,13 @@ public:
 
 	void Init() { CRingBufferBase::Init(m_aBuffer, TSIZE, TFLAGS); }
 
-	T *Allocate(int Size) { return (T*)CRingBufferBase::Allocate(Size); }
+	T *Allocate(int Size) { return (T *)CRingBufferBase::Allocate(Size); }
 	int PopFirst() { return CRingBufferBase::PopFirst(); }
 
-	T *Prev(T *pCurrent) { return (T*)CRingBufferBase::Prev(pCurrent); }
-	T *Next(T *pCurrent) { return (T*)CRingBufferBase::Next(pCurrent); }
-	T *First() { return (T*)CRingBufferBase::First(); }
-	T *Last() { return (T*)CRingBufferBase::Last(); }
+	T *Prev(T *pCurrent) { return (T *)CRingBufferBase::Prev(pCurrent); }
+	T *Next(T *pCurrent) { return (T *)CRingBufferBase::Next(pCurrent); }
+	T *First() { return (T *)CRingBufferBase::First(); }
+	T *Last() { return (T *)CRingBufferBase::Last(); }
 };
 
 #endif

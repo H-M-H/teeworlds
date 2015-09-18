@@ -54,7 +54,7 @@ void CEffects::DamageIndicator(vec2 Pos, vec2 Dir)
 
 void CEffects::PowerupShine(vec2 Pos, vec2 size)
 {
-	if(!m_Add50hz)
+	if (!m_Add50hz)
 		return;
 
 	CParticle p;
@@ -75,7 +75,7 @@ void CEffects::PowerupShine(vec2 Pos, vec2 size)
 
 void CEffects::SmokeTrail(vec2 Pos, vec2 Vel)
 {
-	if(!m_Add50hz)
+	if (!m_Add50hz)
 		return;
 
 	CParticle p;
@@ -94,7 +94,7 @@ void CEffects::SmokeTrail(vec2 Pos, vec2 Vel)
 
 void CEffects::SkidTrail(vec2 Pos, vec2 Vel)
 {
-	if(!m_Add100hz)
+	if (!m_Add100hz)
 		return;
 
 	CParticle p;
@@ -113,7 +113,7 @@ void CEffects::SkidTrail(vec2 Pos, vec2 Vel)
 
 void CEffects::BulletTrail(vec2 Pos)
 {
-	if(!m_Add100hz)
+	if (!m_Add100hz)
 		return;
 
 	CParticle p;
@@ -129,7 +129,7 @@ void CEffects::BulletTrail(vec2 Pos)
 
 void CEffects::PlayerSpawn(vec2 Pos)
 {
-	for(int i = 0; i < 32; i++)
+	for (int i = 0; i < 32; i++)
 	{
 		CParticle p;
 		p.SetDefault();
@@ -154,19 +154,19 @@ void CEffects::PlayerDeath(vec2 Pos, int ClientID)
 {
 	vec3 BloodColor(1.0f,1.0f,1.0f);
 
-	if(ClientID >= 0)
+	if (ClientID >= 0)
 	{
-		if(m_pClient->m_aClients[ClientID].m_aUseCustomColors[CSkins::SKINPART_BODY])
+		if (m_pClient->m_aClients[ClientID].m_aUseCustomColors[CSkins::SKINPART_BODY])
 			BloodColor = m_pClient->m_pSkins->GetColorV3(m_pClient->m_aClients[ClientID].m_aSkinPartColors[CSkins::SKINPART_BODY]);
 		else
 		{
 			const CSkins::CSkinPart *s = m_pClient->m_pSkins->GetSkinPart(CSkins::SKINPART_BODY, m_pClient->m_aClients[ClientID].m_SkinPartIDs[CSkins::SKINPART_BODY]);
-			if(s)
+			if (s)
 				BloodColor = s->m_BloodColor;
 		}
 	}
 
-	for(int i = 0; i < 64; i++)
+	for (int i = 0; i < 64; i++)
 	{
 		CParticle p;
 		p.SetDefault();
@@ -190,10 +190,10 @@ void CEffects::PlayerDeath(vec2 Pos, int ClientID)
 void CEffects::Explosion(vec2 Pos)
 {
 	// add to flow
-	for(int y = -8; y <= 8; y++)
-		for(int x = -8; x <= 8; x++)
+	for (int y = -8; y <= 8; y++)
+		for (int x = -8; x <= 8; x++)
 		{
-			if(x == 0 && y == 0)
+			if (x == 0 && y == 0)
 				continue;
 
 			float a = 1 - (length(vec2(x,y)) / length(vec2(8,8)));
@@ -212,7 +212,7 @@ void CEffects::Explosion(vec2 Pos)
 	m_pClient->m_pParticles->Add(CParticles::GROUP_EXPLOSIONS, &p);
 
 	// add the smoke
-	for(int i = 0; i < 24; i++)
+	for (int i = 0; i < 24; i++)
 	{
 		CParticle p;
 		p.SetDefault();
@@ -250,11 +250,11 @@ void CEffects::OnRender()
 	static int64 LastUpdate100hz = 0;
 	static int64 LastUpdate50hz = 0;
 
-	if(Client()->State() == IClient::STATE_DEMOPLAYBACK)
+	if (Client()->State() == IClient::STATE_DEMOPLAYBACK)
 	{
 		const IDemoPlayer::CInfo *pInfo = DemoPlayer()->BaseInfo();
 
-		if(time_get()-LastUpdate100hz > time_freq()/(100*pInfo->m_Speed))
+		if (time_get()-LastUpdate100hz > time_freq()/(100*pInfo->m_Speed))
 		{
 			m_Add100hz = true;
 			LastUpdate100hz = time_get();
@@ -262,7 +262,7 @@ void CEffects::OnRender()
 		else
 			m_Add100hz = false;
 
-		if(time_get()-LastUpdate50hz > time_freq()/(100*pInfo->m_Speed))
+		if (time_get()-LastUpdate50hz > time_freq()/(100*pInfo->m_Speed))
 		{
 			m_Add50hz = true;
 			LastUpdate50hz = time_get();
@@ -270,13 +270,13 @@ void CEffects::OnRender()
 		else
 			m_Add50hz = false;
 
-		if(m_Add50hz)
+		if (m_Add50hz)
 			m_pClient->m_pFlow->Update();
 
 		return;
 	}
 
-	if(time_get()-LastUpdate100hz > time_freq()/100)
+	if (time_get()-LastUpdate100hz > time_freq()/100)
 	{
 		m_Add100hz = true;
 		LastUpdate100hz = time_get();
@@ -284,7 +284,7 @@ void CEffects::OnRender()
 	else
 		m_Add100hz = false;
 
-	if(time_get()-LastUpdate50hz > time_freq()/100)
+	if (time_get()-LastUpdate50hz > time_freq()/100)
 	{
 		m_Add50hz = true;
 		LastUpdate50hz = time_get();
@@ -292,6 +292,6 @@ void CEffects::OnRender()
 	else
 		m_Add50hz = false;
 
-	if(m_Add50hz)
+	if (m_Add50hz)
 		m_pClient->m_pFlow->Update();
 }

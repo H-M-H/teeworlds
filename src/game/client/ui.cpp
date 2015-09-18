@@ -40,7 +40,7 @@ int CUI::Update(float Mx, float My, float Mwx, float Mwy, int Buttons)
 	m_LastMouseButtons = m_MouseButtons;
 	m_MouseButtons = Buttons;
 	m_pHotItem = m_pBecommingHotItem;
-	if(m_pActiveItem)
+	if (m_pActiveItem)
 		m_pHotItem = m_pActiveItem;
 	m_pBecommingHotItem = 0;
 	return 0;
@@ -48,7 +48,7 @@ int CUI::Update(float Mx, float My, float Mwx, float Mwy, int Buttons)
 
 int CUI::MouseInside(const CUIRect *r) const
 {
-	if(m_MouseX >= r->x && m_MouseX < r->x+r->w && m_MouseY >= r->y && m_MouseY < r->y+r->h)
+	if (m_MouseX >= r->x && m_MouseX < r->x+r->w && m_MouseY >= r->y && m_MouseY < r->y+r->h)
 		return 1;
 	return 0;
 }
@@ -106,7 +106,7 @@ void CUIRect::HSplitMid(CUIRect *pTop, CUIRect *pBottom) const
 	CUIRect r = *this;
 	float Cut = r.h/2;
 
-	if(pTop)
+	if (pTop)
 	{
 		pTop->x = r.x;
 		pTop->y = r.y;
@@ -114,7 +114,7 @@ void CUIRect::HSplitMid(CUIRect *pTop, CUIRect *pBottom) const
 		pTop->h = Cut;
 	}
 
-	if(pBottom)
+	if (pBottom)
 	{
 		pBottom->x = r.x;
 		pBottom->y = r.y + Cut;
@@ -275,31 +275,31 @@ int CUI::DoButtonLogic(const void *pID, const char *pText, int Checked, const CU
 	int Inside = MouseInside(pRect);
 	static int ButtonUsed = 0;
 
-	if(ActiveItem() == pID)
+	if (ActiveItem() == pID)
 	{
-		if(!MouseButton(ButtonUsed))
+		if (!MouseButton(ButtonUsed))
 		{
-			if(Inside && Checked >= 0)
+			if (Inside && Checked >= 0)
 				ReturnValue = 1+ButtonUsed;
 			SetActiveItem(0);
 		}
 	}
-	else if(HotItem() == pID)
+	else if (HotItem() == pID)
 	{
-		if(MouseButton(0))
+		if (MouseButton(0))
 		{
 			SetActiveItem(pID);
 			ButtonUsed = 0;
 		}
 
-		if(MouseButton(1))
+		if (MouseButton(1))
 		{
 			SetActiveItem(pID);
 			ButtonUsed = 1;
 		}
 	}
 
-	if(Inside)
+	if (Inside)
 		SetHotItem(pID);
 
 	return ReturnValue;
@@ -309,25 +309,25 @@ int CUI::DoPickerLogic(const void *pID, const CUIRect *pRect, float *pX, float *
 {
 	int Inside = MouseInside(pRect);
 
-	if(ActiveItem() == pID)
+	if (ActiveItem() == pID)
 	{
-		if(!MouseButton(0))
+		if (!MouseButton(0))
 			SetActiveItem(0);
 	}
-	else if(HotItem() == pID)
+	else if (HotItem() == pID)
 	{
-		if(MouseButton(0))
+		if (MouseButton(0))
 			SetActiveItem(pID);
 	}
-	else if(Inside)
+	else if (Inside)
 		SetHotItem(pID);
 
-	if(ActiveItem() != pID)
+	if (ActiveItem() != pID)
 		return 0;
 
-	if(pX)
+	if (pX)
 		*pX = clamp(m_MouseX - pRect->x, 0.0f, pRect->w) / Scale();
-	if(pY)
+	if (pY)
 		*pY = clamp(m_MouseY - pRect->y, 0.0f, pRect->h) / Scale();
 
 	return 1;
@@ -335,7 +335,7 @@ int CUI::DoPickerLogic(const void *pID, const CUIRect *pRect, float *pX, float *
 
 int CUI::DoColorSelectionLogic(const CUIRect *pRect, const CUIRect *pButton) // it's counter logic! FIXME
 {
-	if(MouseButtonClicked(0) && MouseInside(pRect) && !MouseInside(pButton))
+	if (MouseButtonClicked(0) && MouseInside(pRect) && !MouseInside(pButton))
 		return 1;
 	else
 		return 0;
@@ -385,25 +385,25 @@ void CUI::DoLabel(const CUIRect *r, const char *pText, float Size, EAlignment Al
 {
 	// TODO: FIX ME!!!!
 	//Graphics()->BlendNormal();
-	switch(Align)
+	switch (Align)
 	{
-	case ALIGN_CENTER:
-	{
-		float tw = TextRender()->TextWidth(0, Size, pText, MaxWidth);
-		TextRender()->Text(0, r->x + r->w/2-tw/2, r->y - Size/10, Size, pText, MaxWidth);
-		break;
-	}
-	case ALIGN_LEFT:
-	{
-		TextRender()->Text(0, r->x, r->y - Size/10, Size, pText, MaxWidth);
-		break;
-	}
-	case ALIGN_RIGHT:
-	{
-		float tw = TextRender()->TextWidth(0, Size, pText, MaxWidth);
-		TextRender()->Text(0, r->x + r->w-tw, r->y - Size/10, Size, pText, MaxWidth);
-		break;
-	}
+		case ALIGN_CENTER:
+		{
+			float tw = TextRender()->TextWidth(0, Size, pText, MaxWidth);
+			TextRender()->Text(0, r->x + r->w/2-tw/2, r->y - Size/10, Size, pText, MaxWidth);
+			break;
+		}
+		case ALIGN_LEFT:
+		{
+			TextRender()->Text(0, r->x, r->y - Size/10, Size, pText, MaxWidth);
+			break;
+		}
+		case ALIGN_RIGHT:
+		{
+			float tw = TextRender()->TextWidth(0, Size, pText, MaxWidth);
+			TextRender()->Text(0, r->x + r->w-tw, r->y - Size/10, Size, pText, MaxWidth);
+			break;
+		}
 	}
 }
 

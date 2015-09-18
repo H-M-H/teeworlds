@@ -65,7 +65,8 @@ public:
 		SORT_GAMETYPE - Sort by game type. DM, TDM etc.
 		SORT_NUMPLAYERS - Sort after how many players there are on the server.
 	*/
-	enum{
+	enum
+	{
 		SORT_NAME = 0,
 		SORT_PING,
 		SORT_MAP,
@@ -114,9 +115,9 @@ public:
 	virtual void AddFavorite(const CServerInfo *pEntry) = 0;
 	virtual void RemoveFavorite(const CServerInfo *pEntry) = 0;
 
-	virtual int AddFilter(int Flag, int Ping, int Country, const char* pGametype, const char* pServerAddress) = 0;
-	virtual void SetFilter(int Index, int SortHash, int Ping, int Country, const char* pGametype, const char* pServerAddress) = 0;
-	virtual void GetFilter(int Index, int *pSortHash, int *pPing, int *pCountry, char* pGametype, char* pServerAddress) = 0;
+	virtual int AddFilter(int Flag, int Ping, int Country, const char *pGametype, const char *pServerAddress) = 0;
+	virtual void SetFilter(int Index, int SortHash, int Ping, int Country, const char *pGametype, const char *pServerAddress) = 0;
+	virtual void GetFilter(int Index, int *pSortHash, int *pPing, int *pCountry, char *pGametype, char *pServerAddress) = 0;
 	virtual void RemoveFilter(int Index) = 0;
 };
 

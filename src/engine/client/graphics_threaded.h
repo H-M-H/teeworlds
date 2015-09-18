@@ -32,7 +32,7 @@ class CCommandBuffer
 
 		void *Alloc(unsigned Requested)
 		{
-			if(Requested + m_Used > m_Size)
+			if (Requested + m_Used > m_Size)
 				return 0;
 			void *pPtr = &m_pData[m_Used];
 			m_Used += Requested;
@@ -105,7 +105,7 @@ public:
 	{
 		//
 		PRIMTYPE_INVALID = 0,
-		PRIMTYPE_LINES,	
+		PRIMTYPE_LINES,
 		PRIMTYPE_QUADS,
 	};
 
@@ -152,13 +152,13 @@ public:
 		int m_ClipW;
 		int m_ClipH;
 	};
-		
+
 	struct SCommand_Clear : public SCommand
 	{
 		SCommand_Clear() : SCommand(CMD_CLEAR) {}
 		SColor m_Color;
 	};
-		
+
 	struct SCommand_Signal : public SCommand
 	{
 		SCommand_Signal() : SCommand(CMD_SIGNAL) {}
@@ -189,7 +189,7 @@ public:
 	struct SCommand_VideoModes : public SCommand
 	{
 		SCommand_VideoModes(int screen) : SCommand(CMD_VIDEOMODES),
-										  m_Screen(screen) {}
+			m_Screen(screen) {}
 
 		CVideoMode *m_pModes; // processor will fill this in
 		int m_MaxModes; // maximum of modes the processor can write to the m_pModes
@@ -243,10 +243,10 @@ public:
 		// texture information
 		int m_Slot;
 	};
-	
+
 	//
 	CCommandBuffer(unsigned CmdBufferSize, unsigned DataBufferSize)
-	: m_CmdBuffer(CmdBufferSize), m_DataBuffer(DataBufferSize)
+		: m_CmdBuffer(CmdBufferSize), m_DataBuffer(DataBufferSize)
 	{
 	}
 
@@ -263,7 +263,7 @@ public:
 
 		// allocate and copy the command into the buffer
 		SCommand *pCmd = (SCommand *)m_CmdBuffer.Alloc(sizeof(Command));
-		if(!pCmd)
+		if (!pCmd)
 			return false;
 		mem_copy(pCmd, &Command, sizeof(Command));
 		pCmd->m_Size = sizeof(Command);
@@ -272,7 +272,7 @@ public:
 
 	SCommand *GetCommand(unsigned *pIndex)
 	{
-		if(*pIndex >= m_CmdBuffer.DataUsed())
+		if (*pIndex >= m_CmdBuffer.DataUsed())
 			return NULL;
 
 		SCommand *pCommand = (SCommand *)&m_CmdBuffer.DataPtr()[*pIndex];
@@ -325,7 +325,7 @@ class CGraphics_Threaded : public IEngineGraphics
 
 		MAX_VERTICES = 32*1024,
 		MAX_TEXTURES = 1024*4,
-		
+
 		DRAWING_QUADS=1,
 		DRAWING_LINES=2
 	};

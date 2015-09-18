@@ -12,16 +12,16 @@ unsigned char *CVariableInt::Pack(unsigned char *pDst, int i)
 
 	*pDst |= i&0x3F; // pack 6bit into dst
 	i >>= 6; // discard 6 bits
-	if(i)
+	if (i)
 	{
 		*pDst |= 0x80; // set extend bit
-		while(1)
+		while (1)
 		{
 			pDst++;
 			*pDst = i&(0x7F); // pack 7bit
 			i >>= 7; // discard 7 bits
 			*pDst |= (i!=0)<<7; // set extend bit (may branch)
-			if(!i)
+			if (!i)
 				break;
 		}
 	}
@@ -37,22 +37,23 @@ const unsigned char *CVariableInt::Unpack(const unsigned char *pSrc, int *pInOut
 
 	do
 	{
-		if(!(*pSrc&0x80)) break;
+		if (!(*pSrc&0x80)) break;
 		pSrc++;
 		*pInOut |= (*pSrc&(0x7F))<<(6);
 
-		if(!(*pSrc&0x80)) break;
+		if (!(*pSrc&0x80)) break;
 		pSrc++;
 		*pInOut |= (*pSrc&(0x7F))<<(6+7);
 
-		if(!(*pSrc&0x80)) break;
+		if (!(*pSrc&0x80)) break;
 		pSrc++;
 		*pInOut |= (*pSrc&(0x7F))<<(6+7+7);
 
-		if(!(*pSrc&0x80)) break;
+		if (!(*pSrc&0x80)) break;
 		pSrc++;
 		*pInOut |= (*pSrc&(0x7F))<<(6+7+7+7);
-	} while(0);
+	}
+	while (0);
 
 	pSrc++;
 	*pInOut ^= -Sign; // if(sign) *i = ~(*i)
@@ -65,7 +66,7 @@ long CVariableInt::Decompress(const void *pSrc_, int Size, void *pDst_)
 	const unsigned char *pSrc = (unsigned char *)pSrc_;
 	const unsigned char *pEnd = pSrc + Size;
 	int *pDst = (int *)pDst_;
-	while(pSrc < pEnd)
+	while (pSrc < pEnd)
 	{
 		pSrc = CVariableInt::Unpack(pSrc, pDst);
 		pDst++;
@@ -78,7 +79,7 @@ long CVariableInt::Compress(const void *pSrc_, int Size, void *pDst_)
 	int *pSrc = (int *)pSrc_;
 	unsigned char *pDst = (unsigned char *)pDst_;
 	Size /= 4;
-	while(Size)
+	while (Size)
 	{
 		pDst = CVariableInt::Pack(pDst, *pSrc);
 		Size--;

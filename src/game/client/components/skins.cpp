@@ -14,28 +14,31 @@
 #include "skins.h"
 
 
-const char * const CSkins::ms_apSkinPartNames[NUM_SKINPARTS] = {"body", "marking", "decoration", "hands", "feet", "eyes"}; /* Localize("body");Localize("marking");Localize("decoration");Localize("hands");Localize("feet");Localize("eyes"); */
-const char * const CSkins::ms_apColorComponents[NUM_COLOR_COMPONENTS] = {"hue", "sat", "lgt", "alp"};
+const char *const CSkins::ms_apSkinPartNames[NUM_SKINPARTS] = {"body", "marking", "decoration", "hands", "feet", "eyes"};  /* Localize("body");Localize("marking");Localize("decoration");Localize("hands");Localize("feet");Localize("eyes"); */
+const char *const CSkins::ms_apColorComponents[NUM_COLOR_COMPONENTS] = {"hue", "sat", "lgt", "alp"};
 
 char *const CSkins::ms_apSkinVariables[NUM_SKINPARTS] = {g_Config.m_PlayerSkinBody, g_Config.m_PlayerSkinMarking, g_Config.m_PlayerSkinDecoration,
-													g_Config.m_PlayerSkinHands, g_Config.m_PlayerSkinFeet, g_Config.m_PlayerSkinEyes};
+														 g_Config.m_PlayerSkinHands, g_Config.m_PlayerSkinFeet, g_Config.m_PlayerSkinEyes
+														};
 int *const CSkins::ms_apUCCVariables[NUM_SKINPARTS] = {&g_Config.m_PlayerUseCustomColorBody, &g_Config.m_PlayerUseCustomColorMarking, &g_Config.m_PlayerUseCustomColorDecoration,
-													&g_Config.m_PlayerUseCustomColorHands, &g_Config.m_PlayerUseCustomColorFeet, &g_Config.m_PlayerUseCustomColorEyes};
+													   &g_Config.m_PlayerUseCustomColorHands, &g_Config.m_PlayerUseCustomColorFeet, &g_Config.m_PlayerUseCustomColorEyes
+													  };
 int *const CSkins::ms_apColorVariables[NUM_SKINPARTS] = {&g_Config.m_PlayerColorBody, &g_Config.m_PlayerColorMarking, &g_Config.m_PlayerColorDecoration,
-													&g_Config.m_PlayerColorHands, &g_Config.m_PlayerColorFeet, &g_Config.m_PlayerColorEyes};
+														 &g_Config.m_PlayerColorHands, &g_Config.m_PlayerColorFeet, &g_Config.m_PlayerColorEyes
+														};
 
 
 int CSkins::SkinPartScan(const char *pName, int IsDir, int DirType, void *pUser)
 {
 	CSkins *pSelf = (CSkins *)pUser;
 	int l = str_length(pName);
-	if(l < 4 || IsDir || str_comp(pName+l-4, ".png") != 0)
+	if (l < 4 || IsDir || str_comp(pName+l-4, ".png") != 0)
 		return 0;
 
 	char aBuf[512];
 	str_format(aBuf, sizeof(aBuf), "skins/%s/%s", CSkins::ms_apSkinPartNames[pSelf->m_ScanningPart], pName);
 	CImageInfo Info;
-	if(!pSelf->Graphics()->LoadPNG(&Info, aBuf, DirType))
+	if (!pSelf->Graphics()->LoadPNG(&Info, aBuf, DirType))
 	{
 		str_format(aBuf, sizeof(aBuf), "failed to load skin part '%s'", pName);
 		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "skins", aBuf);
@@ -50,7 +53,7 @@ int CSkins::SkinPartScan(const char *pName, int IsDir, int DirType, void *pUser)
 	int Pitch = Info.m_Width*4;
 
 	// dig out blood color
-	if(pSelf->m_ScanningPart == SKINPART_BODY)
+	if (pSelf->m_ScanningPart == SKINPART_BODY)
 	{
 		int PartX = Info.m_Width/2;
 		int PartY = 0;
@@ -58,10 +61,10 @@ int CSkins::SkinPartScan(const char *pName, int IsDir, int DirType, void *pUser)
 		int PartHeight = Info.m_Height/2;
 
 		int aColors[3] = {0};
-		for(int y = PartY; y < PartY+PartHeight; y++)
-			for(int x = PartX; x < PartX+PartWidth; x++)
+		for (int y = PartY; y < PartY+PartHeight; y++)
+			for (int x = PartX; x < PartX+PartWidth; x++)
 			{
-				if(d[y*Pitch+x*4+3] > 128)
+				if (d[y*Pitch+x*4+3] > 128)
 				{
 					aColors[0] += d[y*Pitch+x*4+0];
 					aColors[1] += d[y*Pitch+x*4+1];
@@ -76,7 +79,7 @@ int CSkins::SkinPartScan(const char *pName, int IsDir, int DirType, void *pUser)
 	int Step = Info.m_Format == CImageInfo::FORMAT_RGBA ? 4 : 3;
 
 	// make the texture gray scale
-	for(int i = 0; i < Info.m_Width*Info.m_Height; i++)
+	for (int i = 0; i < Info.m_Width*Info.m_Height; i++)
 	{
 		int v = (d[i*Step]+d[i*Step+1]+d[i*Step+2])/3;
 		d[i*Step] = v;
@@ -89,12 +92,12 @@ int CSkins::SkinPartScan(const char *pName, int IsDir, int DirType, void *pUser)
 
 	// set skin part data
 	Part.m_Flags = 0;
-	if(pName[0] == 'x' && pName[1] == '_')
+	if (pName[0] == 'x' && pName[1] == '_')
 		Part.m_Flags |= SKINFLAG_SPECIAL;
-	if(DirType != IStorage::TYPE_SAVE)
+	if (DirType != IStorage::TYPE_SAVE)
 		Part.m_Flags |= SKINFLAG_STANDARD;
 	str_copy(Part.m_aName, pName, min((int)sizeof(Part.m_aName),l-3));
-	if(g_Config.m_Debug)
+	if (g_Config.m_Debug)
 	{
 		str_format(aBuf, sizeof(aBuf), "load skin part %s", Part.m_aName);
 		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "skins", aBuf);
@@ -107,7 +110,7 @@ int CSkins::SkinPartScan(const char *pName, int IsDir, int DirType, void *pUser)
 int CSkins::SkinScan(const char *pName, int IsDir, int DirType, void *pUser)
 {
 	int l = str_length(pName);
-	if(l < 5 || IsDir || str_comp(pName+l-5, ".json") != 0)
+	if (l < 5 || IsDir || str_comp(pName+l-5, ".json") != 0)
 		return 0;
 
 	CSkins *pSelf = (CSkins *)pUser;
@@ -116,7 +119,7 @@ int CSkins::SkinScan(const char *pName, int IsDir, int DirType, void *pUser)
 	char aBuf[512];
 	str_format(aBuf, sizeof(aBuf), "skins/%s", pName);
 	IOHANDLE File = pSelf->Storage()->OpenFile(aBuf, IOFLAG_READ, IStorage::TYPE_ALL);
-	if(!File)
+	if (!File)
 		return 0;
 	int FileSize = (int)io_length(File);
 	char *pFileData = (char *)mem_alloc(FileSize+1, 1);
@@ -127,7 +130,7 @@ int CSkins::SkinScan(const char *pName, int IsDir, int DirType, void *pUser)
 	// init
 	CSkin Skin = pSelf->m_DummySkin;
 	str_copy(Skin.m_aName, pName, min((int)sizeof(Skin.m_aName),l-4));
-	if(pSelf->Find(Skin.m_aName, true) != -1)
+	if (pSelf->Find(Skin.m_aName, true) != -1)
 		return 0;
 	bool SpecialSkin = pName[0] == 'x' && pName[1] == '_';
 
@@ -136,7 +139,7 @@ int CSkins::SkinScan(const char *pName, int IsDir, int DirType, void *pUser)
 	mem_zero(&JsonSettings, sizeof(JsonSettings));
 	char aError[256];
 	json_value *pJsonData = json_parse_ex(&JsonSettings, pFileData, aError);
-	if(pJsonData == 0)
+	if (pJsonData == 0)
 	{
 		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, aBuf, aError);
 		mem_free(pFileData);
@@ -145,50 +148,48 @@ int CSkins::SkinScan(const char *pName, int IsDir, int DirType, void *pUser)
 
 	// extract data
 	const json_value &rStart = (*pJsonData)["skin"];
-	if(rStart.type == json_object)
+	if (rStart.type == json_object)
 	{
-		for(int PartIndex = 0; PartIndex < NUM_SKINPARTS; ++PartIndex)
+		for (int PartIndex = 0; PartIndex < NUM_SKINPARTS; ++PartIndex)
 		{
 			const json_value &rPart = rStart[(const char *)ms_apSkinPartNames[PartIndex]];
-			if(rPart.type != json_object)
+			if (rPart.type != json_object)
 				continue;
-			
+
 			// filename
 			const json_value &rFilename = rPart["filename"];
-			if(rFilename.type == json_string)
+			if (rFilename.type == json_string)
 			{
 				int SkinPart = pSelf->FindSkinPart(PartIndex, (const char *)rFilename, SpecialSkin);
-				if(SkinPart > -1)
+				if (SkinPart > -1)
 					Skin.m_apParts[PartIndex] = pSelf->GetSkinPart(PartIndex, SkinPart);
 			}
 
 			// use custom colors
 			bool UseCustomColors = false;
 			const json_value &rColour = rPart["custom_colors"];
-			if(rColour.type == json_string)
-			{
+			if (rColour.type == json_string)
 				UseCustomColors = str_comp((const char *)rColour, "true") == 0;
-			}
 			Skin.m_aUseCustomColors[PartIndex] = UseCustomColors;
 
 			// color components
-			if(!UseCustomColors)
+			if (!UseCustomColors)
 				continue;
-				
-			for(int i = 0; i < NUM_COLOR_COMPONENTS; i++)
+
+			for (int i = 0; i < NUM_COLOR_COMPONENTS; i++)
 			{
-				if(PartIndex != SKINPART_MARKING && i == 3)
+				if (PartIndex != SKINPART_MARKING && i == 3)
 					continue;
 
 				const json_value &rComponent = rPart[(const char *)ms_apColorComponents[i]];
-				if(rComponent.type == json_integer)
+				if (rComponent.type == json_integer)
 				{
-					switch(i)
+					switch (i)
 					{
-					case 0: Skin.m_aPartColors[PartIndex] = (Skin.m_aPartColors[PartIndex]&0xFF00FFFF) | (rComponent.u.integer << 16); break;
-					case 1:	Skin.m_aPartColors[PartIndex] = (Skin.m_aPartColors[PartIndex]&0xFFFF00FF) | (rComponent.u.integer << 8); break;
-					case 2: Skin.m_aPartColors[PartIndex] = (Skin.m_aPartColors[PartIndex]&0xFFFFFF00) | rComponent.u.integer; break;
-					case 3: Skin.m_aPartColors[PartIndex] = (Skin.m_aPartColors[PartIndex]&0x00FFFFFF) | (rComponent.u.integer << 24); break;
+						case 0: Skin.m_aPartColors[PartIndex] = (Skin.m_aPartColors[PartIndex]&0xFF00FFFF) | (rComponent.u.integer << 16); break;
+						case 1:	Skin.m_aPartColors[PartIndex] = (Skin.m_aPartColors[PartIndex]&0xFFFF00FF) | (rComponent.u.integer << 8); break;
+						case 2: Skin.m_aPartColors[PartIndex] = (Skin.m_aPartColors[PartIndex]&0xFFFFFF00) | rComponent.u.integer; break;
+						case 3: Skin.m_aPartColors[PartIndex] = (Skin.m_aPartColors[PartIndex]&0x00FFFFFF) | (rComponent.u.integer << 24); break;
 					}
 				}
 			}
@@ -201,9 +202,9 @@ int CSkins::SkinScan(const char *pName, int IsDir, int DirType, void *pUser)
 
 	// set skin data
 	Skin.m_Flags = SpecialSkin ? SKINFLAG_SPECIAL : 0;
-	if(DirType != IStorage::TYPE_SAVE)
+	if (DirType != IStorage::TYPE_SAVE)
 		Skin.m_Flags |= SKINFLAG_STANDARD;
-	if(g_Config.m_Debug)
+	if (g_Config.m_Debug)
 	{
 		str_format(aBuf, sizeof(aBuf), "load skin %s", Skin.m_aName);
 		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "skins", aBuf);
@@ -216,12 +217,12 @@ int CSkins::SkinScan(const char *pName, int IsDir, int DirType, void *pUser)
 
 void CSkins::OnInit()
 {
-	for(int p = 0; p < NUM_SKINPARTS; p++)
+	for (int p = 0; p < NUM_SKINPARTS; p++)
 	{
 		m_aaSkinParts[p].clear();
 
 		// add none part
-		if(p == SKINPART_MARKING || p == SKINPART_DECORATION)
+		if (p == SKINPART_MARKING || p == SKINPART_DECORATION)
 		{
 			CSkinPart NoneSkinPart;
 			NoneSkinPart.m_Flags = SKINFLAG_STANDARD;
@@ -237,7 +238,7 @@ void CSkins::OnInit()
 		Storage()->ListDirectory(IStorage::TYPE_ALL, aBuf, SkinPartScan, this);
 
 		// add dummy skin part
-		if(!m_aaSkinParts[p].size())
+		if (!m_aaSkinParts[p].size())
 		{
 			CSkinPart DummySkinPart;
 			DummySkinPart.m_Flags = SKINFLAG_STANDARD;
@@ -250,14 +251,14 @@ void CSkins::OnInit()
 	// create dummy skin
 	m_DummySkin.m_Flags = SKINFLAG_STANDARD;
 	str_copy(m_DummySkin.m_aName, "dummy", sizeof(m_DummySkin.m_aName));
-	for(int p = 0; p < NUM_SKINPARTS; p++)
+	for (int p = 0; p < NUM_SKINPARTS; p++)
 	{
 		int Default;
-		if(p == SKINPART_MARKING || p == SKINPART_DECORATION)
+		if (p == SKINPART_MARKING || p == SKINPART_DECORATION)
 			Default = FindSkinPart(p, "", false);
 		else
 			Default = FindSkinPart(p, "standard", false);
-		if(Default < 0)
+		if (Default < 0)
 			Default = 0;
 		m_DummySkin.m_apParts[p] = GetSkinPart(p, Default);
 		m_DummySkin.m_aPartColors[p] = p==SKINPART_MARKING ? (255<<24)+65408 : 65408;
@@ -269,7 +270,7 @@ void CSkins::OnInit()
 	Storage()->ListDirectory(IStorage::TYPE_ALL, "skins", SkinScan, this);
 
 	// add dummy skin
-	if(!m_aSkins.size())
+	if (!m_aSkins.size())
 		m_aSkins.add(m_DummySkin);
 }
 
@@ -278,16 +279,16 @@ void CSkins::AddSkin(const char *pSkinName)
 	CSkin Skin = m_DummySkin;
 	Skin.m_Flags = 0;
 	str_copy(Skin.m_aName, pSkinName, sizeof(Skin.m_aName));
-	for(int PartIndex = 0; PartIndex < NUM_SKINPARTS; ++PartIndex)
+	for (int PartIndex = 0; PartIndex < NUM_SKINPARTS; ++PartIndex)
 	{
 		int SkinPart = FindSkinPart(PartIndex, ms_apSkinVariables[PartIndex], false);
-		if(SkinPart > -1)
+		if (SkinPart > -1)
 			Skin.m_apParts[PartIndex] = GetSkinPart(PartIndex, SkinPart);
 		Skin.m_aUseCustomColors[PartIndex] = *ms_apUCCVariables[PartIndex];
 		Skin.m_aPartColors[PartIndex] = *ms_apColorVariables[PartIndex];
 	}
 	int SkinIndex = Find(pSkinName, false);
-	if(SkinIndex != -1)
+	if (SkinIndex != -1)
 		m_aSkins[SkinIndex] = Skin;
 	else
 		m_aSkins.add(Skin);
@@ -315,9 +316,9 @@ const CSkins::CSkin *CSkins::Get(int Index)
 
 int CSkins::Find(const char *pName, bool AllowSpecialSkin)
 {
-	for(int i = 0; i < m_aSkins.size(); i++)
+	for (int i = 0; i < m_aSkins.size(); i++)
 	{
-		if(str_comp(m_aSkins[i].m_aName, pName) == 0 && ((m_aSkins[i].m_Flags&SKINFLAG_SPECIAL) == 0 || AllowSpecialSkin))
+		if (str_comp(m_aSkins[i].m_aName, pName) == 0 && ((m_aSkins[i].m_Flags&SKINFLAG_SPECIAL) == 0 || AllowSpecialSkin))
 			return i;
 	}
 	return -1;
@@ -331,9 +332,9 @@ const CSkins::CSkinPart *CSkins::GetSkinPart(int Part, int Index)
 
 int CSkins::FindSkinPart(int Part, const char *pName, bool AllowSpecialPart)
 {
-	for(int i = 0; i < m_aaSkinParts[Part].size(); i++)
+	for (int i = 0; i < m_aaSkinParts[Part].size(); i++)
 	{
-		if(str_comp(m_aaSkinParts[Part][i].m_aName, pName) == 0 && ((m_aaSkinParts[Part][i].m_Flags&SKINFLAG_SPECIAL) == 0 || AllowSpecialPart))
+		if (str_comp(m_aaSkinParts[Part][i].m_aName, pName) == 0 && ((m_aaSkinParts[Part][i].m_Flags&SKINFLAG_SPECIAL) == 0 || AllowSpecialPart))
 			return i;
 	}
 	return -1;
@@ -355,10 +356,10 @@ vec4 CSkins::GetColorV4(int v, bool UseAlpha) const
 int CSkins::GetTeamColor(int UseCustomColors, int PartColor, int Team, int Part) const
 {
 	static const int s_aTeamColors[3] = {12895054, 65387, 10223467};
-	if(!UseCustomColors)
+	if (!UseCustomColors)
 	{
 		int ColorVal = s_aTeamColors[Team+1];
-		if(Part == SKINPART_MARKING)
+		if (Part == SKINPART_MARKING)
 			ColorVal |= 0xff000000;
 		return ColorVal;
 	}
@@ -379,9 +380,9 @@ int CSkins::GetTeamColor(int UseCustomColors, int PartColor, int Team, int Part)
 	int Lgt = PartColor&0xff;
 
 	int NewHue;
-	if(Team == TEAM_RED)
+	if (Team == TEAM_RED)
 	{
-		if(Part == SKINPART_MARKING || Part == SKINPART_DECORATION || Part == SKINPART_HANDS)
+		if (Part == SKINPART_MARKING || Part == SKINPART_DECORATION || Part == SKINPART_HANDS)
 			NewHue = (int)(128.0f/pi*asinf(cosf(pi/128.0f*(Hue-105.0f))) + 297.0f) % 256;
 		else
 			NewHue = (int)(64.0f/pi*asinf(cosf(pi/64.0f*(Hue-56.0f))) + 280.0f) % 256;
@@ -393,7 +394,7 @@ int CSkins::GetTeamColor(int UseCustomColors, int PartColor, int Team, int Part)
 	int NewLgt = clamp(Lgt, MinLgt, MaxLgt);
 	int ColorVal = (NewHue<<16) + (NewSat<<8) + NewLgt;
 
-	if(Part == SKINPART_MARKING)
+	if (Part == SKINPART_MARKING)
 		ColorVal += PartColor&0xff000000;
 
 	return ColorVal;

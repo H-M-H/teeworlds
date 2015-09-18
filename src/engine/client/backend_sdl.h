@@ -3,38 +3,38 @@
 #include "graphics_threaded.h"
 
 #if defined(CONF_PLATFORM_MACOSX)
-	#include <objc/objc-runtime.h>
+#include <objc/objc-runtime.h>
 
-	class semaphore
+class semaphore
+{
+	SDL_sem *sem;
+public:
+	semaphore() { sem = SDL_CreateSemaphore(0); }
+	~semaphore() { SDL_DestroySemaphore(sem); }
+	void wait() { SDL_SemWait(sem); }
+	void signal() { SDL_SemPost(sem); }
+};
+
+class CAutoreleasePool
+{
+private:
+	id m_Pool;
+
+public:
+	CAutoreleasePool()
 	{
-		SDL_sem *sem;
-	public:
-		semaphore() { sem = SDL_CreateSemaphore(0); }
-		~semaphore() { SDL_DestroySemaphore(sem); }
-		void wait() { SDL_SemWait(sem); }
-		void signal() { SDL_SemPost(sem); }
-	};
+		Class NSAutoreleasePoolClass = (Class) objc_getClass("NSAutoreleasePool");
+		m_Pool = class_createInstance(NSAutoreleasePoolClass, 0);
+		SEL selector = sel_registerName("init");
+		objc_msgSend(m_Pool, selector);
+	}
 
-	class CAutoreleasePool
+	~CAutoreleasePool()
 	{
-	private:
-		id m_Pool;
-
-	public:
-		CAutoreleasePool()
-		{
-			Class NSAutoreleasePoolClass = (Class) objc_getClass("NSAutoreleasePool");
-			m_Pool = class_createInstance(NSAutoreleasePoolClass, 0);
-			SEL selector = sel_registerName("init");
-			objc_msgSend(m_Pool, selector);
-		}
-
-		~CAutoreleasePool()
-		{
-			SEL selector = sel_registerName("drain");
-			objc_msgSend(m_Pool, selector);
-		}
-	};
+		SEL selector = sel_registerName("drain");
+		objc_msgSend(m_Pool, selector);
+	}
+};
 #endif
 
 
@@ -55,14 +55,14 @@ public:
 	virtual void RunBuffer(CCommandBuffer *pBuffer);
 	virtual bool IsIdle() const;
 	virtual void WaitForIdle();
-		
+
 protected:
 	void StartProcessor(ICommandProcessor *pProcessor);
 	void StopProcessor();
 
 private:
 	ICommandProcessor *m_pProcessor;
-	CCommandBuffer * volatile m_pBuffer;
+	CCommandBuffer *volatile m_pBuffer;
 	volatile bool m_Shutdown;
 	semaphore m_Activity;
 	semaphore m_BufferDone;
@@ -77,7 +77,7 @@ class CCommandProcessorFragment_General
 	void Cmd_Nop();
 	void Cmd_Signal(const CCommandBuffer::SCommand_Signal *pCommand);
 public:
-	bool RunCommand(const CCommandBuffer::SCommand * pBaseCommand);
+	bool RunCommand(const CCommandBuffer::SCommand *pBaseCommand);
 };
 
 // takes care of opengl related rendering
@@ -131,7 +131,7 @@ private:
 public:
 	CCommandProcessorFragment_OpenGL();
 
-	bool RunCommand(const CCommandBuffer::SCommand * pBaseCommand);
+	bool RunCommand(const CCommandBuffer::SCommand *pBaseCommand);
 };
 
 // takes care of sdl related commands
@@ -173,10 +173,10 @@ public:
 // command processor impelementation, uses the fragments to combine into one processor
 class CCommandProcessor_SDL_OpenGL : public CGraphicsBackend_Threaded::ICommandProcessor
 {
- 	CCommandProcessorFragment_OpenGL m_OpenGL;
- 	CCommandProcessorFragment_SDL m_SDL;
- 	CCommandProcessorFragment_General m_General;
- public:
+	CCommandProcessorFragment_OpenGL m_OpenGL;
+	CCommandProcessorFragment_SDL m_SDL;
+	CCommandProcessorFragment_General m_General;
+public:
 	virtual void RunBuffer(CCommandBuffer *pBuffer);
 };
 

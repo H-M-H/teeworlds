@@ -127,7 +127,7 @@ public:
 		const CNetObj_GameDataTeam *m_pGameDataTeam;
 		const CNetObj_GameDataFlag *m_pGameDataFlag;
 		int m_GameDataFlagSnapID;
-		
+
 		int m_NotReadyCount;
 		int m_AliveCount[NUM_TEAMS];
 

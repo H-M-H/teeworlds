@@ -95,13 +95,13 @@ class CConsole : public IConsole
 
 		CResult &operator =(const CResult &Other)
 		{
-			if(this != &Other)
+			if (this != &Other)
 			{
 				IResult::operator=(Other);
 				mem_copy(m_aStringStorage, Other.m_aStringStorage, sizeof(m_aStringStorage));
 				m_pArgsStart = m_aStringStorage+(Other.m_pArgsStart-Other.m_aStringStorage);
 				m_pCommand = m_aStringStorage+(Other.m_pCommand-Other.m_aStringStorage);
-				for(unsigned i = 0; i < Other.m_NumArgs; ++i)
+				for (unsigned i = 0; i < Other.m_NumArgs; ++i)
 					m_apArgs[i] = m_aStringStorage+(Other.m_apArgs[i]-Other.m_aStringStorage);
 			}
 			return *this;
@@ -137,9 +137,9 @@ class CConsole : public IConsole
 		{
 			CQueueEntry *pEntry = static_cast<CQueueEntry *>(m_Queue.Allocate(sizeof(CQueueEntry)));
 			pEntry->m_pNext = 0;
-			if(!m_pFirst)
+			if (!m_pFirst)
 				m_pFirst = pEntry;
-			if(m_pLast)
+			if (m_pLast)
 				m_pLast->m_pNext = pEntry;
 			m_pLast = pEntry;
 			(void)new(&(pEntry->m_Result)) CResult;

@@ -37,12 +37,12 @@ void CBroadcast::OnReset()
 
 void CBroadcast::OnRender()
 {
-	if(m_pClient->m_pScoreboard->Active() || m_pClient->m_pMotd->IsActive())
+	if (m_pClient->m_pScoreboard->Active() || m_pClient->m_pMotd->IsActive())
 		return;
 
 	Graphics()->MapScreen(0, 0, 300*Graphics()->ScreenAspect(), 300);
 
-	if(time_get() < m_BroadcastTime)
+	if (time_get() < m_BroadcastTime)
 	{
 		CTextCursor Cursor;
 		TextRender()->SetCursor(&Cursor, m_BroadcastRenderOffset, 40.0f, 12.0f, TEXTFLAG_RENDER|TEXTFLAG_STOP_AT_END);

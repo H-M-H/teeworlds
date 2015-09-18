@@ -52,14 +52,14 @@ public:
 
 	// events
 	int NumEvents() const { return m_NumEvents; }
-	void ClearEvents() 
-	{ 
+	void ClearEvents()
+	{
 		m_NumEvents = 0;
 		m_InputDispatched = true;
 	}
 	CEvent GetEvent(int Index) const
 	{
-		if(Index < 0 || Index >= m_NumEvents)
+		if (Index < 0 || Index >= m_NumEvents)
 		{
 			IInput::CEvent e = {0,0};
 			return e;

@@ -23,7 +23,7 @@ void CControls::OnReset()
 	m_LastData.m_Direction = 0;
 	m_LastData.m_Hook = 0;
 	// simulate releasing the fire button
-	if((m_LastData.m_Fire&1) != 0)
+	if ((m_LastData.m_Fire&1) != 0)
 		m_LastData.m_Fire++;
 	m_LastData.m_Fire &= INPUT_STATE_MASK;
 	m_LastData.m_Jump = 0;
@@ -51,7 +51,7 @@ static void ConKeyInputState(IConsole::IResult *pResult, void *pUserData)
 static void ConKeyInputCounter(IConsole::IResult *pResult, void *pUserData)
 {
 	int *v = (int *)pUserData;
-	if(((*v)&1) != pResult->GetInteger(0))
+	if (((*v)&1) != pResult->GetInteger(0))
 		(*v)++;
 	*v &= INPUT_STATE_MASK;
 }
@@ -66,7 +66,7 @@ struct CInputSet
 static void ConKeyInputSet(IConsole::IResult *pResult, void *pUserData)
 {
 	CInputSet *pSet = (CInputSet *)pUserData;
-	if(pResult->GetInteger(0))
+	if (pResult->GetInteger(0))
 		*pSet->m_pVariable = pSet->m_Value;
 }
 
@@ -98,10 +98,10 @@ void CControls::OnConsoleInit()
 
 void CControls::OnMessage(int Msg, void *pRawMsg)
 {
-	if(Msg == NETMSGTYPE_SV_WEAPONPICKUP)
+	if (Msg == NETMSGTYPE_SV_WEAPONPICKUP)
 	{
 		CNetMsg_Sv_WeaponPickup *pMsg = (CNetMsg_Sv_WeaponPickup *)pRawMsg;
-		if(g_Config.m_ClAutoswitchWeapons)
+		if (g_Config.m_ClAutoswitchWeapons)
 			m_InputData.m_WantedWeapon = pMsg->m_Weapon+1;
 	}
 }
@@ -112,28 +112,28 @@ int CControls::SnapInput(int *pData)
 	bool Send = false;
 
 	// update player state
-	if(m_pClient->m_pChat->IsActive())
+	if (m_pClient->m_pChat->IsActive())
 		m_InputData.m_PlayerFlags = PLAYERFLAG_CHATTING;
 	else
 		m_InputData.m_PlayerFlags = 0;
 
-	if(m_pClient->m_pScoreboard->Active())
+	if (m_pClient->m_pScoreboard->Active())
 		m_InputData.m_PlayerFlags |= PLAYERFLAG_SCOREBOARD;
 
-	if(m_LastData.m_PlayerFlags != m_InputData.m_PlayerFlags)
+	if (m_LastData.m_PlayerFlags != m_InputData.m_PlayerFlags)
 		Send = true;
 
 	m_LastData.m_PlayerFlags = m_InputData.m_PlayerFlags;
 
 	// we freeze the input if chat or menu is activated
-	if(m_pClient->m_pChat->IsActive() || m_pClient->m_pMenus->IsActive())
+	if (m_pClient->m_pChat->IsActive() || m_pClient->m_pMenus->IsActive())
 	{
 		OnReset();
 
 		mem_copy(pData, &m_InputData, sizeof(m_InputData));
 
 		// send once a second just to be sure
-		if(time_get() > LastSendTime + time_freq())
+		if (time_get() > LastSendTime + time_freq())
 			Send = true;
 	}
 	else
@@ -141,7 +141,7 @@ int CControls::SnapInput(int *pData)
 
 		m_InputData.m_TargetX = (int)m_MousePos.x;
 		m_InputData.m_TargetY = (int)m_MousePos.y;
-		if(!m_InputData.m_TargetX && !m_InputData.m_TargetY)
+		if (!m_InputData.m_TargetX && !m_InputData.m_TargetY)
 		{
 			m_InputData.m_TargetX = 1;
 			m_MousePos.x = 1;
@@ -149,13 +149,13 @@ int CControls::SnapInput(int *pData)
 
 		// set direction
 		m_InputData.m_Direction = 0;
-		if(m_InputDirectionLeft && !m_InputDirectionRight)
+		if (m_InputDirectionLeft && !m_InputDirectionRight)
 			m_InputData.m_Direction = -1;
-		if(!m_InputDirectionLeft && m_InputDirectionRight)
+		if (!m_InputDirectionLeft && m_InputDirectionRight)
 			m_InputData.m_Direction = 1;
 
 		// stress testing
-		if(g_Config.m_DbgStress)
+		if (g_Config.m_DbgStress)
 		{
 			float t = Client()->LocalTime();
 			mem_zero(&m_InputData, sizeof(m_InputData));
@@ -170,23 +170,23 @@ int CControls::SnapInput(int *pData)
 		}
 
 		// check if we need to send input
-		if(m_InputData.m_Direction != m_LastData.m_Direction) Send = true;
-		else if(m_InputData.m_Jump != m_LastData.m_Jump) Send = true;
-		else if(m_InputData.m_Fire != m_LastData.m_Fire) Send = true;
-		else if(m_InputData.m_Hook != m_LastData.m_Hook) Send = true;
-		else if(m_InputData.m_WantedWeapon != m_LastData.m_WantedWeapon) Send = true;
-		else if(m_InputData.m_NextWeapon != m_LastData.m_NextWeapon) Send = true;
-		else if(m_InputData.m_PrevWeapon != m_LastData.m_PrevWeapon) Send = true;
+		if (m_InputData.m_Direction != m_LastData.m_Direction) Send = true;
+		else if (m_InputData.m_Jump != m_LastData.m_Jump) Send = true;
+		else if (m_InputData.m_Fire != m_LastData.m_Fire) Send = true;
+		else if (m_InputData.m_Hook != m_LastData.m_Hook) Send = true;
+		else if (m_InputData.m_WantedWeapon != m_LastData.m_WantedWeapon) Send = true;
+		else if (m_InputData.m_NextWeapon != m_LastData.m_NextWeapon) Send = true;
+		else if (m_InputData.m_PrevWeapon != m_LastData.m_PrevWeapon) Send = true;
 
 		// send at at least 10hz
-		if(time_get() > LastSendTime + time_freq()/25)
+		if (time_get() > LastSendTime + time_freq()/25)
 			Send = true;
 	}
 
 	// copy and return size
 	m_LastData = m_InputData;
 
-	if(!Send)
+	if (!Send)
 		return 0;
 
 	LastSendTime = time_get();
@@ -197,9 +197,9 @@ int CControls::SnapInput(int *pData)
 void CControls::OnRender()
 {
 	// update target pos
-	if(m_pClient->m_Snap.m_pGameData && !m_pClient->m_Snap.m_SpecInfo.m_Active)
+	if (m_pClient->m_Snap.m_pGameData && !m_pClient->m_Snap.m_SpecInfo.m_Active)
 		m_TargetPos = m_pClient->m_LocalCharacterPos + m_MousePos;
-	else if(m_pClient->m_Snap.m_SpecInfo.m_Active && m_pClient->m_Snap.m_SpecInfo.m_UsePosition)
+	else if (m_pClient->m_Snap.m_SpecInfo.m_Active && m_pClient->m_Snap.m_SpecInfo.m_UsePosition)
 		m_TargetPos = m_pClient->m_Snap.m_SpecInfo.m_Position + m_MousePos;
 	else
 		m_TargetPos = m_MousePos;
@@ -207,8 +207,8 @@ void CControls::OnRender()
 
 bool CControls::OnMouseMove(float x, float y)
 {
-	if((m_pClient->m_Snap.m_pGameData && m_pClient->m_Snap.m_pGameData->m_GameStateFlags&(GAMESTATEFLAG_PAUSED|GAMESTATEFLAG_ROUNDOVER|GAMESTATEFLAG_GAMEOVER)) ||
-		(m_pClient->m_Snap.m_SpecInfo.m_Active && m_pClient->m_pChat->IsActive()))
+	if ((m_pClient->m_Snap.m_pGameData && m_pClient->m_Snap.m_pGameData->m_GameStateFlags&(GAMESTATEFLAG_PAUSED|GAMESTATEFLAG_ROUNDOVER|GAMESTATEFLAG_GAMEOVER)) ||
+			(m_pClient->m_Snap.m_SpecInfo.m_Active && m_pClient->m_pChat->IsActive()))
 		return false;
 
 	m_MousePos += vec2(x, y); // TODO: ugly
@@ -219,7 +219,7 @@ bool CControls::OnMouseMove(float x, float y)
 
 void CControls::ClampMousePos()
 {
-	if(m_pClient->m_Snap.m_SpecInfo.m_Active && !m_pClient->m_Snap.m_SpecInfo.m_UsePosition)
+	if (m_pClient->m_Snap.m_SpecInfo.m_Active && !m_pClient->m_Snap.m_SpecInfo.m_UsePosition)
 	{
 		m_MousePos.x = clamp(m_MousePos.x, 200.0f, Collision()->GetWidth()*32-200.0f);
 		m_MousePos.y = clamp(m_MousePos.y, 200.0f, Collision()->GetHeight()*32-200.0f);
@@ -231,7 +231,7 @@ void CControls::ClampMousePos()
 		float FollowFactor = g_Config.m_ClMouseFollowfactor/100.0f;
 		float MouseMax = min(CameraMaxDistance/FollowFactor + g_Config.m_ClMouseDeadzone, (float)g_Config.m_ClMouseMaxDistance);
 
-		if(length(m_MousePos) > MouseMax)
+		if (length(m_MousePos) > MouseMax)
 			m_MousePos = normalize(m_MousePos)*MouseMax;
 	}
 }

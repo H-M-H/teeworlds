@@ -20,27 +20,27 @@ void CItems::RenderProjectile(const CNetObj_Projectile *pCurrent, int ItemID)
 	// get positions
 	float Curvature = 0;
 	float Speed = 0;
-	if(pCurrent->m_Type == WEAPON_GRENADE)
+	if (pCurrent->m_Type == WEAPON_GRENADE)
 	{
 		Curvature = m_pClient->m_Tuning.m_GrenadeCurvature;
 		Speed = m_pClient->m_Tuning.m_GrenadeSpeed;
 	}
-	else if(pCurrent->m_Type == WEAPON_SHOTGUN)
+	else if (pCurrent->m_Type == WEAPON_SHOTGUN)
 	{
 		Curvature = m_pClient->m_Tuning.m_ShotgunCurvature;
 		Speed = m_pClient->m_Tuning.m_ShotgunSpeed;
 	}
-	else if(pCurrent->m_Type == WEAPON_GUN)
+	else if (pCurrent->m_Type == WEAPON_GUN)
 	{
 		Curvature = m_pClient->m_Tuning.m_GunCurvature;
 		Speed = m_pClient->m_Tuning.m_GunSpeed;
 	}
 
 	static float s_LastGameTickTime = Client()->GameTickTime();
-	if(m_pClient->m_Snap.m_pGameData && !(m_pClient->m_Snap.m_pGameData->m_GameStateFlags&GAMESTATEFLAG_PAUSED))
+	if (m_pClient->m_Snap.m_pGameData && !(m_pClient->m_Snap.m_pGameData->m_GameStateFlags&GAMESTATEFLAG_PAUSED))
 		s_LastGameTickTime = Client()->GameTickTime();
 	float Ct = (Client()->PrevGameTick()-pCurrent->m_StartTick)/(float)SERVER_TICK_SPEED + s_LastGameTickTime;
-	if(Ct < 0)
+	if (Ct < 0)
 		return; // projectile havn't been shot yet
 
 	vec2 StartPos(pCurrent->m_X, pCurrent->m_Y);
@@ -58,21 +58,21 @@ void CItems::RenderProjectile(const CNetObj_Projectile *pCurrent, int ItemID)
 
 
 	// add particle for this projectile
-	if(pCurrent->m_Type == WEAPON_GRENADE)
+	if (pCurrent->m_Type == WEAPON_GRENADE)
 	{
 		m_pClient->m_pEffects->SmokeTrail(Pos, Vel*-1);
 		static float s_Time = 0.0f;
 		static float s_LastLocalTime = Client()->LocalTime();
 
-		if(Client()->State() == IClient::STATE_DEMOPLAYBACK)
+		if (Client()->State() == IClient::STATE_DEMOPLAYBACK)
 		{
 			const IDemoPlayer::CInfo *pInfo = DemoPlayer()->BaseInfo();
-			if(!pInfo->m_Paused)
+			if (!pInfo->m_Paused)
 				s_Time += (Client()->LocalTime()-s_LastLocalTime)*pInfo->m_Speed;
 		}
 		else
 		{
-			if(m_pClient->m_Snap.m_pGameData && !(m_pClient->m_Snap.m_pGameData->m_GameStateFlags&GAMESTATEFLAG_PAUSED))
+			if (m_pClient->m_Snap.m_pGameData && !(m_pClient->m_Snap.m_pGameData->m_GameStateFlags&GAMESTATEFLAG_PAUSED))
 				s_Time += Client()->LocalTime()-s_LastLocalTime;
 		}
 
@@ -83,7 +83,7 @@ void CItems::RenderProjectile(const CNetObj_Projectile *pCurrent, int ItemID)
 	{
 		m_pClient->m_pEffects->BulletTrail(Pos);
 
-		if(length(Vel) > 0.00001f)
+		if (length(Vel) > 0.00001f)
 			Graphics()->QuadsSetRotation(angle(Vel));
 		else
 			Graphics()->QuadsSetRotation(0);
@@ -103,50 +103,51 @@ void CItems::RenderPickup(const CNetObj_Pickup *pPrev, const CNetObj_Pickup *pCu
 	vec2 Pos = mix(vec2(pPrev->m_X, pPrev->m_Y), vec2(pCurrent->m_X, pCurrent->m_Y), Client()->IntraGameTick());
 	float Angle = 0.0f;
 	float Size = 64.0f;
-	const int c[] = {
+	const int c[] =
+	{
 		SPRITE_PICKUP_HEALTH,
 		SPRITE_PICKUP_ARMOR,
 		SPRITE_PICKUP_GRENADE,
 		SPRITE_PICKUP_SHOTGUN,
 		SPRITE_PICKUP_LASER,
 		SPRITE_PICKUP_NINJA
-		};
+	};
 	RenderTools()->SelectSprite(c[pCurrent->m_Type]);
 
-	switch(pCurrent->m_Type)
+	switch (pCurrent->m_Type)
 	{
-	case PICKUP_GRENADE:
-		Size = g_pData->m_Weapons.m_aId[WEAPON_GRENADE].m_VisualSize;
-		break;
-	case PICKUP_SHOTGUN:
-		Size = g_pData->m_Weapons.m_aId[WEAPON_SHOTGUN].m_VisualSize;
-		break;
-	case PICKUP_LASER:
-		Size = g_pData->m_Weapons.m_aId[WEAPON_LASER].m_VisualSize;
-		break;
-	case PICKUP_NINJA:
-		m_pClient->m_pEffects->PowerupShine(Pos, vec2(96,18));
-		Size *= 2.0f;
-		Pos.x -= 10.0f;
+		case PICKUP_GRENADE:
+			Size = g_pData->m_Weapons.m_aId[WEAPON_GRENADE].m_VisualSize;
+			break;
+		case PICKUP_SHOTGUN:
+			Size = g_pData->m_Weapons.m_aId[WEAPON_SHOTGUN].m_VisualSize;
+			break;
+		case PICKUP_LASER:
+			Size = g_pData->m_Weapons.m_aId[WEAPON_LASER].m_VisualSize;
+			break;
+		case PICKUP_NINJA:
+			m_pClient->m_pEffects->PowerupShine(Pos, vec2(96,18));
+			Size *= 2.0f;
+			Pos.x -= 10.0f;
 	}
-	
+
 
 	Graphics()->QuadsSetRotation(Angle);
 
 	static float s_Time = 0.0f;
 	static float s_LastLocalTime = Client()->LocalTime();
 	float Offset = Pos.y/32.0f + Pos.x/32.0f;
-	if(Client()->State() == IClient::STATE_DEMOPLAYBACK)
+	if (Client()->State() == IClient::STATE_DEMOPLAYBACK)
 	{
 		const IDemoPlayer::CInfo *pInfo = DemoPlayer()->BaseInfo();
-		if(!pInfo->m_Paused)
+		if (!pInfo->m_Paused)
 			s_Time += (Client()->LocalTime()-s_LastLocalTime)*pInfo->m_Speed;
 	}
 	else
 	{
-		if(m_pClient->m_Snap.m_pGameData && !(m_pClient->m_Snap.m_pGameData->m_GameStateFlags&GAMESTATEFLAG_PAUSED))
+		if (m_pClient->m_Snap.m_pGameData && !(m_pClient->m_Snap.m_pGameData->m_GameStateFlags&GAMESTATEFLAG_PAUSED))
 			s_Time += Client()->LocalTime()-s_LastLocalTime;
- 	}
+	}
 	Pos.x += cosf(s_Time*2.0f+Offset)*2.5f;
 	Pos.y += sinf(s_Time*2.0f+Offset)*2.5f;
 	s_LastLocalTime = Client()->LocalTime();
@@ -163,7 +164,7 @@ void CItems::RenderFlag(const CNetObj_Flag *pPrev, const CNetObj_Flag *pCurrent,
 	Graphics()->TextureSet(g_pData->m_aImages[IMAGE_GAME].m_Id);
 	Graphics()->QuadsBegin();
 
-	if(pCurrent->m_Team == TEAM_RED)
+	if (pCurrent->m_Team == TEAM_RED)
 		RenderTools()->SelectSprite(SPRITE_FLAG_RED);
 	else
 		RenderTools()->SelectSprite(SPRITE_FLAG_BLUE);
@@ -172,18 +173,18 @@ void CItems::RenderFlag(const CNetObj_Flag *pPrev, const CNetObj_Flag *pCurrent,
 
 	vec2 Pos = mix(vec2(pPrev->m_X, pPrev->m_Y), vec2(pCurrent->m_X, pCurrent->m_Y), Client()->IntraGameTick());
 
-	if(pCurGameDataFlag)
+	if (pCurGameDataFlag)
 	{
 		// make sure that the flag isn't interpolated between capture and return
-		if(pPrevGameDataFlag &&
-			((pCurrent->m_Team == TEAM_RED && pPrevGameDataFlag->m_FlagCarrierRed != pCurGameDataFlag->m_FlagCarrierRed) ||
-			(pCurrent->m_Team == TEAM_BLUE && pPrevGameDataFlag->m_FlagCarrierBlue != pCurGameDataFlag->m_FlagCarrierBlue)))
+		if (pPrevGameDataFlag &&
+				((pCurrent->m_Team == TEAM_RED && pPrevGameDataFlag->m_FlagCarrierRed != pCurGameDataFlag->m_FlagCarrierRed) ||
+				 (pCurrent->m_Team == TEAM_BLUE && pPrevGameDataFlag->m_FlagCarrierBlue != pCurGameDataFlag->m_FlagCarrierBlue)))
 			Pos = vec2(pCurrent->m_X, pCurrent->m_Y);
 
 		// make sure to use predicted position if we are the carrier
-		if(m_pClient->m_LocalClientID != -1 &&
-			((pCurrent->m_Team == TEAM_RED && pCurGameDataFlag->m_FlagCarrierRed == m_pClient->m_LocalClientID) ||
-			(pCurrent->m_Team == TEAM_BLUE && pCurGameDataFlag->m_FlagCarrierBlue == m_pClient->m_LocalClientID)))
+		if (m_pClient->m_LocalClientID != -1 &&
+				((pCurrent->m_Team == TEAM_RED && pCurGameDataFlag->m_FlagCarrierRed == m_pClient->m_LocalClientID) ||
+				 (pCurrent->m_Team == TEAM_BLUE && pCurGameDataFlag->m_FlagCarrierBlue == m_pClient->m_LocalClientID)))
 			Pos = m_pClient->m_LocalCharacterPos;
 	}
 
@@ -220,10 +221,10 @@ void CItems::RenderLaser(const struct CNetObj_Laser *pCurrent)
 	Out = vec2(Dir.y, -Dir.x) * (7.0f*Ia);
 
 	IGraphics::CFreeformItem Freeform(
-			From.x-Out.x, From.y-Out.y,
-			From.x+Out.x, From.y+Out.y,
-			Pos.x-Out.x, Pos.y-Out.y,
-			Pos.x+Out.x, Pos.y+Out.y);
+		From.x-Out.x, From.y-Out.y,
+		From.x+Out.x, From.y+Out.y,
+		Pos.x-Out.x, Pos.y-Out.y,
+		Pos.x+Out.x, Pos.y+Out.y);
 	Graphics()->QuadsDrawFreeform(&Freeform, 1);
 
 	// do inner
@@ -232,10 +233,10 @@ void CItems::RenderLaser(const struct CNetObj_Laser *pCurrent)
 	Graphics()->SetColor(InnerColor.r, InnerColor.g, InnerColor.b, 1.0f); // center
 
 	Freeform = IGraphics::CFreeformItem(
-			From.x-Out.x, From.y-Out.y,
-			From.x+Out.x, From.y+Out.y,
-			Pos.x-Out.x, Pos.y-Out.y,
-			Pos.x+Out.x, Pos.y+Out.y);
+				   From.x-Out.x, From.y-Out.y,
+				   From.x+Out.x, From.y+Out.y,
+				   Pos.x-Out.x, Pos.y-Out.y,
+				   Pos.x+Out.x, Pos.y+Out.y);
 	Graphics()->QuadsDrawFreeform(&Freeform, 1);
 
 	Graphics()->QuadsEnd();
@@ -263,45 +264,41 @@ void CItems::RenderLaser(const struct CNetObj_Laser *pCurrent)
 
 void CItems::OnRender()
 {
-	if(Client()->State() < IClient::STATE_ONLINE)
+	if (Client()->State() < IClient::STATE_ONLINE)
 		return;
 
 	int Num = Client()->SnapNumItems(IClient::SNAP_CURRENT);
-	for(int i = 0; i < Num; i++)
+	for (int i = 0; i < Num; i++)
 	{
 		IClient::CSnapItem Item;
 		const void *pData = Client()->SnapGetItem(IClient::SNAP_CURRENT, i, &Item);
 
-		if(Item.m_Type == NETOBJTYPE_PROJECTILE)
-		{
+		if (Item.m_Type == NETOBJTYPE_PROJECTILE)
 			RenderProjectile((const CNetObj_Projectile *)pData, Item.m_ID);
-		}
-		else if(Item.m_Type == NETOBJTYPE_PICKUP)
+		else if (Item.m_Type == NETOBJTYPE_PICKUP)
 		{
 			const void *pPrev = Client()->SnapFindItem(IClient::SNAP_PREV, Item.m_Type, Item.m_ID);
-			if(pPrev)
+			if (pPrev)
 				RenderPickup((const CNetObj_Pickup *)pPrev, (const CNetObj_Pickup *)pData);
 		}
-		else if(Item.m_Type == NETOBJTYPE_LASER)
-		{
+		else if (Item.m_Type == NETOBJTYPE_LASER)
 			RenderLaser((const CNetObj_Laser *)pData);
-		}
 	}
 
 	// render flag
-	for(int i = 0; i < Num; i++)
+	for (int i = 0; i < Num; i++)
 	{
 		IClient::CSnapItem Item;
 		const void *pData = Client()->SnapGetItem(IClient::SNAP_CURRENT, i, &Item);
 
-		if(Item.m_Type == NETOBJTYPE_FLAG)
+		if (Item.m_Type == NETOBJTYPE_FLAG)
 		{
 			const void *pPrev = Client()->SnapFindItem(IClient::SNAP_PREV, Item.m_Type, Item.m_ID);
 			if (pPrev)
 			{
 				const void *pPrevGameDataFlag = Client()->SnapFindItem(IClient::SNAP_PREV, NETOBJTYPE_GAMEDATAFLAG, m_pClient->m_Snap.m_GameDataFlagSnapID);
 				RenderFlag(static_cast<const CNetObj_Flag *>(pPrev), static_cast<const CNetObj_Flag *>(pData),
-							static_cast<const CNetObj_GameDataFlag *>(pPrevGameDataFlag), m_pClient->m_Snap.m_pGameDataFlag);
+						   static_cast<const CNetObj_GameDataFlag *>(pPrevGameDataFlag), m_pClient->m_Snap.m_pGameDataFlag);
 			}
 		}
 	}

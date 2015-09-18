@@ -30,11 +30,11 @@ void CFriends::ConRemoveFriend(IConsole::IResult *pResult, void *pUserData)
 void CFriends::Init()
 {
 	IConfig *pConfig = Kernel()->RequestInterface<IConfig>();
-	if(pConfig)
+	if (pConfig)
 		pConfig->RegisterCallback(ConfigSaveCallback, this);
 
 	IConsole *pConsole = Kernel()->RequestInterface<IConsole>();
-	if(pConsole)
+	if (pConsole)
 	{
 		pConsole->Register("add_friend", "ss", CFGFLAG_CLIENT, ConAddFriend, this, "Add a friend");
 		pConsole->Register("remove_friend", "ss", CFGFLAG_CLIENT, ConRemoveFriend, this, "Remove a friend");
@@ -51,13 +51,13 @@ int CFriends::GetFriendState(const char *pName, const char *pClan) const
 	int Result = FRIEND_NO;
 	unsigned NameHash = str_quickhash(pName);
 	unsigned ClanHash = str_quickhash(pClan);
-	for(int i = 0; i < m_NumFriends; ++i)
+	for (int i = 0; i < m_NumFriends; ++i)
 	{
-		if(m_aFriends[i].m_ClanHash == ClanHash)
+		if (m_aFriends[i].m_ClanHash == ClanHash)
 		{
-			if(m_aFriends[i].m_aName[0] == 0)
+			if (m_aFriends[i].m_aName[0] == 0)
 				Result = FRIEND_CLAN;
-			else if(m_aFriends[i].m_NameHash == NameHash)
+			else if (m_aFriends[i].m_NameHash == NameHash)
 			{
 				Result = FRIEND_PLAYER;
 				break;
@@ -71,10 +71,10 @@ bool CFriends::IsFriend(const char *pName, const char *pClan, bool PlayersOnly) 
 {
 	unsigned NameHash = str_quickhash(pName);
 	unsigned ClanHash = str_quickhash(pClan);
-	for(int i = 0; i < m_NumFriends; ++i)
+	for (int i = 0; i < m_NumFriends; ++i)
 	{
-		if(m_aFriends[i].m_ClanHash == ClanHash &&
-			((!PlayersOnly && m_aFriends[i].m_aName[0] == 0) || m_aFriends[i].m_NameHash == NameHash))
+		if (m_aFriends[i].m_ClanHash == ClanHash &&
+				((!PlayersOnly && m_aFriends[i].m_aName[0] == 0) || m_aFriends[i].m_NameHash == NameHash))
 			return true;
 	}
 	return false;
@@ -82,15 +82,15 @@ bool CFriends::IsFriend(const char *pName, const char *pClan, bool PlayersOnly) 
 
 void CFriends::AddFriend(const char *pName, const char *pClan)
 {
-	if(m_NumFriends == MAX_FRIENDS || (pName[0] == 0 && pClan[0] == 0))
+	if (m_NumFriends == MAX_FRIENDS || (pName[0] == 0 && pClan[0] == 0))
 		return;
 
 	// make sure we don't have the friend already
 	unsigned NameHash = str_quickhash(pName);
 	unsigned ClanHash = str_quickhash(pClan);
-	for(int i = 0; i < m_NumFriends; ++i)
+	for (int i = 0; i < m_NumFriends; ++i)
 	{
-		if(m_aFriends[i].m_NameHash == NameHash && m_aFriends[i].m_ClanHash == ClanHash)
+		if (m_aFriends[i].m_NameHash == NameHash && m_aFriends[i].m_ClanHash == ClanHash)
 			return;
 	}
 
@@ -105,9 +105,9 @@ void CFriends::RemoveFriend(const char *pName, const char *pClan)
 {
 	unsigned NameHash = str_quickhash(pName);
 	unsigned ClanHash = str_quickhash(pClan);
-	for(int i = 0; i < m_NumFriends; ++i)
+	for (int i = 0; i < m_NumFriends; ++i)
 	{
-		if(m_aFriends[i].m_NameHash == NameHash && m_aFriends[i].m_ClanHash == ClanHash)
+		if (m_aFriends[i].m_NameHash == NameHash && m_aFriends[i].m_ClanHash == ClanHash)
 		{
 			RemoveFriend(i);
 			return;
@@ -117,7 +117,7 @@ void CFriends::RemoveFriend(const char *pName, const char *pClan)
 
 void CFriends::RemoveFriend(int Index)
 {
-	if(Index >= 0 && Index < m_NumFriends)
+	if (Index >= 0 && Index < m_NumFriends)
 	{
 		mem_move(&m_aFriends[Index], &m_aFriends[Index+1], sizeof(CFriendInfo)*(m_NumFriends-(Index+1)));
 		--m_NumFriends;
@@ -130,16 +130,16 @@ void CFriends::ConfigSaveCallback(IConfig *pConfig, void *pUserData)
 	CFriends *pSelf = (CFriends *)pUserData;
 	char aBuf[128];
 	const char *pEnd = aBuf+sizeof(aBuf)-4;
-	for(int i = 0; i < pSelf->m_NumFriends; ++i)
+	for (int i = 0; i < pSelf->m_NumFriends; ++i)
 	{
 		str_copy(aBuf, "add_friend ", sizeof(aBuf));
 
 		const char *pSrc = pSelf->m_aFriends[i].m_aName;
 		char *pDst = aBuf+str_length(aBuf);
 		*pDst++ = '"';
-		while(*pSrc && pDst < pEnd)
+		while (*pSrc && pDst < pEnd)
 		{
-			if(*pSrc == '"' || *pSrc == '\\') // escape \ and "
+			if (*pSrc == '"' || *pSrc == '\\') // escape \ and "
 				*pDst++ = '\\';
 			*pDst++ = *pSrc++;
 		}
@@ -148,9 +148,9 @@ void CFriends::ConfigSaveCallback(IConfig *pConfig, void *pUserData)
 
 		pSrc = pSelf->m_aFriends[i].m_aClan;
 		*pDst++ = '"';
-		while(*pSrc && pDst < pEnd)
+		while (*pSrc && pDst < pEnd)
 		{
-			if(*pSrc == '"' || *pSrc == '\\') // escape \ and "
+			if (*pSrc == '"' || *pSrc == '\\') // escape \ and "
 				*pDst++ = '\\';
 			*pDst++ = *pSrc++;
 		}
