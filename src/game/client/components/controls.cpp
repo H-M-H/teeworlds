@@ -27,6 +27,7 @@ void CControls::OnReset()
 		m_LastData.m_Fire++;
 	m_LastData.m_Fire &= INPUT_STATE_MASK;
 	m_LastData.m_Jump = 0;
+	m_LastData.m_Slide = 0;
 	m_InputData = m_LastData;
 
 	m_InputDirectionLeft = 0;
@@ -85,6 +86,7 @@ void CControls::OnConsoleInit()
 	Console()->Register("+jump", "", CFGFLAG_CLIENT, ConKeyInputState, &m_InputData.m_Jump, "Jump");
 	Console()->Register("+hook", "", CFGFLAG_CLIENT, ConKeyInputState, &m_InputData.m_Hook, "Hook");
 	Console()->Register("+fire", "", CFGFLAG_CLIENT, ConKeyInputCounter, &m_InputData.m_Fire, "Fire");
+	Console()->Register("+slide", "", CFGFLAG_CLIENT, ConKeyInputState, &m_InputData.m_Slide, "Slide");
 
 	{ static CInputSet s_Set = {this, &m_InputData.m_WantedWeapon, 1}; Console()->Register("+weapon1", "", CFGFLAG_CLIENT, ConKeyInputSet, (void *)&s_Set, "Switch to hammer"); }
 	{ static CInputSet s_Set = {this, &m_InputData.m_WantedWeapon, 2}; Console()->Register("+weapon2", "", CFGFLAG_CLIENT, ConKeyInputSet, (void *)&s_Set, "Switch to gun"); }
@@ -174,6 +176,7 @@ int CControls::SnapInput(int *pData)
 		else if(m_InputData.m_Jump != m_LastData.m_Jump) Send = true;
 		else if(m_InputData.m_Fire != m_LastData.m_Fire) Send = true;
 		else if(m_InputData.m_Hook != m_LastData.m_Hook) Send = true;
+		else if(m_InputData.m_Slide != m_LastData.m_Slide) Send = true;
 		else if(m_InputData.m_WantedWeapon != m_LastData.m_WantedWeapon) Send = true;
 		else if(m_InputData.m_NextWeapon != m_LastData.m_NextWeapon) Send = true;
 		else if(m_InputData.m_PrevWeapon != m_LastData.m_PrevWeapon) Send = true;

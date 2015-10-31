@@ -62,6 +62,7 @@ public:
 };
 
 const float pi = 3.1415926535897932384626433f;
+const float invsqrt2 = 0.7071067811865475244f;
 
 template <typename T> inline T min(T a, T b) { return a<b?a:b; }
 template <typename T> inline T max(T a, T b) { return a>b?a:b; }

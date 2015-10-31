@@ -19,6 +19,7 @@ static CKeyInfo gs_aKeys[] =
 	{ "Jump", "+jump", 0 },
 	{ "Fire", "+fire", 0 },
 	{ "Hook", "+hook", 0 },
+	{ "Slide", "+slide", 0 },
 	{ "Hammer", "+weapon1", 0 },
 	{ "Pistol", "+weapon2", 0 },
 	{ "Shotgun", "+weapon3", 0 },
@@ -105,7 +106,7 @@ float CMenus::RenderSettingsControlsMovement(CUIRect View, void *pUser)
 			}
 	}
 
-	int NumOptions = 6;
+	int NumOptions = 7;
 	float ButtonHeight = 20.0f;
 	float Spaceing = 2.0f;
 	float BackgroundHeight = (float)NumOptions*ButtonHeight+(float)NumOptions*Spaceing;
@@ -118,7 +119,7 @@ float CMenus::RenderSettingsControlsMovement(CUIRect View, void *pUser)
 	View.HSplitTop(ButtonHeight, &Button, &View);
 	pSelf->DoScrollbarOption(&g_Config.m_InpMousesens, &g_Config.m_InpMousesens, &Button, Localize("Mouse sens."), 150.0f, 5, 500);
 
-	pSelf->UiDoGetButtons(0, 5, View, ButtonHeight, Spaceing);
+	pSelf->UiDoGetButtons(0, 6, View, ButtonHeight, Spaceing);
 
 	return BackgroundHeight;
 }
@@ -153,7 +154,7 @@ float CMenus::RenderSettingsControlsWeapon(CUIRect View, void *pUser)
 	View.HSplitTop(BackgroundHeight, &View, 0);
 	pSelf->RenderTools()->DrawUIRect(&View, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_B, 5.0f);
 
-	pSelf->UiDoGetButtons(5, 12, View, ButtonHeight, Spaceing);
+	pSelf->UiDoGetButtons(6, 13, View, ButtonHeight, Spaceing);
 
 	return BackgroundHeight;
 }
@@ -188,7 +189,7 @@ float CMenus::RenderSettingsControlsVoting(CUIRect View, void *pUser)
 	View.HSplitTop(BackgroundHeight, &View, 0);
 	pSelf->RenderTools()->DrawUIRect(&View, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_B, 5.0f);
 
-	pSelf->UiDoGetButtons(12, 14, View, ButtonHeight, Spaceing);
+	pSelf->UiDoGetButtons(13, 15, View, ButtonHeight, Spaceing);
 
 	return BackgroundHeight;
 }
@@ -223,7 +224,7 @@ float CMenus::RenderSettingsControlsChat(CUIRect View, void *pUser)
 	View.HSplitTop(BackgroundHeight, &View, 0);
 	pSelf->RenderTools()->DrawUIRect(&View, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_B, 5.0f);
 
-	pSelf->UiDoGetButtons(14, 17, View, ButtonHeight, Spaceing);
+	pSelf->UiDoGetButtons(15, 18, View, ButtonHeight, Spaceing);
 
 	return BackgroundHeight;
 }
@@ -258,7 +259,7 @@ float CMenus::RenderSettingsControlsMisc(CUIRect View, void *pUser)
 	View.HSplitTop(BackgroundHeight, &View, 0);
 	pSelf->RenderTools()->DrawUIRect(&View, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_B, 5.0f);
 
-	pSelf->UiDoGetButtons(17, 26, View, ButtonHeight, Spaceing);
+	pSelf->UiDoGetButtons(18, 27, View, ButtonHeight, Spaceing);
 
 	return BackgroundHeight;
 }

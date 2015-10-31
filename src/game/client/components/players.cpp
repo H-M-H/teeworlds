@@ -262,20 +262,55 @@ void CPlayers::RenderPlayer(
 	RenderInfo.m_GotAirJump = Player.m_Jumped&2?0:1;
 
 	bool Stationary = Player.m_VelX <= 1 && Player.m_VelX >= -1;
-	bool InAir = !Collision()->CheckPoint(Player.m_X, Player.m_Y+16);
-	bool WantOtherDir = (Player.m_Direction == -1 && Vel.x > 0) || (Player.m_Direction == 1 && Vel.x < 0);
-
+	bool InAir = !Player.m_Grounded;
+	int Slope = Player.m_Slope;
+	//bool InAir = !Collision()->CheckPoint(Player.m_X, Player.m_Y+16);
+	bool WantOtherDir = !Player.m_Sliding && ((Player.m_Direction == -1 && Vel.x > 0) || (Player.m_Direction == 1 && Vel.x < 0));
+	bool Sliding = Player.m_Sliding;
+	int player_dir = sign(Vel.x);
+	if(player_dir == 0)
+		player_dir = 1;
+	
+	
 	// evaluate animation
-	float WalkTime = fmod(absolute(Position.x), 100.0f)/100.0f;
+	float WalkTime = fmod(absolute(Position.x * (Slope == 0 ? 1.0f : 1.414f)), 100.0f)/100.0f;
+	
+		
 	CAnimState State;
 	State.Set(&g_pData->m_aAnimations[ANIM_BASE], 0);
-
-	if(InAir)
-		State.Add(&g_pData->m_aAnimations[ANIM_INAIR], 0, 1.0f); // TODO: some sort of time here
+	//TODO: omg, there must be a better way...
+	if(Sliding && Slope == -1)
+		State.Add(&g_pData->m_aAnimations[ANIM_SLIDE_SLOPE_LEFT], 0, 1.0f);
+	else if(Sliding && Slope == 1)
+		State.Add(&g_pData->m_aAnimations[ANIM_SLIDE_SLOPE_RIGHT], 0, 1.0f);
+	else if(Sliding && !InAir && player_dir == -1) 
+		State.Add(&g_pData->m_aAnimations[ANIM_SLIDE_GROUND_LEFT], 0, 1.0f);
+	else if(Sliding && !InAir && player_dir == 1) 
+		State.Add(&g_pData->m_aAnimations[ANIM_SLIDE_GROUND_RIGHT], 0, 1.0f);
+	else if(InAir && Sliding && player_dir == -1 && Vel.y > 0)
+		State.Add(&g_pData->m_aAnimations[ANIM_SLIDE_SLOPE_LEFT], 0, 1.0f);
+	else if(InAir && Sliding && player_dir == 1 && Vel.y > 0)
+		State.Add(&g_pData->m_aAnimations[ANIM_SLIDE_SLOPE_RIGHT], 0, 1.0f);
+	else if(InAir && player_dir == -1 && Vel.y < 0)
+		State.Add(&g_pData->m_aAnimations[ANIM_INAIR_UP_LEFT], 0, 1.0f); // TODO: some sort of time here
+	else if(InAir && player_dir == 1 && Vel.y < 0)
+		State.Add(&g_pData->m_aAnimations[ANIM_INAIR_UP_RIGHT], 0, 1.0f);
+	else if(InAir && Vel.y >= 0)
+		State.Add(&g_pData->m_aAnimations[ANIM_INAIR_DOWN], 0, 1.0f);
+	else if(Stationary && Slope == -1)
+		State.Add(&g_pData->m_aAnimations[ANIM_IDLE_SLOPE_LEFT], 0, 1.0f);
+	else if(Stationary && Slope == 1)
+		State.Add(&g_pData->m_aAnimations[ANIM_IDLE_SLOPE_RIGHT], 0, 1.0f);
 	else if(Stationary)
-		State.Add(&g_pData->m_aAnimations[ANIM_IDLE], 0, 1.0f); // TODO: some sort of time here
+		State.Add(&g_pData->m_aAnimations[ANIM_IDLE], 0, 1.0f);
+	else if(!WantOtherDir && Slope == -1)
+		State.Add(&g_pData->m_aAnimations[ANIM_WALK_SLOPE_LEFT], WalkTime, 1.0f);
+	else if(!WantOtherDir && Slope == 1)
+		State.Add(&g_pData->m_aAnimations[ANIM_WALK_SLOPE_RIGHT], WalkTime, 1.0f);
 	else if(!WantOtherDir)
 		State.Add(&g_pData->m_aAnimations[ANIM_WALK], WalkTime, 1.0f);
+	
+	
 
 	static float s_LastGameTickTime = Client()->GameTickTime();
 	if(m_pClient->m_Snap.m_pGameData && !(m_pClient->m_Snap.m_pGameData->m_GameStateFlags&GAMESTATEFLAG_PAUSED))

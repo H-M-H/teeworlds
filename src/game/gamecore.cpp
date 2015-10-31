@@ -2,6 +2,8 @@
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include "gamecore.h"
 
+#include <iostream>
+
 const char *CTuningParams::m_apNames[] =
 {
 	#define MACRO_TUNING_PARAM(Name,ScriptName,Value) #ScriptName,
@@ -71,7 +73,87 @@ void CCharacterCore::Reset()
 	m_HookState = HOOK_IDLE;
 	m_HookedPlayer = -1;
 	m_Jumped = 0;
+	m_Sliding = 0;
 	m_TriggeredEvents = 0;
+}
+
+bool CCharacterCore::IsGrounded() {
+	float PhysSize = 28.0f;
+	
+	for(int i = -PhysSize/2; i <= PhysSize/2; i++) {
+		if(m_pCollision->CheckPoint(m_Pos.x+i, m_Pos.y+PhysSize/2+5)) {
+			return true;
+		}
+	}
+	
+	return false;
+}
+
+int CCharacterCore::SlopeState(bool* nohook) {
+	float PhysSize = 28.0f;
+	
+	int tmp = 0;
+	int height_left = 0;
+	bool is_nohook = false;
+	bool tmp_nohook = false;
+	for(int x = -1; x <= -1; x++)
+		for(int y = 0; y <= 4; y++)
+			if ( (tmp = m_pCollision->CheckPointNoHook(m_Pos.x-PhysSize/2+x, m_Pos.y+PhysSize/2+y, &tmp_nohook)) > height_left) {
+				height_left = tmp;
+				is_nohook = tmp_nohook;
+			}
+	if(nohook)
+		*nohook = is_nohook;
+		
+	
+	int height_right = 0;
+	for(int x = 1; x <= 1; x++)
+		for(int y = 0; y <= 4; y++)
+			if ( (tmp = m_pCollision->CheckPointNoHook(m_Pos.x+PhysSize/2+x, m_Pos.y+PhysSize/2+y, &tmp_nohook)) > height_right) {
+				height_right = tmp;
+				is_nohook = tmp_nohook;
+			}
+	
+	if(nohook && !*nohook)
+		*nohook = is_nohook;
+// 	if ( (tmp = m_pCollision->CheckPoint(m_Pos.x-PhysSize/2-1, m_Pos.y+PhysSize/2+1)) > height_left)
+// 		height_left = tmp;
+// 	if ( (tmp = m_pCollision->CheckPoint(m_Pos.x-PhysSize/2, m_Pos.y+PhysSize/2+1)) > height_left)
+// 		height_left = tmp;
+// 	
+// 	int height_right = max(m_pCollision->CheckPoint(m_Pos.x+PhysSize/2+1, m_Pos.y+PhysSize/2), m_pCollision->CheckPoint(m_Pos.x+PhysSize/2, m_Pos.y+PhysSize/2));
+// 	if ( (tmp = m_pCollision->CheckPoint(m_Pos.x+PhysSize/2, m_Pos.y+PhysSize/2)) > height_right)
+// 		height_right = tmp;
+// 	if ( (tmp = m_pCollision->CheckPoint(m_Pos.x+PhysSize/2+1, m_Pos.y+PhysSize/2+1)) > height_right)
+// 		height_right = tmp;
+// 	if ( (tmp = m_pCollision->CheckPoint(m_Pos.x+PhysSize/2, m_Pos.y+PhysSize/2+1)) > height_right)
+// 		height_right = tmp;
+	//left hand side
+	/*for(int j = 0; j <= 28; j++) {
+		if(m_pCollision->CheckPoint(m_Pos.x-PhysSize/2-1, m_Pos.y+PhysSize/2+j)) {
+			height_left = j;
+			break;
+		}
+	}
+	
+	for(int j = 0; j <=28; j++) {
+		if(m_pCollision->CheckPoint(m_Pos.x+PhysSize/2+1, m_Pos.y+PhysSize/2+j)) {
+			height_right = j;
+			break;
+		}
+	}*/
+	//return 1;
+	//std::cerr << "HEIGHTS: " << height_left << " - " << height_right << std::endl;
+	if(height_left == CCollision::SS_COL_RL) {
+		//std::cerr << "RET 1" << std::endl;
+		return 1;
+	}
+	else if (height_right == CCollision::SS_COL_RR) {
+		//std::cerr << "RET -1" << std::endl;
+		return -1;
+	}
+	//std::cerr << "RET 0" << std::endl;
+	return 0;
 }
 
 void CCharacterCore::Tick(bool UseInput)
@@ -80,20 +162,35 @@ void CCharacterCore::Tick(bool UseInput)
 	m_TriggeredEvents = 0;
 
 	// get ground state
-	bool Grounded = false;
-	if(m_pCollision->CheckPoint(m_Pos.x+PhysSize/2, m_Pos.y+PhysSize/2+5))
+	bool Grounded = IsGrounded();
+	bool nohook;
+	int slope = SlopeState(&nohook);
+	
+	//std::cerr << "Nohook " << nohook << std::endl;
+	
+	
+	/*if(m_pCollision->CheckPoint(m_Pos.x+PhysSize/2, m_Pos.y+PhysSize/2+5))
 		Grounded = true;
 	if(m_pCollision->CheckPoint(m_Pos.x-PhysSize/2, m_Pos.y+PhysSize/2+5))
-		Grounded = true;
+		Grounded = true;*/
 
 	vec2 TargetDirection = normalize(vec2(m_Input.m_TargetX, m_Input.m_TargetY));
 
 	m_Vel.y += m_pWorld->m_Tuning.m_Gravity;
 
 	float MaxSpeed = Grounded ? m_pWorld->m_Tuning.m_GroundControlSpeed : m_pWorld->m_Tuning.m_AirControlSpeed;
+	
 	float Accel = Grounded ? m_pWorld->m_Tuning.m_GroundControlAccel : m_pWorld->m_Tuning.m_AirControlAccel;
 	float Friction = Grounded ? m_pWorld->m_Tuning.m_GroundFriction : m_pWorld->m_Tuning.m_AirFriction;
+	float SlideFriction = m_pWorld->m_Tuning.m_SlideFriction;
 
+	float SlideSlopeAcceleration = m_pWorld->m_Tuning.m_SlideSlopeAcceleration;
+	float SlopeDeceleration = m_pWorld->m_Tuning.m_SlopeDeceleration;
+	float SlopeAscendingControlSpeed = m_pWorld->m_Tuning.m_SlopeAscendingControlSpeed*invsqrt2;
+	float SlopeDescendingControlSpeed = m_pWorld->m_Tuning.m_SlopeDescendingControlSpeed*invsqrt2;
+	float SlideControlSpeed = m_pWorld->m_Tuning.m_SlideControlSpeed*invsqrt2;
+	
+	float SlideActivationSpeed = m_pWorld->m_Tuning.m_SlideActivationSpeed;
 	// handle input
 	if(UseInput)
 	{
@@ -119,7 +216,12 @@ void CCharacterCore::Tick(bool UseInput)
 				if(Grounded)
 				{
 					m_TriggeredEvents |= COREEVENTFLAG_GROUND_JUMP;
-					m_Vel.y = -m_pWorld->m_Tuning.m_GroundJumpImpulse;
+					if(slope == 0) 
+						m_Vel.y = -m_pWorld->m_Tuning.m_GroundJumpImpulse;
+					else {
+						m_Vel.y = -m_pWorld->m_Tuning.m_GroundJumpImpulse*invsqrt2;
+					}
+					
 					m_Jumped |= 1;
 				}
 				else if(!(m_Jumped&2))
@@ -154,16 +256,73 @@ void CCharacterCore::Tick(bool UseInput)
 			m_HookDir = vec2(0,0);
 			m_HookTick = 0;
 		}
+		
+		m_Sliding = m_Input.m_Slide;
+		
+	}
+	
+	if(nohook && slope != 0 && m_pWorld->m_Tuning.m_NoHookAutoSlide)
+		m_Sliding = true;
+	
+	if( (m_Vel.x > SlideActivationSpeed && slope == 1) || (m_Vel.x < -SlideActivationSpeed && slope == -1)) {
+		m_Sliding = true;
 	}
 
+	if(slope != 0 && m_Direction == slope && !m_Sliding)
+		MaxSpeed = SlopeDescendingControlSpeed;
+	else if(slope != 0 && m_Direction == -slope && !m_Sliding) {
+		MaxSpeed = SlopeAscendingControlSpeed;
+		float diff = SlopeDeceleration*fabs(m_Vel.x - MaxSpeed);
+		/*if(m_Vel.x > MaxSpeed)
+			m_Vel.x = SaturatedAdd(-MaxSpeed, MaxSpeed, m_Vel.x, -SlopeDeceleration);
+		if(m_Vel.x < -MaxSpeed)
+			m_Vel.x = SaturatedAdd(-MaxSpeed, MaxSpeed, m_Vel.x, SlopeDeceleration);*/
+		if(m_Vel.x > MaxSpeed)
+			m_Vel.x -= diff;
+		if(m_Vel.x < -MaxSpeed)
+			m_Vel.x += diff;
+	}
 	// add the speed modification according to players wanted direction
-	if(m_Direction < 0)
+	if(m_Direction < 0 && (!m_Sliding || !Grounded)) {
 		m_Vel.x = SaturatedAdd(-MaxSpeed, MaxSpeed, m_Vel.x, -Accel);
-	if(m_Direction > 0)
+	}
+	if(m_Direction > 0 && (!m_Sliding || !Grounded)) {
+		
 		m_Vel.x = SaturatedAdd(-MaxSpeed, MaxSpeed, m_Vel.x, Accel);
-	if(m_Direction == 0)
-		m_Vel.x *= Friction;
+	}
+	
+	
+	if(m_Sliding && slope != 0) {
+		//std::cerr << "Fric1..." << m_Pos.x << std::endl;
+		m_Vel.x = SaturatedAdd(-SlideControlSpeed, SlideControlSpeed, m_Vel.x, slope*SlideSlopeAcceleration);
+		//m_Vel.y = slope*SaturatedAdd(-SlideControlSpeed, SlideControlSpeed, m_Vel.y, slope*SlideSlopeAcceleration);
+	}
+	else if(m_Sliding && Grounded) {
+		//std::cerr << "Fric2..." << m_Pos.x << ", " << SlideFriction << std::endl;
+		m_Vel.x *= SlideFriction;
+	}
+	else if(m_Direction == 0) {
+		//std::cerr << "Fric3..." << m_Pos.x << std::endl;
+		if(slope != 0 && !m_Jumped) {
+			m_Vel.x *= Friction;// /invsqrt2;
+			m_Vel.y *= Friction;// /invsqrt2;
+		} else {
+			m_Vel.x *= Friction;
+		}
+	}
+	
 
+	
+	/*if(Slope == -1 && m_Vel.x < 1) {
+		//std::cerr << "SLOPE -1" << std::endl;
+		m_Vel.x -= m_pWorld->m_Tuning.m_Gravity;
+		m_Vel.y += m_pWorld->m_Tuning.m_Gravity;
+	}
+	else if(Slope == 1 && m_Vel.x > -1) {
+		//std::cerr << "SLOPE 1" << std::endl;
+		m_Vel.x += m_pWorld->m_Tuning.m_Gravity;
+		m_Vel.y += m_pWorld->m_Tuning.m_Gravity;
+	}*/
 	// handle jumping
 	// 1 bit = to keep track if a jump has been made on this input
 	// 2 bit = to keep track if a air-jump has been made
@@ -360,14 +519,44 @@ void CCharacterCore::Tick(bool UseInput)
 
 void CCharacterCore::Move()
 {
+	//int slope = SlopeState();
+	
+	
 	float RampValue = VelocityRamp(length(m_Vel)*50, m_pWorld->m_Tuning.m_VelrampStart, m_pWorld->m_Tuning.m_VelrampRange, m_pWorld->m_Tuning.m_VelrampCurvature);
+	//if( (slope == -1 && m_Vel.x < 0) || (slope == 1 && m_Vel.x > 0))
+	//	RampValue = VelocityRamp(length(m_Vel)*20, m_pWorld->m_Tuning.m_VelrampStart, m_pWorld->m_Tuning.m_VelrampRange, m_pWorld->m_Tuning.m_VelrampCurvature);
+	
+	//std::cerr << "->VelX: " << m_Vel.x << " - " << m_Vel.y << std::endl;
 
 	m_Vel.x = m_Vel.x*RampValue;
 
 	vec2 NewPos = m_Pos;
-	m_pCollision->MoveBox(&NewPos, &m_Vel, vec2(28.0f, 28.0f), 0);
-
+	
+	//bool switched = true;
+	/*if(slope == -1 && m_Vel.x < 0 && m_Vel.y >= 0) {
+		m_Vel.x *= invsqrt2;
+		m_Vel.y = -m_Vel.x;
+	}
+	else if(slope == 1 && m_Vel.x > 0 && m_Vel.y >= 0) {
+		m_Vel.x *= invsqrt2;
+		m_Vel.y = m_Vel.x;
+	}
+	else if(slope == -1 && m_Vel.x > 0 && m_Vel.y >= 0) {
+		m_Vel.x *= invsqrt2;
+		m_Vel.y = -m_Vel.x;
+	}
+	else if(slope == 1 && m_Vel.x < 0 && m_Vel.y >= 0) {
+		m_Vel.x *= invsqrt2;
+		m_Vel.y = m_Vel.x;
+	}
+	else*/
+	//	switched = false;
+		
+	m_pCollision->MoveBox(&NewPos, &m_Vel, vec2(28.0f, 28.0f), 0, !m_Sliding);
+	
+	//std::cerr << "ColX: " << m_Vel.x << " - " << m_Vel.y << std::endl;
 	m_Vel.x = m_Vel.x*(1.0f/RampValue);
+	//std::cerr << "RamX: " << m_Vel.x << " - " << m_Vel.y << std::endl;
 
 	if(m_pWorld && m_pWorld->m_Tuning.m_PlayerCollision)
 	{
@@ -399,6 +588,33 @@ void CCharacterCore::Move()
 	}
 
 	m_Pos = NewPos;
+	
+	//slope = SlopeState();
+	//if(switched) {
+	//	m_Vel.x /= invsqrt2;
+	//	m_Vel.y = 0;
+	//}
+	/*if(slope == -1 && m_Vel.x < 0 && m_Vel.y >= 0) {
+		m_Vel.x /= 0.7071067811865475244f;
+		m_Vel.y = 0;
+	}
+	else if(slope == 1 && m_Vel.x > 0 && m_Vel.y >= 0) {
+		m_Vel.x /= 0.7071067811865475244f;
+		m_Vel.y = 0;
+	}
+	else if(slope == -1 && m_Vel.x > 0 && m_Vel.y >= 0) {
+		m_Vel.x /= 0.7071067811865475244f;
+		m_Vel.y = 0;
+		
+	}
+	else if(slope == 1 && m_Vel.x < 0 && m_Vel.y >= 0) {
+		m_Vel.x /= 0.7071067811865475244f;
+		m_Vel.y = 0;
+	}*/
+	
+	
+	
+	//std::cerr << "EndX: " << m_Vel.x << " - " << m_Vel.y << std::endl;
 }
 
 void CCharacterCore::Write(CNetObj_CharacterCore *pObjCore)
@@ -416,6 +632,9 @@ void CCharacterCore::Write(CNetObj_CharacterCore *pObjCore)
 	pObjCore->m_Jumped = m_Jumped;
 	pObjCore->m_Direction = m_Direction;
 	pObjCore->m_Angle = m_Angle;
+	pObjCore->m_Sliding = m_Sliding;
+	pObjCore->m_Grounded = IsGrounded();
+	pObjCore->m_Slope = SlopeState();
 }
 
 void CCharacterCore::Read(const CNetObj_CharacterCore *pObjCore)
@@ -433,6 +652,7 @@ void CCharacterCore::Read(const CNetObj_CharacterCore *pObjCore)
 	m_Jumped = pObjCore->m_Jumped;
 	m_Direction = pObjCore->m_Direction;
 	m_Angle = pObjCore->m_Angle;
+	m_Sliding = pObjCore->m_Sliding;
 }
 
 void CCharacterCore::Quantize()

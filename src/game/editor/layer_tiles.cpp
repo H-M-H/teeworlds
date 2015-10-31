@@ -11,7 +11,6 @@
 #include <game/client/render.h>
 #include "editor.h"
 
-
 CLayerTiles::CLayerTiles(int w, int h)
 {
 	m_Type = LAYERTYPE_TILES;
@@ -230,6 +229,17 @@ void CLayerTiles::BrushFlipX()
 		for(int y = 0; y < m_Height; y++)
 			for(int x = 0; x < m_Width; x++)
 				m_pTiles[y*m_Width+x].m_Flags ^= m_pTiles[y*m_Width+x].m_Flags&TILEFLAG_ROTATE ? TILEFLAG_HFLIP : TILEFLAG_VFLIP;
+	else
+		for(int y = 0; y < m_Height; y++)
+			for(int x = 0; x < m_Width; x++) {
+				unsigned char idx = m_pTiles[y*m_Width+x].m_Index;
+				if(idx >= TILE_RAMP_LEFT && idx <= TILE_NOHOOK_ROOFSLOPE_RIGHT) {
+					int delta = -((idx - TILE_RAMP_LEFT) % 2)*2+1;
+					idx += delta;
+					m_pTiles[y*m_Width+x].m_Index = idx;
+				}
+				
+			}
 }
 
 void CLayerTiles::BrushFlipY()
@@ -246,6 +256,17 @@ void CLayerTiles::BrushFlipY()
 		for(int y = 0; y < m_Height; y++)
 			for(int x = 0; x < m_Width; x++)
 				m_pTiles[y*m_Width+x].m_Flags ^= m_pTiles[y*m_Width+x].m_Flags&TILEFLAG_ROTATE ? TILEFLAG_VFLIP : TILEFLAG_HFLIP;
+	else
+		for(int y = 0; y < m_Height; y++)
+			for(int x = 0; x < m_Width; x++) {
+				unsigned char idx = m_pTiles[y*m_Width+x].m_Index;
+				if(idx >= TILE_RAMP_LEFT && idx <= TILE_NOHOOK_ROOFSLOPE_RIGHT) {
+					int delta =  (idx - TILE_RAMP_LEFT) % 4 <= 1 ? 2 : -2;
+					idx += delta;
+					m_pTiles[y*m_Width+x].m_Index = idx;
+				}
+				
+			}
 }
 
 void CLayerTiles::BrushRotate(float Amount)
@@ -269,6 +290,13 @@ void CLayerTiles::BrushRotate(float Amount)
 					if(pDst->m_Flags&TILEFLAG_ROTATE)
 						pDst->m_Flags ^= (TILEFLAG_HFLIP|TILEFLAG_VFLIP);
 					pDst->m_Flags ^= TILEFLAG_ROTATE;
+				}
+				else {
+					int next[] = {2, 0, 3, 1};
+					if(pDst->m_Index >= TILE_RAMP_LEFT && pDst->m_Index <= TILE_ROOFSLOPE_RIGHT)
+						pDst->m_Index = TILE_RAMP_LEFT + next[pDst->m_Index - TILE_RAMP_LEFT];
+					else if(pDst->m_Index >= TILE_NOHOOK_RAMP_LEFT && pDst->m_Index <= TILE_NOHOOK_ROOFSLOPE_RIGHT)
+						pDst->m_Index = TILE_NOHOOK_RAMP_LEFT + next[pDst->m_Index - TILE_NOHOOK_RAMP_LEFT];
 				}
 			}
 

@@ -12,6 +12,8 @@
 #include <game/layers.h>
 #include <game/collision.h>
 
+#include <iostream>
+
 CCollision::CCollision()
 {
 	m_pTiles = 0;
@@ -33,17 +35,41 @@ void CCollision::Init(class CLayers *pLayers)
 
 		if(Index > 128)
 			continue;
-
+		m_pTiles[i].m_Index = 0;
 		switch(Index)
 		{
 		case TILE_DEATH:
-			m_pTiles[i].m_Index = COLFLAG_DEATH;
+			m_pTiles[i].m_Index |= COLFLAG_DEATH;
 			break;
 		case TILE_SOLID:
-			m_pTiles[i].m_Index = COLFLAG_SOLID;
+			m_pTiles[i].m_Index |= COLFLAG_SOLID;
 			break;
 		case TILE_NOHOOK:
-			m_pTiles[i].m_Index = COLFLAG_SOLID|COLFLAG_NOHOOK;
+			m_pTiles[i].m_Index |= COLFLAG_SOLID|COLFLAG_NOHOOK;
+			break;
+		case TILE_RAMP_LEFT:
+			m_pTiles[i].m_Index |= COLFLAG_RAMP_LEFT;
+			break;
+		case TILE_RAMP_RIGHT:
+			m_pTiles[i].m_Index |= COLFLAG_RAMP_RIGHT;
+			break;
+		case TILE_ROOFSLOPE_LEFT:
+			m_pTiles[i].m_Index |= COLFLAG_ROOFSLOPE_LEFT;
+			break;
+		case TILE_ROOFSLOPE_RIGHT:
+			m_pTiles[i].m_Index |= COLFLAG_ROOFSLOPE_RIGHT;
+			break;
+		case TILE_NOHOOK_RAMP_LEFT:
+			m_pTiles[i].m_Index |= COLFLAG_RAMP_LEFT|COLFLAG_NOHOOK;
+			break;
+		case TILE_NOHOOK_RAMP_RIGHT:
+			m_pTiles[i].m_Index |= COLFLAG_RAMP_RIGHT|COLFLAG_NOHOOK;
+			break;
+		case TILE_NOHOOK_ROOFSLOPE_LEFT:
+			m_pTiles[i].m_Index |= COLFLAG_ROOFSLOPE_LEFT|COLFLAG_NOHOOK;
+			break;
+		case TILE_NOHOOK_ROOFSLOPE_RIGHT:
+			m_pTiles[i].m_Index |= COLFLAG_ROOFSLOPE_RIGHT|COLFLAG_NOHOOK;
 			break;
 		default:
 			m_pTiles[i].m_Index = 0;
@@ -59,9 +85,37 @@ int CCollision::GetTile(int x, int y)
 	return m_pTiles[Ny*m_Width+Nx].m_Index > 128 ? 0 : m_pTiles[Ny*m_Width+Nx].m_Index;
 }
 
+int CCollision::SolidState(int x, int y, bool* nohook)
+{
+	unsigned char sol = GetTile(x, y);
+	if(nohook) {
+		*nohook = sol&COLFLAG_NOHOOK;
+	}
+	if(sol& COLFLAG_SOLID)
+		return true;
+	else if(sol&COLFLAG_RAMP_LEFT) {
+		//return ((31-x%32) > (31-y%32));
+		return ((31-x%32) > (31-y%32) ? SS_COL : ((31-x%32) == (31-y%32) ? SS_COL_RL : SS_NOCOL));
+	}
+	else if(sol&COLFLAG_RAMP_RIGHT) {
+		//return (x%32 > (31-y%32));
+		return (x%32 > (31-y%32) ? SS_COL : (x%32 == (31-y%32) ? SS_COL_RR : SS_NOCOL));
+	}
+	else if(sol&COLFLAG_ROOFSLOPE_LEFT) {
+		//return ((31-x%32)> y%32);
+		return ((31-x%32) > y%32 ? SS_COL : ((31-x%32) == y%32 ? SS_COL_HL : SS_NOCOL));
+	}
+	else if(sol&COLFLAG_ROOFSLOPE_RIGHT) {
+		return (x%32 > y%32 ? SS_COL : (x%32 == y%32 ? SS_COL_HR : SS_NOCOL));
+	}
+	else
+		return 0;
+	//return GetTile(x, y)&COLFLAG_SOLI
+}
+
 bool CCollision::IsTileSolid(int x, int y)
 {
-	return GetTile(x, y)&COLFLAG_SOLID;
+	return SolidState(x,y) != SS_NOCOL;
 }
 
 // TODO: rewrite this smarter!
@@ -131,21 +185,47 @@ void CCollision::MovePoint(vec2 *pInoutPos, vec2 *pInoutVel, float Elasticity, i
 	}
 }
 
-bool CCollision::TestBox(vec2 Pos, vec2 Size)
+int CCollision::TestBox(vec2 Pos, vec2 Size)
 {
 	Size *= 0.5f;
-	if(CheckPoint(Pos.x-Size.x, Pos.y-Size.y))
+	int r;
+	for(int x = 0; x <= Size.x; x++) {
+		if( (r = CheckPoint(Pos.x+x, Pos.y-Size.y)) )
+			return r;
+		if( (r = CheckPoint(Pos.x+x, Pos.y+Size.y)) )
+			return r;
+		
+		if( (r = CheckPoint(Pos.x-x, Pos.y-Size.y)) )
+			return r;
+		if( (r = CheckPoint(Pos.x-x, Pos.y+Size.y)) )
+			return r;
+	}
+	
+	for(int y = 0; y <= Size.y; y++) {
+		int r;
+		if( (r = CheckPoint(Pos.x-Size.x, Pos.y+y)) )
+			return r;
+		if( (r = CheckPoint(Pos.x+Size.x, Pos.y+y)) )
+			return r;
+		
+		if( (r = CheckPoint(Pos.x-Size.x, Pos.y-y)) )
+			return r;
+		if( (r = CheckPoint(Pos.x+Size.x, Pos.y-y)) )
+			return r;
+	}
+			
+	/*if(CheckPoint(Pos.x-Size.x, Pos.y-Size.y))
 		return true;
 	if(CheckPoint(Pos.x+Size.x, Pos.y-Size.y))
 		return true;
 	if(CheckPoint(Pos.x-Size.x, Pos.y+Size.y))
 		return true;
 	if(CheckPoint(Pos.x+Size.x, Pos.y+Size.y))
-		return true;
-	return false;
+		return true;*/
+	return 0;
 }
 
-void CCollision::MoveBox(vec2 *pInoutPos, vec2 *pInoutVel, vec2 Size, float Elasticity)
+void CCollision::MoveBox(vec2 *pInoutPos, vec2 *pInoutVel, vec2 Size, float Elasticity, bool check_speed)
 {
 	// do the move
 	vec2 Pos = *pInoutPos;
@@ -165,23 +245,104 @@ void CCollision::MoveBox(vec2 *pInoutPos, vec2 *pInoutVel, vec2 Size, float Elas
 				//amount = 0;
 
 			vec2 NewPos = Pos + Vel*Fraction; // TODO: this row is not nice
-
-			if(TestBox(vec2(NewPos.x, NewPos.y), Size))
+			int rr = TestBox(vec2(NewPos.x, NewPos.y), Size);
+			
+			/*if (rr == SS_COL_RL || rr == SS_COL_RR) {
+				std::cerr << "COL: " << rr << std::endl;
+				int r = 0;
+				if(rr == SS_COL_RL) {
+					//Vel.x *= invsqrt2;
+					Vel.y = Vel.x;
+				}
+				else if(rr == SS_COL_RR) {
+					//Vel.x *= invsqrt2;
+					Vel.y = -Vel.x;
+				}
+				//NewPos = Pos;
+			}
+			else*/ if(rr)
 			{
 				int Hits = 0;
-
-				if(TestBox(vec2(Pos.x, NewPos.y), Size))
+				int r = 0;
+				
+				if( (r = TestBox(vec2(Pos.x, NewPos.y), Size)) )
 				{
+					//bool taken_care = false;
 					NewPos.y = Pos.y;
-					Vel.y *= -Elasticity;
+					if(r == SS_COL_RR && Vel.x >= -Vel.y && (!check_speed || fabs(Vel.x) > 0.005f)) {
+						float new_force = Vel.x * invsqrt2 - Vel.y * invsqrt2; 
+						//if(new_force/Distance < 0.95f) {
+							Vel.y = -new_force * invsqrt2;
+							Vel.x = new_force  * invsqrt2;
+							//std::cerr << "C1 " << new_force/Distance << std::endl;
+							//taken_care = true;
+						//}
+					}
+					else if(r == SS_COL_RL && Vel.x <= Vel.y && (!check_speed || fabs(Vel.x) > 0.005f)) {
+						float new_force = -Vel.x * invsqrt2 - Vel.y * invsqrt2;
+						//std::cerr << "C2pre " << Vel.x << ", " << check_speed << std::endl;
+						//if(new_force/Distance < 0.95f) {
+							Vel.y = -new_force * invsqrt2;
+							Vel.x = -new_force * invsqrt2;
+							//std::cerr << "C2 " << new_force/Distance << std::endl;
+							//taken_care = true;
+						//}
+					}
+					else
+						Vel.y *= -Elasticity;
 					Hits++;
+					//Vel.y *= -Elasticity;
+					//NewPos.y = Pos.y;
 				}
 
-				if(TestBox(vec2(NewPos.x, Pos.y), Size))
+				if( (r = TestBox(vec2(NewPos.x, Pos.y), Size)) )
 				{
+					
+					/*bool climbing = false;
+					//std::cerr << "Oh" << std::endl;
+					for(int y = 1; y <= 2; y++) {
+						if(!TestBox(vec2(NewPos.x, NewPos.y-y), Size)) {
+							//std::cerr << "WUI " << y << std::endl;
+							NewPos = vec2(NewPos.x, NewPos.y-y);
+							climbing = true;
+							break;
+						}
+					}
+					if(!climbing) {*/
+					//bool taken_care = false;
 					NewPos.x = Pos.x;
-					Vel.x *= -Elasticity;
+					if(r == SS_COL_RR && Vel.x >= -Vel.y && (!check_speed || fabs(Vel.x) > 0.005f)) {
+						float new_force = Vel.x * invsqrt2 - Vel.y * invsqrt2; 
+						//if(new_force/Distance < 0.95f) {
+							Vel.y = -new_force * invsqrt2;
+							Vel.x = new_force  * invsqrt2;
+							//std::cerr << "D1 " << new_force/Distance << std::endl;
+							//taken_care = true;
+						//}
+					}
+					else if(r == SS_COL_RL && Vel.x <= Vel.y && (!check_speed || fabs(Vel.x) > 0.005f)) {
+						float new_force = -Vel.x * invsqrt2 - Vel.y * invsqrt2;
+						//if(new_force/Distance < 0.95f) {
+							Vel.y = -new_force * invsqrt2;
+							Vel.x = -new_force * invsqrt2;
+							//std::cerr << "D2 " << new_force/Distance << std::endl;
+							//taken_care = true;
+						//}
+					}
+					else
+						Vel.x *= -Elasticity;
+							
+					//} else {
+						//Vel.x *= 0.85f;
+						//float newvely = -abs(Vel.x/2.0f);
+						
+						//if(Vel.y > newvely)
+						//	Vel.y = newvely;
+					//}
+					
 					Hits++;
+					//Vel.x *= -Elasticity;
+					//NewPos.x = Pos.x;
 				}
 
 				// neither of the tests got a collision.
@@ -194,10 +355,30 @@ void CCollision::MoveBox(vec2 *pInoutPos, vec2 *pInoutVel, vec2 Size, float Elas
 					Vel.x *= -Elasticity;
 				}
 			}
-
+			/*else if(rr != 0) {
+				NewPos.y = Pos.y;
+				Vel.y *= -Elasticity;
+				NewPos.x = Pos.x;
+				Vel.x *= -Elasticity;
+			}*/
+			
 			Pos = NewPos;
 		}
 	}
+	
+	/*if(Vel.y >= 0) {
+		bool was_hitting = false;
+		for(int y = 3; y >= 0; y--) {
+			bool hitting = TestBox(vec2(Pos.x, Pos.y+y), Size);
+			if(!hitting && was_hitting) {
+				Pos.y+=y;
+				break;
+			}
+			else if (hitting) {
+				was_hitting = true;
+			}
+		}
+	}*/
 
 	*pInoutPos = Pos;
 	*pInoutVel = Vel;

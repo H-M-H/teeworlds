@@ -106,10 +106,10 @@ void CCharacter::SetWeapon(int W)
 
 bool CCharacter::IsGrounded()
 {
-	if(GameServer()->Collision()->CheckPoint(m_Pos.x+m_ProximityRadius/2, m_Pos.y+m_ProximityRadius/2+5))
-		return true;
-	if(GameServer()->Collision()->CheckPoint(m_Pos.x-m_ProximityRadius/2, m_Pos.y+m_ProximityRadius/2+5))
-		return true;
+	for(int i = -m_ProximityRadius/2; i <= m_ProximityRadius/2; i++) {
+		if(GameServer()->Collision()->CheckPoint(m_Pos.x+i, m_Pos.y+m_ProximityRadius/2+5))
+			return true;
+	}
 	return false;
 }
 
@@ -145,7 +145,7 @@ void CCharacter::HandleNinja()
 		// Set velocity
 		m_Core.m_Vel = m_Ninja.m_ActivationDir * g_pData->m_Weapons.m_Ninja.m_Velocity;
 		vec2 OldPos = m_Pos;
-		GameServer()->Collision()->MoveBox(&m_Core.m_Pos, &m_Core.m_Vel, vec2(m_ProximityRadius, m_ProximityRadius), 0.f);
+		GameServer()->Collision()->MoveBox(&m_Core.m_Pos, &m_Core.m_Vel, vec2(m_ProximityRadius, m_ProximityRadius), 0.f, false);
 
 		// reset velocity so the client doesn't predict stuff
 		m_Core.m_Vel = vec2(0.f, 0.f);

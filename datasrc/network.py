@@ -77,6 +77,8 @@ Objects = [
 		NetIntRange("m_WantedWeapon", 0, 'NUM_WEAPONS-1'),
 		NetIntAny("m_NextWeapon"),
 		NetIntAny("m_PrevWeapon"),
+		
+		NetBool("m_Slide"),
 	]),
 
 	NetObject("Projectile", [
@@ -147,6 +149,10 @@ Objects = [
 
 		NetIntAny("m_HookX"),
 		NetIntAny("m_HookY"),
+		
+		NetBool("m_Sliding"),
+		NetBool("m_Grounded"),
+		NetIntRange("m_Slope", -1, 1),
 	]),
 
 	NetObject("Character:CharacterCore", [

@@ -185,12 +185,17 @@ public:
 	CNetObj_PlayerInput m_Input;
 
 	int m_TriggeredEvents;
+	
+	bool m_Sliding;
 
 	void Init(CWorldCore *pWorld, CCollision *pCollision);
 	void Reset();
 	void Tick(bool UseInput);
 	void Move();
 
+	bool IsGrounded();
+	int SlopeState(bool* nohook = NULL);
+	
 	void Read(const CNetObj_CharacterCore *pObjCore);
 	void Write(CNetObj_CharacterCore *pObjCore);
 	void Quantize();

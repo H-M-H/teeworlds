@@ -94,6 +94,7 @@ void CBinds::SetDefaults()
 
 	Bind('a', "+left");
 	Bind('d', "+right");
+	Bind('s', "+slide");
 
 	Bind(KEY_SPACE, "+jump");
 	Bind(KEY_MOUSE_1, "+fire");
