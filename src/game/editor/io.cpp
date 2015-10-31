@@ -492,7 +492,7 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName, int Storag
 }
 
 static int gs_ModifyAddAmount = 0;
-static void ModifyAdd(int *pIndex)
+void ModifyAdd(int *pIndex)
 {
 	if(*pIndex >= 0)
 		*pIndex += gs_ModifyAddAmount;
