@@ -1,12 +1,13 @@
 /* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
+#include <base/color.h>
 #include <base/math.h>
 
 #include <engine/client.h>
 #include <engine/graphics.h>
 #include <engine/textrender.h>
 
-#include <game/generated/client_data.h>
+#include <generated/client_data.h>
 #include <game/client/localization.h>
 #include <game/client/render.h>
 #include "editor.h"
@@ -122,9 +123,11 @@ void CLayerTiles::Clamp(RECTi *pRect)
 
 void CLayerTiles::BrushSelecting(CUIRect Rect)
 {
+	vec4 FillColor = HexToRgba(g_Config.m_EdColorSelectionTile);
+
 	Graphics()->TextureClear();
 	m_pEditor->Graphics()->QuadsBegin();
-	m_pEditor->Graphics()->SetColor(1.0f, 1.0f, 1.0f, 0.4f);
+	m_pEditor->Graphics()->SetColor(FillColor.r, FillColor.g, FillColor.b, FillColor.a);
 	Snap(&Rect);
 	IGraphics::CQuadItem QuadItem(Rect.x, Rect.y, Rect.w, Rect.h);
 	m_pEditor->Graphics()->QuadsDrawTL(&QuadItem, 1);
@@ -271,7 +274,7 @@ void CLayerTiles::BrushFlipY()
 
 void CLayerTiles::BrushRotate(float Amount)
 {
-	int Rotation = (round(360.0f*Amount/(pi*2))/90)%4;	// 0=0°, 1=90°, 2=180°, 3=270°
+	int Rotation = (round_to_int(360.0f*Amount/(pi*2))/90)%4;	// 0=0°, 1=90°, 2=180°, 3=270°
 	if(Rotation < 0)
 		Rotation +=4;
 

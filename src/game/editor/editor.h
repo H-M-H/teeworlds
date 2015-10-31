@@ -7,6 +7,7 @@
 
 #include <base/math.h>
 #include <base/system.h>
+#include <base/vmath.h>
 
 #include <base/tl/algorithm.h>
 #include <base/tl/array.h>
@@ -78,9 +79,28 @@ public:
 			{
 				if(ChannelMask&(1<<c))
 				{
-					float v = fx2f(m_lPoints[i].m_aValues[c]);
-					if(v > m_Top) m_Top = v;
-					if(v < m_Bottom) m_Bottom = v;
+					{
+						// value handle
+						float v = fx2f(m_lPoints[i].m_aValues[c]);
+						if(v > m_Top) m_Top = v;
+						if(v < m_Bottom) m_Bottom = v;
+					}
+
+					if(m_lPoints[i].m_Curvetype == CURVETYPE_BEZIER)
+					{
+						// out-tangent handle
+						float v = fx2f(m_lPoints[i].m_aValues[c]+m_lPoints[i].m_aOutTangentdy[c]);
+						if(v > m_Top) m_Top = v;
+						if(v < m_Bottom) m_Bottom = v;
+					}
+
+					if((i>0) && m_lPoints[i-1].m_Curvetype == CURVETYPE_BEZIER)
+					{
+						// in-tangent handle
+						float v = fx2f(m_lPoints[i].m_aValues[c]+m_lPoints[i].m_aInTangentdy[c]);
+						if(v > m_Top) m_Top = v;
+						if(v < m_Bottom) m_Bottom = v;
+					}
 				}
 			}
 		}
@@ -101,6 +121,13 @@ public:
 		p.m_aValues[2] = v2;
 		p.m_aValues[3] = v3;
 		p.m_Curvetype = CURVETYPE_LINEAR;
+		for(int c = 0; c < 4; c++)
+		{
+			p.m_aInTangentdx[c] = 0;
+			p.m_aInTangentdy[c] = 0;
+			p.m_aOutTangentdx[c] = 0;
+			p.m_aOutTangentdy[c] = 0;
+		}
 		m_lPoints.add(p);
 		Resort();
 	}
@@ -279,11 +306,6 @@ public:
 	class CMapInfo
 	{
 	public:
-		char m_aAuthorTmp[32];
-		char m_aVersionTmp[16];
-		char m_aCreditsTmp[128];
-		char m_aLicenseTmp[32];
-
 		char m_aAuthor[32];
 		char m_aVersion[16];
 		char m_aCredits[128];
@@ -291,11 +313,6 @@ public:
 
 		void Reset()
 		{
-			m_aAuthorTmp[0] = 0;
-			m_aVersionTmp[0] = 0;
-			m_aCreditsTmp[0] = 0;
-			m_aLicenseTmp[0] = 0;
-
 			m_aAuthor[0] = 0;
 			m_aVersion[0] = 0;
 			m_aCredits[0] = 0;
@@ -303,6 +320,7 @@ public:
 		}
 	};
 	CMapInfo m_MapInfo;
+	CMapInfo m_MapInfoTmp;
 
 	class CLayerGame *m_pGameLayer;
 	CLayerGroup *m_pGameGroup;
@@ -359,7 +377,7 @@ public:
 	}
 
 	void Clean();
-	void CreateDefault(IGraphics::CTextureHandle EntitiesTexture);
+	void CreateDefault();
 
 	// io
 	int Save(class IStorage *pStorage, const char *pFilename);
@@ -428,7 +446,7 @@ public:
 
 	void PrepareForSave();
 
-	void GetSize(float *w, float *h) { *w = m_Width*32.0f; *h = m_Height*32.0f; }
+	void GetSize(float *w, float *h) const { *w = m_Width*32.0f; *h = m_Height*32.0f; }
 
 	IGraphics::CTextureHandle m_Texture;
 	int m_Game;
@@ -464,7 +482,7 @@ public:
 	virtual void ModifyImageIndex(INDEX_MODIFY_FUNC pfnFunc);
 	virtual void ModifyEnvelopeIndex(INDEX_MODIFY_FUNC pfnFunc);
 
-	void GetSize(float *w, float *h);
+	void GetSize(float *w, float *h) const;
 
 	int m_Image;
 	array<CQuad> m_lQuads;
@@ -562,7 +580,7 @@ public:
 
 		m_ShowEnvelopeEditor = 0;
 
-		m_ShowEnvelopePreview = 0;
+		m_ShowEnvelopePreview = SHOWENV_NONE;
 		m_SelectedQuadEnvelope = -1;
 		m_SelectedEnvelopePoint = -1;
 
@@ -571,7 +589,7 @@ public:
 
 	virtual void Init();
 	virtual void UpdateAndRender();
-	virtual bool HasUnsavedData() { return m_Map.m_Modified; }
+	virtual bool HasUnsavedData() const { return m_Map.m_Modified; }
 
 	void FilelistPopulate(int StorageType);
 	void InvokeFileDialog(int StorageType, int FileType, const char *pTitle, const char *pButtonText,
@@ -679,7 +697,14 @@ public:
 	float m_AnimateSpeed;
 
 	int m_ShowEnvelopeEditor;
-	int m_ShowEnvelopePreview; //Values: 0-Off|1-Selected Envelope|2-All
+
+	enum
+	{
+		SHOWENV_NONE = 0,
+		SHOWENV_SELECTED,
+		SHOWENV_ALL
+	};
+	int m_ShowEnvelopePreview;
 	bool m_ShowPicker;
 
 	int m_SelectedLayer;
@@ -715,6 +740,7 @@ public:
 	int DoButton_ButtonInc(const void *pID, const char *pText, int Checked, const CUIRect *pRect, int Flags, const char *pToolTip);
 
 	int DoButton_File(const void *pID, const char *pText, int Checked, const CUIRect *pRect, int Flags, const char *pToolTip);
+	int DoButton_Image(const void *pID, const char *pText, int Checked, const CUIRect *pRect, int Flags, const char *pToolTip, bool Used);
 
 	int DoButton_Menu(const void *pID, const char *pText, int Checked, const CUIRect *pRect, int Flags, const char *pToolTip);
 	int DoButton_MenuItem(const void *pID, const char *pText, int Checked, const CUIRect *pRect, int Flags=0, const char *pToolTip=0);
@@ -801,7 +827,8 @@ public:
 		str_copy(pName, pExtractedName, Length);
 	}
 
-	int GetLineDistance();
+	int GetLineDistance() const;
+	void ZoomMouseTarget(float ZoomFactor);
 };
 
 // make sure to inline this function

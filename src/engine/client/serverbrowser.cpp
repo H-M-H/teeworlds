@@ -8,6 +8,7 @@
 #include <engine/shared/config.h>
 #include <engine/shared/memheap.h>
 #include <engine/shared/network.h>
+#include <engine/shared/packer.h>
 #include <engine/shared/protocol.h>
 
 #include <engine/config.h>
@@ -54,7 +55,7 @@ CServerBrowser::CServerBrowser()
 	m_NumPlayers = 0;
 
 	// the token is to keep server refresh separated from each other
-	m_CurrentToken = 1;
+	m_CurrentLanToken = 1;
 
 	m_ServerlistType = 0;
 	m_BroadcastTime = 0;
@@ -143,8 +144,8 @@ bool CServerBrowser::CServerFilter::SortCompareName(int Index1, int Index2) cons
 	CServerEntry *a = m_pServerBrowser->m_ppServerlist[Index1];
 	CServerEntry *b = m_pServerBrowser->m_ppServerlist[Index2];
 	//	make sure empty entries are listed last
-	return (a->m_GotInfo && b->m_GotInfo) || (!a->m_GotInfo && !b->m_GotInfo) ? str_comp_nocase(a->m_Info.m_aName, b->m_Info.m_aName) < 0 :
-			a->m_GotInfo ? true : false;
+	return (a->m_InfoState == CServerEntry::STATE_READY && b->m_InfoState == CServerEntry::STATE_READY) || (a->m_InfoState != CServerEntry::STATE_READY && b->m_InfoState != CServerEntry::STATE_READY) ? str_comp_nocase(a->m_Info.m_aName, b->m_Info.m_aName) < 0 :
+			a->m_InfoState == CServerEntry::STATE_READY;
 }
 
 bool CServerBrowser::CServerFilter::SortCompareMap(int Index1, int Index2) const
@@ -426,7 +427,7 @@ void CServerBrowser::SetInfo(CServerEntry *pEntry, const CServerInfo &Info)
  
 	m_NumPlayers += pEntry->m_Info.m_NumPlayers;
 
-	pEntry->m_GotInfo = 1;
+	pEntry->m_InfoState = CServerEntry::STATE_READY;
 }
 
 CServerBrowser::CServerEntry *CServerBrowser::Add(const NETADDR &Addr)
@@ -437,6 +438,8 @@ CServerBrowser::CServerEntry *CServerBrowser::Add(const NETADDR &Addr)
 
 	// set the info
 	pEntry->m_Addr = Addr;
+	pEntry->m_InfoState = CServerEntry::STATE_INVALID;
+	pEntry->m_CurrentToken = rand();
 	pEntry->m_Info.m_NetAddr = Addr;
 
 	pEntry->m_Info.m_Latency = 999;
@@ -510,13 +513,13 @@ void CServerBrowser::Set(const NETADDR &Addr, int Type, int Token, const CServer
 	}*/
 	else if(Type == SET_TOKEN)
 	{
-		if(Token != m_CurrentToken)
+		if(m_ServerlistType == IServerBrowser::TYPE_LAN && Token != m_CurrentLanToken)
 			return;
 
 		pEntry = Find(Addr);
-		if(!pEntry)
+		if(!pEntry && m_ServerlistType == IServerBrowser::TYPE_LAN)
 			pEntry = Add(Addr);
-		if(pEntry)
+		if(pEntry && ((pEntry->m_InfoState == CServerEntry::STATE_PENDING && Token == pEntry->m_CurrentToken) || m_ServerlistType == IServerBrowser::TYPE_LAN))
 		{
 			SetInfo(pEntry, *pInfo);
 			if(m_ServerlistType == IServerBrowser::TYPE_LAN)
@@ -548,30 +551,29 @@ void CServerBrowser::Refresh(int Type)
 	m_NumRequests = 0;
 
 	// next token
-	m_CurrentToken = (m_CurrentToken+1)&0xff;
+	m_CurrentLanToken = (m_CurrentLanToken+1)&0xff;
 
 	//
 	m_ServerlistType = Type;
 
 	if(Type == IServerBrowser::TYPE_LAN)
 	{
-		unsigned char Buffer[sizeof(SERVERBROWSE_GETINFO)+1];
-		CNetChunk Packet;
-		int i;
-
-		mem_copy(Buffer, SERVERBROWSE_GETINFO, sizeof(SERVERBROWSE_GETINFO));
-		Buffer[sizeof(SERVERBROWSE_GETINFO)] = m_CurrentToken;
+		CPacker Packer;
+		Packer.Reset();
+		Packer.AddRaw(SERVERBROWSE_GETINFO, sizeof(SERVERBROWSE_GETINFO));
+		Packer.AddInt(m_CurrentLanToken);
 
 		/* do the broadcast version */
-		Packet.m_ClientID = -1;
+		CNetChunk Packet;
 		mem_zero(&Packet, sizeof(Packet));
 		Packet.m_Address.type = m_pNetClient->NetType()|NETTYPE_LINK_BROADCAST;
-		Packet.m_Flags = NETSENDFLAG_CONNLESS;
-		Packet.m_DataSize = sizeof(Buffer);
-		Packet.m_pData = Buffer;
+		Packet.m_ClientID = -1;
+		Packet.m_Flags = NETSENDFLAG_CONNLESS|NETSENDFLAG_STATELESS;
+		Packet.m_DataSize = Packer.Size();
+		Packet.m_pData = Packer.Data();
 		m_BroadcastTime = time_get();
 
-		for(i = 8303; i <= 8310; i++)
+		for(int i = 8303; i <= 8310; i++)
 		{
 			Packet.m_Address.port = i;
 			m_pNetClient->Send(&Packet);
@@ -592,9 +594,6 @@ void CServerBrowser::Refresh(int Type)
 
 void CServerBrowser::RequestImpl(const NETADDR &Addr, CServerEntry *pEntry) const
 {
-	unsigned char Buffer[sizeof(SERVERBROWSE_GETINFO)+1];
-	CNetChunk Packet;
-
 	if(g_Config.m_Debug)
 	{
 		char aAddrStr[NETADDR_MAXSTRSIZE];
@@ -604,19 +603,25 @@ void CServerBrowser::RequestImpl(const NETADDR &Addr, CServerEntry *pEntry) cons
 		m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "client_srvbrowse", aBuf);
 	}
 
-	mem_copy(Buffer, SERVERBROWSE_GETINFO, sizeof(SERVERBROWSE_GETINFO));
-	Buffer[sizeof(SERVERBROWSE_GETINFO)] = m_CurrentToken;
-
+	CPacker Packer;
+	Packer.Reset();
+	Packer.AddRaw(SERVERBROWSE_GETINFO, sizeof(SERVERBROWSE_GETINFO));
+	Packer.AddInt(pEntry ? pEntry->m_CurrentToken : m_CurrentLanToken);
+	
+	CNetChunk Packet;
 	Packet.m_ClientID = -1;
 	Packet.m_Address = Addr;
-	Packet.m_Flags = NETSENDFLAG_CONNLESS;
-	Packet.m_DataSize = sizeof(Buffer);
-	Packet.m_pData = Buffer;
+	Packet.m_Flags = NETSENDFLAG_CONNLESS|NETSENDFLAG_STATELESS;
+	Packet.m_DataSize = Packer.Size();
+	Packet.m_pData = Packer.Data();
 
 	m_pNetClient->Send(&Packet);
 
 	if(pEntry)
+	{
 		pEntry->m_RequestTime = time_get();
+		pEntry->m_InfoState = CServerEntry::STATE_PENDING;
+	}
 }
 
 void CServerBrowser::Request(const NETADDR &Addr) const
@@ -635,9 +640,7 @@ void CServerBrowser::Update(bool ForceResort)
 	// do server list requests
 	if(m_NeedRefresh && !m_pMasterServer->IsRefreshing())
 	{
-		NETADDR Addr;
 		CNetChunk Packet;
-		int i;
 
 		m_NeedRefresh = 0;
 
@@ -647,13 +650,12 @@ void CServerBrowser::Update(bool ForceResort)
 		Packet.m_DataSize = sizeof(SERVERBROWSE_GETLIST);
 		Packet.m_pData = SERVERBROWSE_GETLIST;
 
-		for(i = 0; i < IMasterServer::MAX_MASTERSERVERS; i++)
+		for(int i = 0; i < IMasterServer::MAX_MASTERSERVERS; i++)
 		{
 			if(!m_pMasterServer->IsValid(i))
 				continue;
 
-			Addr = m_pMasterServer->GetAddr(i);
-			Packet.m_Address = Addr;
+			Packet.m_Address = m_pMasterServer->GetAddr(i);
 			m_pNetClient->Send(&Packet);
 		}
 

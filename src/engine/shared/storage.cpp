@@ -3,6 +3,7 @@
 #include <base/system.h>
 #include <engine/storage.h>
 #include "linereader.h"
+#include <zlib.h>
 
 // compiled-in data-dir path
 #define DATA_DIR "data"
@@ -68,6 +69,7 @@ public:
 				fs_makedir(GetPath(TYPE_SAVE, "dumps", aPath, sizeof(aPath)));
 				fs_makedir(GetPath(TYPE_SAVE, "demos", aPath, sizeof(aPath)));
 				fs_makedir(GetPath(TYPE_SAVE, "demos/auto", aPath, sizeof(aPath)));
+				fs_makedir(GetPath(TYPE_SAVE, "configs", aPath, sizeof(aPath)));
 			}
 			else
 			{
@@ -209,6 +211,8 @@ public:
 				"/usr/share/games/teeworlds/data",
 				"/usr/local/share/teeworlds/data",
 				"/usr/local/share/games/teeworlds/data",
+				"/usr/pkg/share/teeworlds/data",
+				"/usr/pkg/share/games/teeworlds/data",
 				"/opt/teeworlds/data"
 			};
 			const int DirsCount = sizeof(aDirs) / sizeof(aDirs[0]);
@@ -253,6 +257,8 @@ public:
 		return pBuffer;
 	}
 
+	// Open a file. This checks that the path appears to be a subdirectory
+	// of one of the storage paths.
 	virtual IOHANDLE OpenFile(const char *pFilename, int Flags, int Type, char *pBuffer = 0, int BufferSize = 0)
 	{
 		char aBuffer[MAX_PATH_LENGTH];
@@ -262,6 +268,21 @@ public:
 			BufferSize = sizeof(aBuffer);
 		}
 
+		// Check whether the path contains '..' (parent directory) paths. We'd
+		// normally still have to check whether it is an absolute path
+		// (starts with a path separator (or a drive name on windows)),
+		// but since we concatenate this path with another path later
+		// on, this can't become absolute.
+		//
+		// E. g. "/etc/passwd" => "/path/to/storage//etc/passwd", which
+		// is safe.
+		if(str_check_pathname(pFilename) != 0)
+		{
+			pBuffer[0] = 0;
+			return 0;
+		}
+
+		// open file
 		if(Flags&IOFLAG_WRITE)
 		{
 			return io_open(GetPath(TYPE_SAVE, pFilename, pBuffer, BufferSize), Flags);
@@ -295,11 +316,13 @@ public:
 
 	struct CFindCBData
 	{
-		CStorage *pStorage;
-		const char *pFilename;
-		const char *pPath;
-		char *pBuffer;
-		int BufferSize;
+		CStorage *m_pStorage;
+		const char *m_pFilename;
+		const char *m_pPath;
+		char *m_pBuffer;
+		int m_BufferSize;
+		unsigned m_WantedCrc;
+		unsigned m_WantedSize;
 	};
 
 	static int FindFileCallback(const char *pName, int IsDir, int Type, void *pUser)
@@ -313,23 +336,33 @@ public:
 			// search within the folder
 			char aBuf[MAX_PATH_LENGTH];
 			char aPath[MAX_PATH_LENGTH];
-			str_format(aPath, sizeof(aPath), "%s/%s", Data.pPath, pName);
-			Data.pPath = aPath;
-			fs_listdir(Data.pStorage->GetPath(Type, aPath, aBuf, sizeof(aBuf)), FindFileCallback, Type, &Data);
-			if(Data.pBuffer[0])
+			str_format(aPath, sizeof(aPath), "%s/%s", Data.m_pPath, pName);
+			Data.m_pPath = aPath;
+			fs_listdir(Data.m_pStorage->GetPath(Type, aPath, aBuf, sizeof(aBuf)), FindFileCallback, Type, &Data);
+			if(Data.m_pBuffer[0])
 				return 1;
 		}
-		else if(!str_comp(pName, Data.pFilename))
+		else if(!str_comp(pName, Data.m_pFilename))
 		{
-			// found the file = end
-			str_format(Data.pBuffer, Data.BufferSize, "%s/%s", Data.pPath, Data.pFilename);
+			// found the file
+			str_format(Data.m_pBuffer, Data.m_BufferSize, "%s/%s", Data.m_pPath, Data.m_pFilename);
+			
+			// check crc and size
+			unsigned Crc = 0;
+			unsigned Size = 0;
+			if(!Data.m_pStorage->GetCrcSize(Data.m_pBuffer, Type, &Crc, &Size) || Crc != Data.m_WantedCrc || Size != Data.m_WantedSize)
+			{
+				Data.m_pBuffer[0] = 0;
+				return 0;
+			}
+			
 			return 1;
 		}
 
 		return 0;
 	}
 
-	virtual bool FindFile(const char *pFilename, const char *pPath, int Type, char *pBuffer, int BufferSize)
+	virtual bool FindFile(const char *pFilename, const char *pPath, int Type, char *pBuffer, int BufferSize, unsigned WantedCrc = 0, unsigned WantedSize = 0)
 	{
 		if(BufferSize < 1)
 			return false;
@@ -337,12 +370,14 @@ public:
 		pBuffer[0] = 0;
 		char aBuf[MAX_PATH_LENGTH];
 		CFindCBData Data;
-		Data.pStorage = this;
-		Data.pFilename = pFilename;
-		Data.pPath = pPath;
-		Data.pBuffer = pBuffer;
-		Data.BufferSize = BufferSize;
-
+		Data.m_pStorage = this;
+		Data.m_pFilename = pFilename;
+		Data.m_pPath = pPath;
+		Data.m_pBuffer = pBuffer;
+		Data.m_BufferSize = BufferSize;
+		Data.m_WantedCrc = WantedCrc;
+		Data.m_WantedSize = WantedSize;
+		
 		if(Type == TYPE_ALL)
 		{
 			// search within all available directories
@@ -399,6 +434,32 @@ public:
 		}
 
 		GetPath(Type, pDir, pBuffer, BufferSize);
+	}
+	
+	virtual bool GetCrcSize(const char *pFilename, int StorageType, unsigned *pCrc, unsigned *pSize)
+	{
+		IOHANDLE File = OpenFile(pFilename, IOFLAG_READ, StorageType);
+		if(!File)
+			return false;
+
+		// get crc and size
+		unsigned Crc = 0;
+		unsigned Size = 0;
+		unsigned char aBuffer[64*1024];
+		while(1)
+		{
+			unsigned Bytes = io_read(File, aBuffer, sizeof(aBuffer));
+			if(Bytes <= 0)
+				break;
+			Crc = crc32(Crc, aBuffer, Bytes); // ignore_convention
+			Size += Bytes;
+		}
+
+		io_close(File);
+
+		*pCrc = Crc;
+		*pSize = Size;
+		return true;
 	}
 
 	static IStorage *Create(const char *pApplicationName, int StorageType, int NumArgs, const char **ppArguments)

@@ -33,7 +33,6 @@
 
 #elif defined(CONF_FAMILY_WINDOWS)
 	#define WIN32_LEAN_AND_MEAN
-	#define _WIN32_WINNT 0x0501 /* required for mingw to get getaddrinfo to work */
 	#include <windows.h>
 	#include <winsock2.h>
 	#include <ws2tcpip.h>
@@ -370,7 +369,7 @@ int io_flush(IOHANDLE io)
 	return 0;
 }
 
-void *thread_create(void (*threadfunc)(void *), void *u)
+void *thread_init(void (*threadfunc)(void *), void *u)
 {
 #if defined(CONF_FAMILY_UNIX)
 	pthread_t id;
@@ -474,7 +473,7 @@ void lock_destroy(LOCK lock)
 	mem_free(lock);
 }
 
-int lock_try(LOCK lock)
+int lock_trylock(LOCK lock)
 {
 #if defined(CONF_FAMILY_UNIX)
 	return pthread_mutex_trylock((LOCKINTERNAL *)lock);
@@ -496,7 +495,7 @@ void lock_wait(LOCK lock)
 #endif
 }
 
-void lock_release(LOCK lock)
+void lock_unlock(LOCK lock)
 {
 #if defined(CONF_FAMILY_UNIX)
 	pthread_mutex_unlock((LOCKINTERNAL *)lock);
@@ -781,7 +780,9 @@ int net_addr_from_str(NETADDR *addr, const char *string)
 				return -1;
 		}
 #else
-		if(inet_pton(AF_INET6, buf, &sa6) != 1)
+		sa6.sin6_family = AF_INET6;
+
+		if(inet_pton(AF_INET6, buf, &sa6.sin6_addr) != 1)
 			return -1;
 #endif
 		sockaddr_to_netaddr((struct sockaddr *)&sa6, addr);
@@ -852,7 +853,7 @@ static int priv_net_close_all_sockets(NETSOCKET sock)
 	return 0;
 }
 
-static int priv_net_create_socket(int domain, int type, struct sockaddr *addr, int sockaddrlen)
+static int priv_net_create_socket(int domain, int type, struct sockaddr *addr, int sockaddrlen, int use_random_port)
 {
 	int sock, e;
 
@@ -882,27 +883,46 @@ static int priv_net_create_socket(int domain, int type, struct sockaddr *addr, i
 #endif
 
 	/* bind the socket */
-	e = bind(sock, addr, sockaddrlen);
-	if(e != 0)
+	while(1)
 	{
+		/* pick random port */
+		if(use_random_port)
+		{
+			int port = htons(rand()%16384+49152);	/* 49152 to 65535 */
+			if(domain == AF_INET)
+				((struct sockaddr_in *)(addr))->sin_port = port;
+			else
+				((struct sockaddr_in6 *)(addr))->sin6_port = port;
+		}
+
+		e = bind(sock, addr, sockaddrlen);
+		if(e == 0)
+			break;
+		else
+		{
 #if defined(CONF_FAMILY_WINDOWS)
-		char buf[128];
-		int error = WSAGetLastError();
-		if(FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_IGNORE_INSERTS, 0, error, 0, buf, sizeof(buf), 0) == 0)
-			buf[0] = 0;
-		dbg_msg("net", "failed to bind socket with domain %d and type %d (%d '%s')", domain, type, error, buf);
+			char buf[128];
+			int error = WSAGetLastError();
+			if(error == WSAEADDRINUSE && use_random_port)
+				continue;
+			if(FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_IGNORE_INSERTS, 0, error, 0, buf, sizeof(buf), 0) == 0)
+				buf[0] = 0;
+			dbg_msg("net", "failed to bind socket with domain %d and type %d (%d '%s')", domain, type, error, buf);
 #else
-		dbg_msg("net", "failed to bind socket with domain %d and type %d (%d '%s')", domain, type, errno, strerror(errno));
+			if(errno == EADDRINUSE && use_random_port)
+				continue;
+			dbg_msg("net", "failed to bind socket with domain %d and type %d (%d '%s')", domain, type, errno, strerror(errno));
 #endif
-		priv_net_close_socket(sock);
-		return -1;
+			priv_net_close_socket(sock);
+			return -1;
+		}
 	}
 
 	/* return the newly created socket */
 	return sock;
 }
 
-NETSOCKET net_udp_create(NETADDR bindaddr)
+NETSOCKET net_udp_create(NETADDR bindaddr, int use_random_port)
 {
 	NETSOCKET sock = invalid_socket;
 	NETADDR tmpbindaddr = bindaddr;
@@ -917,7 +937,7 @@ NETSOCKET net_udp_create(NETADDR bindaddr)
 		/* bind, we should check for error */
 		tmpbindaddr.type = NETTYPE_IPV4;
 		netaddr_to_sockaddr_in(&tmpbindaddr, &addr);
-		socket = priv_net_create_socket(AF_INET, SOCK_DGRAM, (struct sockaddr *)&addr, sizeof(addr));
+		socket = priv_net_create_socket(AF_INET, SOCK_DGRAM, (struct sockaddr *)&addr, sizeof(addr), use_random_port);
 		if(socket >= 0)
 		{
 			sock.type |= NETTYPE_IPV4;
@@ -939,7 +959,7 @@ NETSOCKET net_udp_create(NETADDR bindaddr)
 		/* bind, we should check for error */
 		tmpbindaddr.type = NETTYPE_IPV6;
 		netaddr_to_sockaddr_in6(&tmpbindaddr, &addr);
-		socket = priv_net_create_socket(AF_INET6, SOCK_DGRAM, (struct sockaddr *)&addr, sizeof(addr));
+		socket = priv_net_create_socket(AF_INET6, SOCK_DGRAM, (struct sockaddr *)&addr, sizeof(addr), use_random_port);
 		if(socket >= 0)
 		{
 			sock.type |= NETTYPE_IPV6;
@@ -1076,7 +1096,7 @@ NETSOCKET net_tcp_create(NETADDR bindaddr)
 		/* bind, we should check for error */
 		tmpbindaddr.type = NETTYPE_IPV4;
 		netaddr_to_sockaddr_in(&tmpbindaddr, &addr);
-		socket = priv_net_create_socket(AF_INET, SOCK_STREAM, (struct sockaddr *)&addr, sizeof(addr));
+		socket = priv_net_create_socket(AF_INET, SOCK_STREAM, (struct sockaddr *)&addr, sizeof(addr), 0);
 		if(socket >= 0)
 		{
 			sock.type |= NETTYPE_IPV4;
@@ -1092,7 +1112,7 @@ NETSOCKET net_tcp_create(NETADDR bindaddr)
 		/* bind, we should check for error */
 		tmpbindaddr.type = NETTYPE_IPV6;
 		netaddr_to_sockaddr_in6(&tmpbindaddr, &addr);
-		socket = priv_net_create_socket(AF_INET6, SOCK_STREAM, (struct sockaddr *)&addr, sizeof(addr));
+		socket = priv_net_create_socket(AF_INET6, SOCK_STREAM, (struct sockaddr *)&addr, sizeof(addr), 0);
 		if(socket >= 0)
 		{
 			sock.type |= NETTYPE_IPV6;
@@ -1538,6 +1558,16 @@ int time_timestamp()
 	return time(0);
 }
 
+int time_houroftheday()
+{
+	time_t time_data;
+	struct tm *time_info;
+
+	time(&time_data);
+	time_info = localtime(&time_data);
+	return time_info->tm_hour;
+}
+
 void str_append(char *dst, const char *src, int dst_size)
 {
 	int s = strlen(dst);
@@ -1609,6 +1639,46 @@ void str_sanitize_cc(char *str_in)
 	}
 }
 
+/* check if the string contains '..' (parent directory) paths */
+int str_check_pathname(const char* str)
+{
+	// State machine. 0 means that we're at the beginning
+	// of a new directory/filename, and a positive number represents the number of
+	// dots ('.') we found. -1 means we encountered a different character
+	// since the last path separator (or the beginning of the string).
+	int parse_counter = 0;
+	while(*str)
+	{
+		if(*str == '\\' || *str == '/')
+		{
+			// A path separator. Check how many dots we found since
+			// the last path separator.
+			//
+			// Two dots => ".." contained in the path. Return an
+			// error.
+			if(parse_counter == 2)
+				return -1;
+			else
+				parse_counter = 0;
+		}
+		else if(parse_counter >= 0)
+		{
+			// If we have not encountered a non-dot character since
+			// the last path separator, count the dots.
+			if(*str == '.')
+				parse_counter++;
+			else
+				parse_counter = -1;
+		}
+
+		++str;
+	}
+	// If there's a ".." at the end, fail too.
+	if(parse_counter == 2)
+		return -1;
+	return 0;
+}
+
 /* makes sure that the string only contains the characters between 32 and 255 + \r\n\t */
 void str_sanitize(char *str_in)
 {
@@ -1618,6 +1688,38 @@ void str_sanitize(char *str_in)
 		if(*str < 32 && !(*str == '\r') && !(*str == '\n') && !(*str == '\t'))
 			*str = ' ';
 		str++;
+	}
+}
+
+/* removes leading and trailing spaces and limits the use of multiple spaces */
+void str_clean_whitespaces(char *str_in)
+{
+	char *read = str_in;
+	char *write = str_in;
+
+	/* skip initial whitespace */
+	while(*read == ' ')
+		read++;
+
+	/* end of read string is detected in the loop */
+	while(1)
+	{
+		/* skip whitespace */
+		int found_whitespace = 0;
+		for(; *read == ' '; read++)
+			found_whitespace = 1;
+		/* if not at the end of the string, put a found whitespace here */
+		if(*read)
+		{
+			if(found_whitespace)
+				*write++ = ' ';
+			*write++ = *read++;
+		}
+		else
+		{
+			*write = 0;
+			break;
+		}
 	}
 }
 
@@ -1774,48 +1876,6 @@ void net_stats(NETSTATS *stats_inout)
 	*stats_inout = network_stats;
 }
 
-void gui_messagebox(const char *title, const char *message)
-{
-#if defined(CONF_PLATFORM_MACOSX)
-	DialogRef theItem;
-	DialogItemIndex itemIndex;
-
-	/* FIXME: really needed? can we rely on glfw? */
-	/* HACK - get events without a bundle */
-	ProcessSerialNumber psn;
-	GetCurrentProcess(&psn);
-	TransformProcessType(&psn,kProcessTransformToForegroundApplication);
-	SetFrontProcess(&psn);
-	/* END HACK */
-
-	CreateStandardAlert(kAlertStopAlert,
-			CFStringCreateWithCString(NULL, title, kCFStringEncodingASCII),
-			CFStringCreateWithCString(NULL, message, kCFStringEncodingASCII),
-			NULL,
-			&theItem);
-
-	RunStandardAlert(theItem, NULL, &itemIndex);
-#elif defined(CONF_FAMILY_UNIX)
-	static char cmd[1024];
-	int err;
-	/* use xmessage which is available on nearly every X11 system */
-	snprintf(cmd, sizeof(cmd), "xmessage -center -title '%s' '%s'",
-		title,
-		message);
-
-	err = system(cmd);
-	dbg_msg("gui/msgbox", "result = %i", err);
-#elif defined(CONF_FAMILY_WINDOWS)
-	MessageBox(NULL,
-		message,
-		title,
-		MB_ICONEXCLAMATION | MB_OK);
-#else
-	/* this is not critical */
-	#warning not implemented
-#endif
-}
-
 int str_isspace(char c) { return c == ' ' || c == '\n' || c == '\t'; }
 
 char str_uppercase(char c)
@@ -1829,6 +1889,27 @@ int str_toint(const char *str) { return atoi(str); }
 float str_tofloat(const char *str) { return atof(str); }
 
 
+char *str_utf8_skip_whitespaces(char *str)
+{
+	char *str_old;
+	int code;
+
+	while(*str)
+	{
+		str_old = str;
+		code = str_utf8_decode((const char **)&str);
+
+		// check if unicode is not empty
+		if(code > 0x20 && code != 0xA0 && code != 0x034F && (code < 0x2000 || code > 0x200F) && (code < 0x2028 || code > 0x202F) &&
+			(code < 0x205F || code > 0x2064) && (code < 0x206A || code > 0x206F) && (code < 0xFE00 || code > 0xFE0F) &&
+			code != 0xFEFF && (code < 0xFFF9 || code > 0xFFFC))
+		{
+			return str_old;
+		}
+	}
+
+	return str;
+}
 
 static int str_utf8_isstart(char c)
 {
@@ -1926,24 +2007,24 @@ int str_utf8_decode(const char **ptr)
 		}
 		else if((*buf&0xE0) == 0xC0) /* 110xxxxx */
 		{
-			ch  = (*buf++ & 0x3F) << 6; if(!(*buf)) break;
+			ch  = (*buf++ & 0x3F) << 6; if(!(*buf) || (*buf&0xC0) != 0x80) break;
 			ch += (*buf++ & 0x3F);
-			if(ch == 0) ch = -1;
+			if(ch < 0x80 || ch > 0x7FF) ch = -1;
 		}
 		else  if((*buf & 0xF0) == 0xE0)	/* 1110xxxx */
 		{
-			ch  = (*buf++ & 0x1F) << 12; if(!(*buf)) break;
-			ch += (*buf++ & 0x3F) <<  6; if(!(*buf)) break;
+			ch  = (*buf++ & 0x1F) << 12; if(!(*buf) || (*buf&0xC0) != 0x80) break;
+			ch += (*buf++ & 0x3F) <<  6; if(!(*buf) || (*buf&0xC0) != 0x80) break;
 			ch += (*buf++ & 0x3F);
-			if(ch == 0) ch = -1;
+			if(ch < 0x800 || ch > 0xFFFF) ch = -1;
 		}
 		else if((*buf & 0xF8) == 0xF0)	/* 11110xxx */
 		{
-			ch  = (*buf++ & 0x0F) << 18; if(!(*buf)) break;
-			ch += (*buf++ & 0x3F) << 12; if(!(*buf)) break;
-			ch += (*buf++ & 0x3F) <<  6; if(!(*buf)) break;
+			ch  = (*buf++ & 0x0F) << 18; if(!(*buf) || (*buf&0xC0) != 0x80) break;
+			ch += (*buf++ & 0x3F) << 12; if(!(*buf) || (*buf&0xC0) != 0x80) break;
+			ch += (*buf++ & 0x3F) <<  6; if(!(*buf) || (*buf&0xC0) != 0x80) break;
 			ch += (*buf++ & 0x3F);
-			if(ch == 0) ch = -1;
+			if(ch < 0x10000 || ch > 0x10FFFF) ch = -1;
 		}
 		else
 		{

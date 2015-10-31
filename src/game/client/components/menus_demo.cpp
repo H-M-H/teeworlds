@@ -14,7 +14,7 @@
 
 #include <game/client/ui.h>
 
-#include <game/generated/client_data.h>
+#include <generated/client_data.h>
 
 #include "maplayers.h"
 #include "menus.h"
@@ -25,7 +25,7 @@ int CMenus::DoButton_DemoPlayer(const void *pID, const char *pText, const CUIRec
 	float *pFade = ButtonFade(pID, Seconds);
 
 	RenderTools()->DrawUIRect(pRect, vec4(1,1,1, 0.5f+(*pFade/Seconds)*0.25f), CUI::CORNER_ALL, 5.0f);
-	UI()->DoLabel(pRect, pText, 14.0f, 0);
+	UI()->DoLabel(pRect, pText, 14.0f, CUI::ALIGN_CENTER);
 	return UI()->DoButtonLogic(pID, pText, false, pRect);
 }
 
@@ -48,7 +48,8 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 	MainView.VSplitLeft(50.0f, 0, &MainView);
 	MainView.VSplitRight(450.0f, &MainView, 0);
 
-	RenderTools()->DrawUIRect(&MainView, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_T, 10.0f);
+	if (m_SeekBarActive || m_MenuActive) // only draw the background if SeekBar or Menu is active
+		RenderTools()->DrawUIRect(&MainView, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_T, 10.0f);
 
 	MainView.Margin(5.0f, &MainView);
 
@@ -57,30 +58,49 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 	int CurrentTick = pInfo->m_CurrentTick - pInfo->m_FirstTick;
 	int TotalTicks = pInfo->m_LastTick - pInfo->m_FirstTick;
 
+	// we can toggle the seekbar using CTRL
+	if(!m_MenuActive && (Input()->KeyDown(KEY_LCTRL) || Input()->KeyDown(KEY_RCTRL)))
+	{
+		if (m_SeekBarActive)
+			m_SeekBarActive = false;
+		else
+		{
+			m_SeekBarActive = true;
+			m_SeekBarActivatedTime = time_get(); // stores at which point of time the seekbar was activated, so we can automatically hide it after few seconds
+		}
+	}
+
+	if(m_SeekBarActivatedTime < time_get() - 5*time_freq())
+		m_SeekBarActive = false;
+	
 	if(m_MenuActive)
 	{
 		MainView.HSplitTop(SeekBarHeight, &SeekBar, &ButtonBar);
 		ButtonBar.HSplitTop(Margins, 0, &ButtonBar);
 		ButtonBar.HSplitBottom(NameBarHeight, &ButtonBar, &NameBar);
 		NameBar.HSplitTop(4.0f, 0, &NameBar);
+		m_SeekBarActive = true;
+		m_SeekBarActivatedTime = time_get();
 	}
 	else
 		SeekBar = MainView;
 
 	// do seekbar
+	if(m_SeekBarActive || m_MenuActive)
 	{
 		static int s_SeekBarID = 0;
 		void *id = &s_SeekBarID;
 		char aBuffer[128];
+		const float Rounding = 5.0f;
 
 		// draw seek bar
-		RenderTools()->DrawUIRect(&SeekBar, vec4(0,0,0,0.5f), CUI::CORNER_ALL, 5.0f);
+		RenderTools()->DrawUIRect(&SeekBar, vec4(0,0,0,0.5f), CUI::CORNER_ALL, Rounding);
 
 		// draw filled bar
 		float Amount = CurrentTick/(float)TotalTicks;
 		CUIRect FilledBar = SeekBar;
-		FilledBar.w = 10.0f + (FilledBar.w-10.0f)*Amount;
-		RenderTools()->DrawUIRect(&FilledBar, vec4(1,1,1,0.5f), CUI::CORNER_ALL, 5.0f);
+		FilledBar.w = max(2*Rounding, FilledBar.w*Amount);
+		RenderTools()->DrawUIRect(&FilledBar, vec4(1,1,1,0.5f), CUI::CORNER_ALL, Rounding);
 
 		// draw markers
 		for(int i = 0; i < pInfo->m_NumTimelineMarkers; i++)
@@ -89,7 +109,7 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 			Graphics()->TextureClear();
 			Graphics()->QuadsBegin();
 			Graphics()->SetColor(1.0f, 1.0f, 1.0f, 1.0f);
-			IGraphics::CQuadItem QuadItem(SeekBar.x + (SeekBar.w-10.0f)*Ratio, SeekBar.y, UI()->PixelSize(), SeekBar.h);
+			IGraphics::CQuadItem QuadItem(SeekBar.x + (SeekBar.w-2*Rounding)*Ratio, SeekBar.y, UI()->PixelSize(), SeekBar.h);
 			Graphics()->QuadsDrawTL(&QuadItem, 1);
 			Graphics()->QuadsEnd();
 		}
@@ -98,7 +118,7 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 		str_format(aBuffer, sizeof(aBuffer), "%d:%02d / %d:%02d",
 			CurrentTick/SERVER_TICK_SPEED/60, (CurrentTick/SERVER_TICK_SPEED)%60,
 			TotalTicks/SERVER_TICK_SPEED/60, (TotalTicks/SERVER_TICK_SPEED)%60);
-		UI()->DoLabel(&SeekBar, aBuffer, SeekBar.h*0.70f, 0);
+		UI()->DoLabel(&SeekBar, aBuffer, SeekBar.h*0.70f, CUI::ALIGN_CENTER);
 
 		// do the logic
 		int Inside = UI()->MouseInside(&SeekBar);
@@ -111,7 +131,7 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 			{
 				static float PrevAmount = 0.0f;
 				float Amount = (UI()->MouseX()-SeekBar.x)/(float)SeekBar.w;
-				if(Amount > 0.0f && Amount < 1.0f && absolute(PrevAmount-Amount) >= 0.01f)
+				if(Amount > 0.0f && Amount < 1.0f && absolute(PrevAmount-Amount) >= (1.0f/UI()->Screen()->w))
 				{
 					PrevAmount = Amount;
 					m_pClient->OnReset();
@@ -142,6 +162,15 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 
 	bool IncreaseDemoSpeed = false, DecreaseDemoSpeed = false;
 
+	//add spacebar for toggling Play/Pause
+	if(Input()->KeyDown(KEY_SPACE))
+	{
+		if(!pInfo->m_Paused)
+			DemoPlayer()->Pause();
+		else
+			DemoPlayer()->Unpause();
+	}
+	
 	if(m_MenuActive)
 	{
 		// do buttons
@@ -194,7 +223,7 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 			str_format(aBuffer, sizeof(aBuffer), "x%.0f", pInfo->m_Speed);
 		else
 			str_format(aBuffer, sizeof(aBuffer), "x%.2f", pInfo->m_Speed);
-		UI()->DoLabel(&ButtonBar, aBuffer, Button.h*0.7f, -1);
+		UI()->DoLabel(&ButtonBar, aBuffer, Button.h*0.7f, CUI::ALIGN_LEFT);
 
 		// close button
 		ButtonBar.VSplitRight(ButtonbarHeight*3, &ButtonBar, &Button);
@@ -213,7 +242,7 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 		TextRender()->TextEx(&Cursor, aBuf, -1);
 	}
 
-	if(IncreaseDemoSpeed || Input()->KeyPresses(KEY_MOUSE_WHEEL_UP))
+	if(IncreaseDemoSpeed || Input()->KeyPresses(KEY_MOUSE_WHEEL_UP) || Input()->KeyDown(KEY_PLUS) || Input()->KeyDown(KEY_KP_PLUS))
 	{
 		if(pInfo->m_Speed < 0.1f) DemoPlayer()->SetSpeed(0.1f);
 		else if(pInfo->m_Speed < 0.25f) DemoPlayer()->SetSpeed(0.25f);
@@ -224,7 +253,7 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 		else if(pInfo->m_Speed < 4.0f) DemoPlayer()->SetSpeed(4.0f);
 		else DemoPlayer()->SetSpeed(8.0f);
 	}
-	else if(DecreaseDemoSpeed || Input()->KeyPresses(KEY_MOUSE_WHEEL_DOWN))
+	else if(DecreaseDemoSpeed || Input()->KeyPresses(KEY_MOUSE_WHEEL_DOWN) || Input()->KeyDown(KEY_MINUS) || Input()->KeyDown(KEY_KP_MINUS))
 	{
 		if(pInfo->m_Speed > 4.0f) DemoPlayer()->SetSpeed(4.0f);
 		else if(pInfo->m_Speed > 2.0f) DemoPlayer()->SetSpeed(2.0f);
@@ -347,14 +376,14 @@ void CMenus::RenderDemoList(CUIRect MainView)
 				TextRender()->TextColor(0.0f, 0.0f, 0.0f, 1.0f);
 				TextRender()->TextOutlineColor(1.0f, 1.0f, 1.0f, 0.25f);
 				Item.m_Rect.y += 2.0f;
-				UI()->DoLabel(&Item.m_Rect, r.front().m_aName, Item.m_Rect.h*ms_FontmodHeight*0.8f, 0);
+				UI()->DoLabel(&Item.m_Rect, r.front().m_aName, Item.m_Rect.h*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
 				TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 				TextRender()->TextOutlineColor(0.0f, 0.0f, 0.0f, 0.3f);
 			}
 			else
 			{
 				Item.m_Rect.y += 2.0f;
-				UI()->DoLabel(&Item.m_Rect, r.front().m_aName, Item.m_Rect.h*ms_FontmodHeight*0.8f, 0);
+				UI()->DoLabel(&Item.m_Rect, r.front().m_aName, Item.m_Rect.h*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
 			}
 		}
 	}
@@ -374,7 +403,7 @@ void CMenus::RenderDemoList(CUIRect MainView)
 
 	MainView.HSplitTop(ButtonHeight, &Label, &MainView);
 	Label.y += 2.0f;
-	UI()->DoLabel(&Label, aFooterLabel, ButtonHeight*ms_FontmodHeight*0.8f, 0);
+	UI()->DoLabel(&Label, aFooterLabel, ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
 	if(!m_DemolistSelectedIsDir && m_DemolistSelectedIndex >= 0 && m_lDemos[m_DemolistSelectedIndex].m_Valid)
 	{
 		MainView.HSplitTop(Spacing, 0, &MainView);

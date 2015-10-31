@@ -9,7 +9,7 @@
 #include <game/client/render.h>
 #include <game/client/ui.h>
 
-#include <game/generated/client_data.h>
+#include <generated/client_data.h>
 
 #include "menus.h"
 
@@ -24,6 +24,7 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 	TopMenu.HSplitTop(145.0f, 0, &TopMenu);
 
 	CUIRect Button;
+	int NewPage = -1;
 
 	TopMenu.HSplitBottom(40.0f, &TopMenu, &Button);
 	static int s_SettingsButton = 0;
@@ -31,14 +32,14 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 	{
 		if(DoButton_MenuImage(&s_SettingsButton, Localize("Settings"), 0, &Button, "settings", 10.0f, 0.5f))
 		{
-			m_MenuPage = PAGE_SETTINGS;
+			NewPage = PAGE_SETTINGS;
 		}
 	}
 	else
 	{
 		if(DoButton_Menu(&s_SettingsButton, Localize("Settings"), 0, &Button, CUI::CORNER_ALL, 10.0f, 0.5f))
 		{
-			m_MenuPage = PAGE_SETTINGS;
+			NewPage = PAGE_SETTINGS;
 		}
 	}
 
@@ -65,7 +66,7 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 	{
 		if(DoButton_MenuImage(&s_DemoButton, Localize("Demos"), 0, &Button, "demos", 10.0f, 0.5f))
 		{
-			m_MenuPage = PAGE_DEMOS;
+			NewPage = PAGE_DEMOS;
 			DemolistPopulate();
 			DemolistOnUpdate(false);
 		}
@@ -74,7 +75,7 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 	{
 		if(DoButton_Menu(&s_DemoButton, Localize("Demos"), 0, &Button, CUI::CORNER_ALL, 10.0f, 0.5f))
 		{
-			m_MenuPage = PAGE_DEMOS;
+			NewPage = PAGE_DEMOS;
 			DemolistPopulate();
 			DemolistOnUpdate(false);
 		}
@@ -105,13 +106,13 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 	static int s_PlayButton = 0;
 	if(g_Config.m_ClShowStartMenuImages)
 	{
-		if(DoButton_MenuImage(&s_PlayButton, Localize("Play"), 0, &Button, "play_game", 10.0f, 0.5f))
-			m_MenuPage = g_Config.m_UiBrowserPage;
+		if(DoButton_MenuImage(&s_PlayButton, Localize("Play"), 0, &Button, "play_game", 10.0f, 0.5f) || m_EnterPressed)
+			NewPage = g_Config.m_UiBrowserPage;
 	}
 	else
 	{
-		if(DoButton_Menu(&s_PlayButton, Localize("Play"), 0, &Button, CUI::CORNER_ALL, 10.0f, 0.5f))
-			m_MenuPage = g_Config.m_UiBrowserPage;
+		if(DoButton_Menu(&s_PlayButton, Localize("Play"), 0, &Button, CUI::CORNER_ALL, 10.0f, 0.5f) || m_EnterPressed)
+			NewPage = g_Config.m_UiBrowserPage;
 	}
 
 	BottomMenu.HSplitTop(90.0f, 0, &BottomMenu);
@@ -119,7 +120,7 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 
 	BottomMenu.HSplitTop(40.0f, &Button, &TopMenu);
 	static int s_QuitButton = 0;
-	if(DoButton_Menu(&s_QuitButton, Localize("Quit"), 0, &Button, CUI::CORNER_ALL, 10.0f, 0.5f))
+	if(DoButton_Menu(&s_QuitButton, Localize("Quit"), 0, &Button, CUI::CORNER_ALL, 10.0f, 0.5f) || m_EscapePressed)
 		m_Popup = POPUP_QUIT;
 
 	// render version
@@ -131,10 +132,13 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 	{
 		str_format(aBuf, sizeof(aBuf), Localize("Teeworlds %s is out! Download it at www.teeworlds.com!"), Client()->LatestVersion());
 		TextRender()->TextColor(1.0f, 0.4f, 0.4f, 1.0f);
-		UI()->DoLabelScaled(&Version, aBuf, 14.0f, 0);
+		UI()->DoLabelScaled(&Version, aBuf, 14.0f, CUI::ALIGN_CENTER);
 		TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 	}
-	UI()->DoLabelScaled(&Version, GAME_VERSION, 14.0f, 1);	
+	UI()->DoLabelScaled(&Version, GAME_VERSION, 14.0f, CUI::ALIGN_RIGHT);
+
+	if(NewPage != -1)
+		SetMenuPage(NewPage);
 }
 
 void CMenus::RenderLogo(CUIRect MainView)

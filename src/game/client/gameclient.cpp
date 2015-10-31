@@ -13,8 +13,8 @@
 #include <engine/shared/demo.h>
 #include <engine/shared/config.h>
 
-#include <game/generated/protocol.h>
-#include <game/generated/client_data.h>
+#include <generated/protocol.h>
+#include <generated/client_data.h>
 
 #include <game/version.h>
 #include "localization.h"
@@ -85,9 +85,9 @@ static CMapLayers gs_MapLayersForeGround(CMapLayers::TYPE_FOREGROUND);
 CGameClient::CStack::CStack() { m_Num = 0; }
 void CGameClient::CStack::Add(class CComponent *pComponent) { m_paComponents[m_Num++] = pComponent; }
 
-const char *CGameClient::Version() { return GAME_VERSION; }
-const char *CGameClient::NetVersion() { return GAME_NETVERSION; }
-const char *CGameClient::GetItemName(int Type) { return m_NetObjHandler.GetObjName(Type); }
+const char *CGameClient::Version() const { return GAME_VERSION; }
+const char *CGameClient::NetVersion() const { return GAME_NETVERSION; }
+const char *CGameClient::GetItemName(int Type) const { return m_NetObjHandler.GetObjName(Type); }
 
 const char *CGameClient::GetTeamName(int Team, bool Teamplay) const
 {
@@ -481,25 +481,7 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker)
 	Client()->RecordGameMessage(true);
 
 	// special messages
-	if(MsgId == NETMSGTYPE_SV_EXTRAPROJECTILE)
-	{
-		int Num = pUnpacker->GetInt();
-
-		for(int k = 0; k < Num; k++)
-		{
-			CNetObj_Projectile Proj;
-			for(unsigned i = 0; i < sizeof(CNetObj_Projectile)/sizeof(int); i++)
-				((int *)&Proj)[i] = pUnpacker->GetInt();
-
-			if(pUnpacker->Error())
-				return;
-
-			m_pItems->AddExtraProjectile(&Proj);
-		}
-
-		return;
-	}
-	else if(MsgId == NETMSGTYPE_SV_TUNEPARAMS && Client()->State() != IClient::STATE_DEMOPLAYBACK)
+	if(MsgId == NETMSGTYPE_SV_TUNEPARAMS && Client()->State() != IClient::STATE_DEMOPLAYBACK)
 	{
 		Client()->RecordGameMessage(false);
 		// unpack the new tuning
@@ -584,9 +566,9 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker)
 			case GAMEMSG_CTF_CAPTURE:
 				m_pSounds->Enqueue(CSounds::CHN_GLOBAL, SOUND_CTF_CAPTURE);
 				if(aParaI[2] <= 60*Client()->GameTickSpeed())
-					str_format(aBuf, sizeof(aBuf), "The %s flag was captured by '%s' (%.2f seconds)", aParaI[0] ? Localize("blue") : Localize("red"), m_aClients[clamp(aParaI[1], 0, MAX_CLIENTS-1)].m_aName, aParaI[2]/(float)Client()->GameTickSpeed());
+					str_format(aBuf, sizeof(aBuf), Localize("The %s flag was captured by '%s' (%.2f seconds)"), aParaI[0] ? Localize("blue") : Localize("red"), m_aClients[clamp(aParaI[1], 0, MAX_CLIENTS-1)].m_aName, aParaI[2]/(float)Client()->GameTickSpeed());
 				else
-					str_format(aBuf, sizeof(aBuf), "The %s flag was captured by '%s'", aParaI[0] ? Localize("blue") : Localize("red"), m_aClients[clamp(aParaI[1], 0, MAX_CLIENTS-1)].m_aName);
+					str_format(aBuf, sizeof(aBuf), Localize("The %s flag was captured by '%s'"), aParaI[0] ? Localize("blue") : Localize("red"), m_aClients[clamp(aParaI[1], 0, MAX_CLIENTS-1)].m_aName);
 				m_pChat->AddLine(-1, 0, aBuf);
 			}
 			return;
@@ -838,7 +820,7 @@ void CGameClient::ProcessEvents()
 		if(Item.m_Type == NETEVENTTYPE_DAMAGEIND)
 		{
 			CNetEvent_DamageInd *ev = (CNetEvent_DamageInd *)pData;
-			m_pEffects->DamageIndicator(vec2(ev->m_X, ev->m_Y), GetDirection(ev->m_Angle));
+			m_pEffects->DamageIndicator(vec2(ev->m_X, ev->m_Y), direction(ev->m_Angle/256.0f));
 		}
 		else if(Item.m_Type == NETEVENTTYPE_EXPLOSION)
 		{
@@ -900,7 +882,7 @@ void CGameClient::OnNewSnapshot()
 		for(int Index = 0; Index < Num; Index++)
 		{
 			IClient::CSnapItem Item;
-			void *pData = Client()->SnapGetItem(IClient::SNAP_CURRENT, Index, &Item);
+			const void *pData = Client()->SnapGetItem(IClient::SNAP_CURRENT, Index, &Item);
 			if(m_NetObjHandler.ValidateObj(Item.m_Type, pData, Item.m_DataSize) != 0)
 			{
 				if(g_Config.m_Debug)
@@ -1142,16 +1124,13 @@ void CGameClient::OnNewSnapshot()
 
 	CServerInfo CurrentServerInfo;
 	Client()->GetServerInfo(&CurrentServerInfo);
-	if(CurrentServerInfo.m_aGameType[0] != '0')
-	{
-		if(str_comp(CurrentServerInfo.m_aGameType, "DM") != 0 && str_comp(CurrentServerInfo.m_aGameType, "TDM") != 0 && str_comp(CurrentServerInfo.m_aGameType, "CTF") != 0 &&
-			str_comp(CurrentServerInfo.m_aGameType, "LMS") != 0 && str_comp(CurrentServerInfo.m_aGameType, "SUR") != 0)
-			m_ServerMode = SERVERMODE_MOD;
-		else if(mem_comp(&StandardTuning, &m_Tuning, sizeof(CTuningParams)) == 0)
-			m_ServerMode = SERVERMODE_PURE;
-		else
-			m_ServerMode = SERVERMODE_PUREMOD;
-	}
+	if(str_comp(CurrentServerInfo.m_aGameType, "DM") != 0 && str_comp(CurrentServerInfo.m_aGameType, "TDM") != 0 && str_comp(CurrentServerInfo.m_aGameType, "CTF") != 0 &&
+		str_comp(CurrentServerInfo.m_aGameType, "LMS") != 0 && str_comp(CurrentServerInfo.m_aGameType, "SUR") != 0)
+		m_ServerMode = SERVERMODE_MOD;
+	else if(mem_comp(&StandardTuning, &m_Tuning, sizeof(CTuningParams)) == 0)
+		m_ServerMode = SERVERMODE_PURE;
+	else
+		m_ServerMode = SERVERMODE_PUREMOD;
 }
 
 void CGameClient::OnDemoRecSnap()
@@ -1255,9 +1234,9 @@ void CGameClient::OnPredict()
 			if(m_LocalClientID == c)
 			{
 				// apply player input
-				int *pInput = Client()->GetInput(Tick);
+				const int *pInput = Client()->GetInput(Tick);
 				if(pInput)
-					World.m_apCharacters[c]->m_Input = *((CNetObj_PlayerInput*)pInput);
+					World.m_apCharacters[c]->m_Input = *((const CNetObj_PlayerInput*)pInput);
 				World.m_apCharacters[c]->Tick(true);
 			}
 			else
@@ -1329,7 +1308,7 @@ void CGameClient::CClientData::UpdateRenderInfo(CGameClient *pGameClient, bool U
 			int ID = pGameClient->m_pSkins->FindSkinPart(p, m_aaSkinPartNames[p], false);
 			if(ID < 0)
 			{
-				if(p == CSkins::SKINPART_TATTOO || p == CSkins::SKINPART_DECORATION)
+				if(p == CSkins::SKINPART_MARKING || p == CSkins::SKINPART_DECORATION)
 					ID = pGameClient->m_pSkins->FindSkinPart(p, "", false);
 				else
 					ID = pGameClient->m_pSkins->FindSkinPart(p, "standard", false);
@@ -1346,7 +1325,7 @@ void CGameClient::CClientData::UpdateRenderInfo(CGameClient *pGameClient, bool U
 			if(m_aUseCustomColors[p])
 			{
 				m_SkinInfo.m_aTextures[p] = pSkinPart->m_ColorTexture;
-				m_SkinInfo.m_aColors[p] = pGameClient->m_pSkins->GetColorV4(m_aSkinPartColors[p], p==CSkins::SKINPART_TATTOO);
+				m_SkinInfo.m_aColors[p] = pGameClient->m_pSkins->GetColorV4(m_aSkinPartColors[p], p==CSkins::SKINPART_MARKING);
 			}
 			else
 			{
@@ -1365,7 +1344,7 @@ void CGameClient::CClientData::UpdateRenderInfo(CGameClient *pGameClient, bool U
 		{
 			m_RenderInfo.m_aTextures[p] = pGameClient->m_pSkins->GetSkinPart(p, m_SkinPartIDs[p])->m_ColorTexture;
 			int ColorVal = pGameClient->m_pSkins->GetTeamColor(m_aUseCustomColors[p], m_aSkinPartColors[p], m_Team, p);
-			m_RenderInfo.m_aColors[p] = pGameClient->m_pSkins->GetColorV4(ColorVal, p==CSkins::SKINPART_TATTOO);
+			m_RenderInfo.m_aColors[p] = pGameClient->m_pSkins->GetColorV4(ColorVal, p==CSkins::SKINPART_MARKING);
 		}
 	}
 }

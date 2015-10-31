@@ -7,35 +7,14 @@
 #include <engine/shared/config.h>
 #include <engine/graphics.h>
 #include <engine/map.h>
-#include <game/generated/client_data.h>
-#include <game/generated/protocol.h>
+#include <generated/client_data.h>
+#include <generated/protocol.h>
 #include <game/layers.h>
 #include "animstate.h"
 #include "render.h"
 
 static float gs_SpriteWScale;
 static float gs_SpriteHScale;
-
-
-/*
-static void layershot_begin()
-{
-	if(!config.cl_layershot)
-		return;
-
-	Graphics()->Clear(0,0,0);
-}
-
-static void layershot_end()
-{
-	if(!config.cl_layershot)
-		return;
-
-	char buf[256];
-	str_format(buf, sizeof(buf), "screenshots/layers_%04d.png", config.cl_layershot);
-	gfx_screenshot_direct(buf);
-	config.cl_layershot++;
-}*/
 
 void CRenderTools::SelectSprite(CDataSprite *pSpr, int Flags, int sx, int sy)
 {
@@ -323,9 +302,9 @@ void CRenderTools::DrawRoundRectExt4(float x, float y, float w, float h, vec4 Co
 	}
 }
 
-void CRenderTools::DrawRoundRect(float x, float y, float w, float h, float r)
+void CRenderTools::DrawRoundRect(const CUIRect *r, vec4 Color, float Rounding)
 {
-	DrawRoundRectExt(x,y,w,h,r,0xf);
+	DrawUIRect(r, Color, CUI::CORNER_ALL, Rounding);
 }
 
 void CRenderTools::DrawUIRect(const CUIRect *r, vec4 Color, int Corners, float Rounding)
@@ -334,7 +313,7 @@ void CRenderTools::DrawUIRect(const CUIRect *r, vec4 Color, int Corners, float R
 
 	// TODO: FIX US
 	Graphics()->QuadsBegin();
-	Graphics()->SetColor(Color.r, Color.g, Color.b, Color.a);
+	Graphics()->SetColor(Color.r*Color.a, Color.g*Color.a, Color.b*Color.a, Color.a);
 	DrawRoundRectExt(r->x,r->y,r->w,r->h,Rounding*UI()->Scale(), Corners);
 	Graphics()->QuadsEnd();
 }
@@ -387,7 +366,7 @@ void CRenderTools::RenderTee(CAnimState *pAnim, CTeeRenderInfo *pInfo, int Emote
 					Graphics()->QuadsEnd();
 				}
 
-				// draw body (behind tattoo)
+				// draw body (behind marking)
 				Graphics()->TextureSet(pInfo->m_aTextures[0]);
 				Graphics()->QuadsBegin();
 				Graphics()->QuadsSetRotation(pAnim->GetBody()->m_Angle*pi*2);
@@ -405,20 +384,20 @@ void CRenderTools::RenderTee(CAnimState *pAnim, CTeeRenderInfo *pInfo, int Emote
 				Graphics()->QuadsDraw(&Item, 1);
 				Graphics()->QuadsEnd();
 
-				// draw tattoo
+				// draw marking
 				if(pInfo->m_aTextures[1].IsValid() && !OutLine)
 				{
 					Graphics()->TextureSet(pInfo->m_aTextures[1]);
 					Graphics()->QuadsBegin();
 					Graphics()->QuadsSetRotation(pAnim->GetBody()->m_Angle*pi*2);
 					Graphics()->SetColor(pInfo->m_aColors[1].r, pInfo->m_aColors[1].g, pInfo->m_aColors[1].b, pInfo->m_aColors[1].a);
-					SelectSprite(SPRITE_TEE_TATTOO, 0, 0, 0);
+					SelectSprite(SPRITE_TEE_MARKING, 0, 0, 0);
 					Item = BodyItem;
 					Graphics()->QuadsDraw(&Item, 1);
 					Graphics()->QuadsEnd();
 				}
 
-				// draw body (in front of tattoo)
+				// draw body (in front of marking)
 				if(!OutLine)
 				{
 					Graphics()->TextureSet(pInfo->m_aTextures[0]);
@@ -474,7 +453,7 @@ void CRenderTools::RenderTee(CAnimState *pAnim, CTeeRenderInfo *pInfo, int Emote
 			Graphics()->QuadsBegin();
 			CAnimKeyframe *pFoot = f ? pAnim->GetFrontFoot() : pAnim->GetBackFoot();
 
-			float w = BaseSize/2.25f;
+			float w = BaseSize/2.1f;
 			float h = w;
 
 			Graphics()->QuadsSetRotation(pFoot->m_Angle*pi*2);
@@ -521,8 +500,8 @@ static void CalcScreenParams(float Amount, float WMax, float HMax, float Aspect,
 	}
 }
 
-void CRenderTools::MapscreenToWorld(float CenterX, float CenterY, float ParallaxX, float ParallaxY,
-	float OffsetX, float OffsetY, float Aspect, float Zoom, float *pPoints)
+void CRenderTools::MapScreenToWorld(float CenterX, float CenterY, float ParallaxX, float ParallaxY,
+	float OffsetX, float OffsetY, float Aspect, float Zoom, float aPoints[4])
 {
 	float Width, Height;
 	CalcScreenParams(1150*1000, 1500, 1050, Aspect, &Width, &Height);
@@ -530,10 +509,18 @@ void CRenderTools::MapscreenToWorld(float CenterX, float CenterY, float Parallax
 	CenterY *= ParallaxY;
 	Width *= Zoom;
 	Height *= Zoom;
-	pPoints[0] = OffsetX+CenterX-Width/2;
-	pPoints[1] = OffsetY+CenterY-Height/2;
-	pPoints[2] = pPoints[0]+Width;
-	pPoints[3] = pPoints[1]+Height;
+	aPoints[0] = OffsetX+CenterX-Width/2;
+	aPoints[1] = OffsetY+CenterY-Height/2;
+	aPoints[2] = aPoints[0]+Width;
+	aPoints[3] = aPoints[1]+Height;
+}
+
+void CRenderTools::MapScreenToGroup(float CenterX, float CenterY, CMapItemGroup *pGroup, float Zoom)
+{
+	float aPoints[4];
+	MapScreenToWorld(CenterX, CenterY, pGroup->m_ParallaxX/100.0f, pGroup->m_ParallaxY/100.0f,
+		pGroup->m_OffsetX, pGroup->m_OffsetY, Graphics()->ScreenAspect(), Zoom, aPoints);
+	Graphics()->MapScreen(aPoints[0], aPoints[1], aPoints[2], aPoints[3]);
 }
 
 void CRenderTools::RenderTilemapGenerateSkip(class CLayers *pLayers)

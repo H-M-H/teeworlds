@@ -18,7 +18,7 @@
 #include "skins.h"
 
 
-// compnent to fetch keypresses, override all other input
+// component to fetch keypresses, override all other input
 class CMenusKeyBinder : public CComponent
 {
 public:
@@ -249,6 +249,8 @@ class CMenus : public CComponent
 	int m_DemolistSelectedIndex;
 	bool m_DemolistSelectedIsDir;
 	int m_DemolistStorageType;
+	int64 m_SeekBarActivatedTime;
+	bool m_SeekBarActive;
 
 	void DemolistOnUpdate(bool Reset);
 	void DemolistPopulate();
@@ -408,6 +410,7 @@ class CMenus : public CComponent
 	int m_CurrentVideoFormat;
 	void UpdateVideoFormats();
 	void UpdatedFilteredVideoModes();
+	void UpdateVideoModeSettings();
 
 	// found in menus.cpp
 	int Render();
@@ -448,6 +451,7 @@ class CMenus : public CComponent
 	void RenderServerbrowser(CUIRect MainView);
 	static void ConchainFriendlistUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 	static void ConchainServerbrowserUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
+	static void ConchainToggleMusic(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 	void SetOverlay(int Type, float x, float y, const void *pData);
 
 	// found in menus_settings.cpp
@@ -480,6 +484,10 @@ class CMenus : public CComponent
 	static int PopupFilter(CMenus *pMenus, CUIRect View);
 
 	IGraphics::CTextureHandle m_TextureBlob;
+
+	void ToggleMusic();
+
+	void SetMenuPage(int NewPage);
 public:
 	void RenderBackground();
 

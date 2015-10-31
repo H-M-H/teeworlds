@@ -20,7 +20,7 @@ bool CTuningParams::Set(int Index, float Value)
 	return true;
 }
 
-bool CTuningParams::Get(int Index, float *pValue)
+bool CTuningParams::Get(int Index, float *pValue) const
 {
 	if(Index < 0 || Index >= Num())
 		return false;
@@ -36,7 +36,7 @@ bool CTuningParams::Set(const char *pName, float Value)
 	return false;
 }
 
-bool CTuningParams::Get(const char *pName, float *pValue)
+bool CTuningParams::Get(const char *pName, float *pValue) const
 {
 	for(int i = 0; i < Num(); i++)
 		if(str_comp_nocase(pName, m_apNames[i]) == 0)
@@ -79,19 +79,19 @@ void CCharacterCore::Reset()
 
 bool CCharacterCore::IsGrounded() {
 	float PhysSize = 28.0f;
-	
+
 	for(int i = -PhysSize/2; i <= PhysSize/2; i++) {
 		if(m_pCollision->CheckPoint(m_Pos.x+i, m_Pos.y+PhysSize/2+5)) {
 			return true;
 		}
 	}
-	
+
 	return false;
 }
 
 int CCharacterCore::SlopeState(bool* nohook) {
 	float PhysSize = 28.0f;
-	
+
 	int tmp = 0;
 	int height_left = 0;
 	bool is_nohook = false;
@@ -104,8 +104,8 @@ int CCharacterCore::SlopeState(bool* nohook) {
 			}
 	if(nohook)
 		*nohook = is_nohook;
-		
-	
+
+
 	int height_right = 0;
 	for(int x = 1; x <= 1; x++)
 		for(int y = 0; y <= 4; y++)
@@ -113,14 +113,14 @@ int CCharacterCore::SlopeState(bool* nohook) {
 				height_right = tmp;
 				is_nohook = tmp_nohook;
 			}
-	
+
 	if(nohook && !*nohook)
 		*nohook = is_nohook;
 // 	if ( (tmp = m_pCollision->CheckPoint(m_Pos.x-PhysSize/2-1, m_Pos.y+PhysSize/2+1)) > height_left)
 // 		height_left = tmp;
 // 	if ( (tmp = m_pCollision->CheckPoint(m_Pos.x-PhysSize/2, m_Pos.y+PhysSize/2+1)) > height_left)
 // 		height_left = tmp;
-// 	
+//
 // 	int height_right = max(m_pCollision->CheckPoint(m_Pos.x+PhysSize/2+1, m_Pos.y+PhysSize/2), m_pCollision->CheckPoint(m_Pos.x+PhysSize/2, m_Pos.y+PhysSize/2));
 // 	if ( (tmp = m_pCollision->CheckPoint(m_Pos.x+PhysSize/2, m_Pos.y+PhysSize/2)) > height_right)
 // 		height_right = tmp;
@@ -135,7 +135,7 @@ int CCharacterCore::SlopeState(bool* nohook) {
 			break;
 		}
 	}
-	
+
 	for(int j = 0; j <=28; j++) {
 		if(m_pCollision->CheckPoint(m_Pos.x+PhysSize/2+1, m_Pos.y+PhysSize/2+j)) {
 			height_right = j;
@@ -165,10 +165,10 @@ void CCharacterCore::Tick(bool UseInput)
 	bool Grounded = IsGrounded();
 	bool nohook;
 	int slope = SlopeState(&nohook);
-	
+
 	//std::cerr << "Nohook " << nohook << std::endl;
-	
-	
+
+
 	/*if(m_pCollision->CheckPoint(m_Pos.x+PhysSize/2, m_Pos.y+PhysSize/2+5))
 		Grounded = true;
 	if(m_pCollision->CheckPoint(m_Pos.x-PhysSize/2, m_Pos.y+PhysSize/2+5))
@@ -179,7 +179,7 @@ void CCharacterCore::Tick(bool UseInput)
 	m_Vel.y += m_pWorld->m_Tuning.m_Gravity;
 
 	float MaxSpeed = Grounded ? m_pWorld->m_Tuning.m_GroundControlSpeed : m_pWorld->m_Tuning.m_AirControlSpeed;
-	
+
 	float Accel = Grounded ? m_pWorld->m_Tuning.m_GroundControlAccel : m_pWorld->m_Tuning.m_AirControlAccel;
 	float Friction = Grounded ? m_pWorld->m_Tuning.m_GroundFriction : m_pWorld->m_Tuning.m_AirFriction;
 	float SlideFriction = m_pWorld->m_Tuning.m_SlideFriction;
@@ -189,7 +189,7 @@ void CCharacterCore::Tick(bool UseInput)
 	float SlopeAscendingControlSpeed = m_pWorld->m_Tuning.m_SlopeAscendingControlSpeed*invsqrt2;
 	float SlopeDescendingControlSpeed = m_pWorld->m_Tuning.m_SlopeDescendingControlSpeed*invsqrt2;
 	float SlideControlSpeed = m_pWorld->m_Tuning.m_SlideControlSpeed*invsqrt2;
-	
+
 	float SlideActivationSpeed = m_pWorld->m_Tuning.m_SlideActivationSpeed;
 	// handle input
 	if(UseInput)
@@ -216,12 +216,12 @@ void CCharacterCore::Tick(bool UseInput)
 				if(Grounded)
 				{
 					m_TriggeredEvents |= COREEVENTFLAG_GROUND_JUMP;
-					if(slope == 0) 
+					if(slope == 0)
 						m_Vel.y = -m_pWorld->m_Tuning.m_GroundJumpImpulse;
 					else {
 						m_Vel.y = -m_pWorld->m_Tuning.m_GroundJumpImpulse*invsqrt2;
 					}
-					
+
 					m_Jumped |= 1;
 				}
 				else if(!(m_Jumped&2))
@@ -256,14 +256,14 @@ void CCharacterCore::Tick(bool UseInput)
 			m_HookDir = vec2(0,0);
 			m_HookTick = 0;
 		}
-		
+
 		m_Sliding = m_Input.m_Slide;
-		
+
 	}
-	
+
 	if(nohook && slope != 0 && m_pWorld->m_Tuning.m_NoHookAutoSlide)
 		m_Sliding = true;
-	
+
 	if( (m_Vel.x > SlideActivationSpeed && slope == 1) || (m_Vel.x < -SlideActivationSpeed && slope == -1)) {
 		m_Sliding = true;
 	}
@@ -287,11 +287,11 @@ void CCharacterCore::Tick(bool UseInput)
 		m_Vel.x = SaturatedAdd(-MaxSpeed, MaxSpeed, m_Vel.x, -Accel);
 	}
 	if(m_Direction > 0 && (!m_Sliding || !Grounded)) {
-		
+
 		m_Vel.x = SaturatedAdd(-MaxSpeed, MaxSpeed, m_Vel.x, Accel);
 	}
-	
-	
+
+
 	if(m_Sliding && slope != 0) {
 		//std::cerr << "Fric1..." << m_Pos.x << std::endl;
 		m_Vel.x = SaturatedAdd(-SlideControlSpeed, SlideControlSpeed, m_Vel.x, slope*SlideSlopeAcceleration);
@@ -310,9 +310,9 @@ void CCharacterCore::Tick(bool UseInput)
 			m_Vel.x *= Friction;
 		}
 	}
-	
 
-	
+
+
 	/*if(Slope == -1 && m_Vel.x < 1) {
 		//std::cerr << "SLOPE -1" << std::endl;
 		m_Vel.x -= m_pWorld->m_Tuning.m_Gravity;
@@ -520,18 +520,21 @@ void CCharacterCore::Tick(bool UseInput)
 void CCharacterCore::Move()
 {
 	//int slope = SlopeState();
-	
-	
+
+
+	if(!m_pWorld)
+		return;
+
 	float RampValue = VelocityRamp(length(m_Vel)*50, m_pWorld->m_Tuning.m_VelrampStart, m_pWorld->m_Tuning.m_VelrampRange, m_pWorld->m_Tuning.m_VelrampCurvature);
 	//if( (slope == -1 && m_Vel.x < 0) || (slope == 1 && m_Vel.x > 0))
 	//	RampValue = VelocityRamp(length(m_Vel)*20, m_pWorld->m_Tuning.m_VelrampStart, m_pWorld->m_Tuning.m_VelrampRange, m_pWorld->m_Tuning.m_VelrampCurvature);
-	
+
 	//std::cerr << "->VelX: " << m_Vel.x << " - " << m_Vel.y << std::endl;
 
 	m_Vel.x = m_Vel.x*RampValue;
 
 	vec2 NewPos = m_Pos;
-	
+
 	//bool switched = true;
 	/*if(slope == -1 && m_Vel.x < 0 && m_Vel.y >= 0) {
 		m_Vel.x *= invsqrt2;
@@ -551,14 +554,14 @@ void CCharacterCore::Move()
 	}
 	else*/
 	//	switched = false;
-		
+
 	m_pCollision->MoveBox(&NewPos, &m_Vel, vec2(28.0f, 28.0f), 0, !m_Sliding);
-	
+
 	//std::cerr << "ColX: " << m_Vel.x << " - " << m_Vel.y << std::endl;
 	m_Vel.x = m_Vel.x*(1.0f/RampValue);
 	//std::cerr << "RamX: " << m_Vel.x << " - " << m_Vel.y << std::endl;
 
-	if(m_pWorld && m_pWorld->m_Tuning.m_PlayerCollision)
+	if(m_pWorld->m_Tuning.m_PlayerCollision)
 	{
 		// check player collision
 		float Distance = distance(m_Pos, NewPos);
@@ -588,7 +591,7 @@ void CCharacterCore::Move()
 	}
 
 	m_Pos = NewPos;
-	
+
 	//slope = SlopeState();
 	//if(switched) {
 	//	m_Vel.x /= invsqrt2;
@@ -605,29 +608,29 @@ void CCharacterCore::Move()
 	else if(slope == -1 && m_Vel.x > 0 && m_Vel.y >= 0) {
 		m_Vel.x /= 0.7071067811865475244f;
 		m_Vel.y = 0;
-		
+
 	}
 	else if(slope == 1 && m_Vel.x < 0 && m_Vel.y >= 0) {
 		m_Vel.x /= 0.7071067811865475244f;
 		m_Vel.y = 0;
 	}*/
-	
-	
-	
+
+
+
 	//std::cerr << "EndX: " << m_Vel.x << " - " << m_Vel.y << std::endl;
 }
 
 void CCharacterCore::Write(CNetObj_CharacterCore *pObjCore)
 {
-	pObjCore->m_X = round(m_Pos.x);
-	pObjCore->m_Y = round(m_Pos.y);
+	pObjCore->m_X = round_to_int(m_Pos.x);
+	pObjCore->m_Y = round_to_int(m_Pos.y);
 
-	pObjCore->m_VelX = round(m_Vel.x*256.0f);
-	pObjCore->m_VelY = round(m_Vel.y*256.0f);
+	pObjCore->m_VelX = round_to_int(m_Vel.x*256.0f);
+	pObjCore->m_VelY = round_to_int(m_Vel.y*256.0f);
 	pObjCore->m_HookState = m_HookState;
 	pObjCore->m_HookTick = m_HookTick;
-	pObjCore->m_HookX = round(m_HookPos.x);
-	pObjCore->m_HookY = round(m_HookPos.y);
+	pObjCore->m_HookX = round_to_int(m_HookPos.x);
+	pObjCore->m_HookY = round_to_int(m_HookPos.y);
 	pObjCore->m_HookedPlayer = m_HookedPlayer;
 	pObjCore->m_Jumped = m_Jumped;
 	pObjCore->m_Direction = m_Direction;
@@ -661,4 +664,3 @@ void CCharacterCore::Quantize()
 	Write(&Core);
 	Read(&Core);
 }
-

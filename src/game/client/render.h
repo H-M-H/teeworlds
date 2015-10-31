@@ -41,6 +41,9 @@ typedef void (*ENVELOPE_EVAL)(float TimeOffset, int Env, float *pChannels, void 
 
 class CRenderTools
 {
+	void DrawRoundRectExt(float x, float y, float w, float h, float r, int Corners);
+	void DrawRoundRectExt4(float x, float y, float w, float h, vec4 ColorTopLeft, vec4 ColorTopRight, vec4 ColorBottomLeft, vec4 ColorBottomRight, float r, int Corners);
+
 public:
 	class IGraphics *m_pGraphics;
 	class CUI *m_pUI;
@@ -48,17 +51,13 @@ public:
 	class IGraphics *Graphics() const { return m_pGraphics; }
 	class CUI *UI() const { return m_pUI; }
 
-	//typedef struct SPRITE;
-
 	void SelectSprite(struct CDataSprite *pSprite, int Flags=0, int sx=0, int sy=0);
 	void SelectSprite(int id, int Flags=0, int sx=0, int sy=0);
 
 	void DrawSprite(float x, float y, float size);
 
 	// rects
-	void DrawRoundRect(float x, float y, float w, float h, float r);
-	void DrawRoundRectExt(float x, float y, float w, float h, float r, int Corners);
-	void DrawRoundRectExt4(float x, float y, float w, float h, vec4 ColorTopLeft, vec4 ColorTopRight, vec4 ColorBottomLeft, vec4 ColorBottomRight, float r, int Corners);
+	void DrawRoundRect(const CUIRect *r, vec4 Color, float Rounding);
 
 	void DrawUIRect(const CUIRect *pRect, vec4 Color, int Corners, float Rounding);
 	void DrawUIRect4(const CUIRect *pRect, vec4 ColorTopLeft, vec4 ColorTopRight, vec4 ColorBottomLeft, vec4 ColorBottomRight, int Corners, float Rounding);
@@ -75,8 +74,9 @@ public:
 	void RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 Color, int RenderFlags, ENVELOPE_EVAL pfnEval, void *pUser, int ColorEnv, int ColorEnvOffset);
 
 	// helpers
-	void MapscreenToWorld(float CenterX, float CenterY, float ParallaxX, float ParallaxY,
-		float OffsetX, float OffsetY, float Aspect, float Zoom, float *pPoints);
+	void MapScreenToWorld(float CenterX, float CenterY, float ParallaxX, float ParallaxY,
+		float OffsetX, float OffsetY, float Aspect, float Zoom, float aPoints[4]);
+	void MapScreenToGroup(float CenterX, float CenterY, CMapItemGroup *pGroup, float Zoom);
 
 };
 

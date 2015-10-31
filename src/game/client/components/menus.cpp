@@ -17,9 +17,9 @@
 #include <engine/shared/config.h>
 
 #include <game/version.h>
-#include <game/generated/protocol.h>
+#include <generated/protocol.h>
 
-#include <game/generated/client_data.h>
+#include <generated/client_data.h>
 #include <game/client/components/camera.h>
 #include <game/client/components/sounds.h>
 #include <game/client/gameclient.h>
@@ -53,9 +53,11 @@ CMenus::CMenus()
 	m_RefreshSkinSelector = true;
 	m_pSelectedSkin = 0;
 	m_MenuActive = true;
+	m_SeekBarActivatedTime = 0;
+	m_SeekBarActive = true;
 	m_UseMouseButtons = true;
 
-	m_MenuPage = PAGE_START;
+	SetMenuPage(PAGE_START);
 
 	m_InfoMode = false;
 
@@ -141,7 +143,7 @@ int CMenus::DoButton_Menu(const void *pID, const char *pText, int Checked, const
 		TextRender()->TextColor(1.0f-FadeVal, 1.0f-FadeVal, 1.0f-FadeVal, 1.0f);
 		TextRender()->TextOutlineColor(0.0f+FadeVal, 0.0f+FadeVal, 0.0f+FadeVal, 0.25f);
 	}
-	UI()->DoLabel(&Temp, pText, Temp.h*ms_FontmodHeight, 0);
+	UI()->DoLabel(&Temp, pText, Temp.h*ms_FontmodHeight, CUI::ALIGN_CENTER);
 	if(TextFade)
 	{
 		TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -166,6 +168,7 @@ int CMenus::DoButton_MenuImage(const void *pID, const char *pText, int Checked, 
 	{
 		
 		Graphics()->TextureSet(pImage->m_GreyTexture);
+		Graphics()->WrapClamp();
 		Graphics()->QuadsBegin();
 		Graphics()->SetColor(1.0f, 1.0f, 1.0f, 1.0f);
 		IGraphics::CQuadItem QuadItem(Image.x, Image.y, Image.w, Image.h);
@@ -175,12 +178,13 @@ int CMenus::DoButton_MenuImage(const void *pID, const char *pText, int Checked, 
 		if(*pFade > 0.0f)
 		{
 			Graphics()->TextureSet(pImage->m_OrgTexture);
+			Graphics()->WrapClamp();
 			Graphics()->QuadsBegin();
-			Graphics()->SetColor(1.0f, 1.0f, 1.0f, *pFade/Seconds);
+			Graphics()->SetColor(1.0f*FadeVal, 1.0f*FadeVal, 1.0f*FadeVal, FadeVal);
 			Graphics()->QuadsDrawTL(&QuadItem, 1);
 			Graphics()->QuadsEnd();
 		}
-		
+		Graphics()->WrapNormal();
 	}
 
 	Text.HMargin(pRect->h>=20.0f?2.0f:1.0f, &Text);
@@ -188,7 +192,7 @@ int CMenus::DoButton_MenuImage(const void *pID, const char *pText, int Checked, 
 	Text.VSplitLeft(r, 0, &Text);
 	TextRender()->TextColor(1.0f-FadeVal, 1.0f-FadeVal, 1.0f-FadeVal, 1.0f);
 	TextRender()->TextOutlineColor(0.0f+FadeVal, 0.0f+FadeVal, 0.0f+FadeVal, 0.25f);
-	UI()->DoLabel(&Text, pText, Text.h*ms_FontmodHeight, 0);
+	UI()->DoLabel(&Text, pText, Text.h*ms_FontmodHeight, CUI::ALIGN_CENTER);
 	TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 	TextRender()->TextOutlineColor(0.0f, 0.0f, 0.0f, 0.3f);
 	return UI()->DoButtonLogic(pID, pText, Checked, pRect);
@@ -205,7 +209,7 @@ void CMenus::DoButton_KeySelect(const void *pID, const char *pText, int Checked,
 	pRect->HMargin(1.0f, &Temp);
 	TextRender()->TextColor(1.0f-FadeVal, 1.0f-FadeVal, 1.0f-FadeVal, 1.0f);
 	TextRender()->TextOutlineColor(0.0f+FadeVal, 0.0f+FadeVal, 0.0f+FadeVal, 0.25f);
-	UI()->DoLabel(&Temp, pText, Temp.h*ms_FontmodHeight, 0);
+	UI()->DoLabel(&Temp, pText, Temp.h*ms_FontmodHeight, CUI::ALIGN_CENTER);
 	TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 	TextRender()->TextOutlineColor(0.0f, 0.0f, 0.0f, 0.3f);
 }
@@ -222,7 +226,7 @@ int CMenus::DoButton_MenuTab(const void *pID, const char *pText, int Checked, co
 
 	CUIRect Temp;
 	pRect->HMargin(pRect->h>=20.0f?2.0f:1.0f, &Temp);
-	UI()->DoLabel(&Temp, pText, Temp.h*ms_FontmodHeight, 0);
+	UI()->DoLabel(&Temp, pText, Temp.h*ms_FontmodHeight, CUI::ALIGN_CENTER);
 
 	TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 	return UI()->DoButtonLogic(pID, pText, Checked, pRect);
@@ -240,7 +244,7 @@ int CMenus::DoButton_MenuTabTop(const void *pID, const char *pText, int Checked,
 	Temp.HMargin((Temp.h*FontFactor)/2.0f, &Temp);
 	TextRender()->TextColor(1.0f-FadeVal, 1.0f-FadeVal, 1.0f-FadeVal, 1.0f);
 	TextRender()->TextOutlineColor(0.0f+FadeVal, 0.0f+FadeVal, 0.0f+FadeVal, 0.25f);
-	UI()->DoLabel(&Temp, pText, Temp.h*ms_FontmodHeight, 0);
+	UI()->DoLabel(&Temp, pText, Temp.h*ms_FontmodHeight, CUI::ALIGN_CENTER);
 	TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 	TextRender()->TextOutlineColor(0.0f, 0.0f, 0.0f, 0.3f);
 	return UI()->DoButtonLogic(pID, pText, Checked, pRect);
@@ -259,7 +263,7 @@ int CMenus::DoButton_GridHeader(const void *pID, const char *pText, int Checked,
 	CUIRect Label;
 	pRect->VSplitLeft(5.0f, 0, &Label);
 	Label.y+=2.0f;
-	UI()->DoLabel(&Label, pText, pRect->h*ms_FontmodHeight*0.8f, 0);
+	UI()->DoLabel(&Label, pText, pRect->h*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
 
 	if(Checked)
 	{
@@ -317,8 +321,8 @@ int CMenus::DoButton_CheckBox_Common(const void *pID, const char *pText, const c
 	Graphics()->QuadsEnd();
 
 	t.y += 2.0f; // lame fix
-	UI()->DoLabel(&c, pBoxText, pRect->h*ms_FontmodHeight*0.6f, 0);
-	UI()->DoLabel(&t, pText, pRect->h*ms_FontmodHeight*0.8f, -1);
+	UI()->DoLabel(&c, pBoxText, pRect->h*ms_FontmodHeight*0.6f, CUI::ALIGN_CENTER);
+	UI()->DoLabel(&t, pText, pRect->h*ms_FontmodHeight*0.8f, CUI::ALIGN_LEFT);
 	return UI()->DoButtonLogic(pID, pText, 0, pRect);
 }
 
@@ -466,7 +470,8 @@ int CMenus::DoEditBox(void *pID, const CUIRect *pRect, char *pStr, unsigned StrS
 		for(int i = 0; i < m_NumInputEvents; i++)
 		{
 			Len = str_length(pStr);
-			ReturnValue |= CLineInput::Manipulate(m_aInputEvents[i], pStr, StrSize, &Len, &s_AtIndex);
+			int NumChars = Len;
+			ReturnValue |= CLineInput::Manipulate(m_aInputEvents[i], pStr, StrSize, StrSize, &Len, &s_AtIndex, &NumChars);
 		}
 	}
 
@@ -540,7 +545,7 @@ int CMenus::DoEditBox(void *pID, const CUIRect *pRect, char *pStr, unsigned StrS
 	UI()->ClipEnable(pRect);
 	Textbox.x -= *pOffset;
 
-	UI()->DoLabel(&Textbox, pDisplayStr, FontSize, 0);
+	UI()->DoLabel(&Textbox, pDisplayStr, FontSize, CUI::ALIGN_CENTER);
 
 	// render the cursor
 	if(UI()->LastActiveItem() == pID && !JustGotActive)
@@ -552,7 +557,7 @@ int CMenus::DoEditBox(void *pID, const CUIRect *pRect, char *pStr, unsigned StrS
 		Textbox.x += (w-*pOffset-TextRender()->TextWidth(0, FontSize, "|", -1)/2);
 
 		if((2*time_get()/time_freq()) % 2)	// make it blink
-			UI()->DoLabel(&Textbox, "|", FontSize, -1);
+			UI()->DoLabel(&Textbox, "|", FontSize, CUI::ALIGN_LEFT);
 	}
 	UI()->ClipDisable();
 
@@ -569,7 +574,7 @@ void CMenus::DoEditBoxOption(void *pID, char *pOption, int OptionLength, const C
 	char aBuf[32];
 	str_format(aBuf, sizeof(aBuf), "%s:", pStr);
 	Label.y += 2.0f;
-	UI()->DoLabel(&Label, aBuf, pRect->h*ms_FontmodHeight*0.8f, 0);
+	UI()->DoLabel(&Label, aBuf, pRect->h*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
 
 	DoEditBox(pID, &EditBox, pOption, OptionLength, pRect->h*ms_FontmodHeight*0.8f, pOffset, Hidden);
 }
@@ -588,10 +593,10 @@ void CMenus::DoScrollbarOption(void *pID, int *pOption, const CUIRect *pRect, co
 		str_format(aBuf, sizeof(aBuf), "%s: \xe2\x88\x9e", pStr);
 	Label.VSplitLeft(Label.h+5.0f, 0, &Label);
 	Label.y += 2.0f;
-	UI()->DoLabel(&Label, aBuf, pRect->h*ms_FontmodHeight*0.8f, -1);
+	UI()->DoLabel(&Label, aBuf, pRect->h*ms_FontmodHeight*0.8f, CUI::ALIGN_LEFT);
 
 	ScrollBar.VMargin(4.0f, &ScrollBar);
-	*pOption = static_cast<int>(DoScrollbarH(pOption, &ScrollBar, (float)(*pOption-Min)/(float)(Max-Min))*(float)(Max-Min)+(float)Min+0.1f);
+	*pOption = round_to_int(DoScrollbarH(pOption, &ScrollBar, (float)(*pOption-Min)/(float)(Max-Min))*(float)(Max-Min)+(float)Min+0.1f);
 }
 
 float CMenus::DoDropdownMenu(void *pID, const CUIRect *pRect, const char *pStr, float HeaderHeight, FDropdownCallback pfnCallback)
@@ -626,7 +631,7 @@ float CMenus::DoDropdownMenu(void *pID, const CUIRect *pRect, const char *pStr, 
 	// label
 	Label = Header;
 	Label.y += 2.0f;
-	UI()->DoLabel(&Label, pStr, Header.h*ms_FontmodHeight*0.8f, 0);
+	UI()->DoLabel(&Label, pStr, Header.h*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
 
 	if(UI()->DoButtonLogic(pID, 0, 0, &Header))
 	{
@@ -655,10 +660,10 @@ void CMenus::DoInfoBox(const CUIRect *pRect, const char *pLabel, const char *pVa
 	char aBuf[32];
 	str_format(aBuf, sizeof(aBuf), "%s:", pLabel);
 	Label.y += 2.0f;
-	UI()->DoLabel(&Label, aBuf, pRect->h*ms_FontmodHeight*0.8f, 0);
+	UI()->DoLabel(&Label, aBuf, pRect->h*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
 
 	Value.y += 2.0f;
-	UI()->DoLabel(&Value, pValue, pRect->h*ms_FontmodHeight*0.8f, 0);
+	UI()->DoLabel(&Value, pValue, pRect->h*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
 }
 
 float CMenus::DoScrollbarV(const void *pID, const CUIRect *pRect, float Current)
@@ -783,7 +788,7 @@ void CMenus::UiDoListboxHeader(const CUIRect *pRect, const char *pTitle, float H
 	// draw header
 	View.HSplitTop(ms_ListheaderHeight, &Header, &View);
 	Header.y += 2.0f;
-	UI()->DoLabel(&Header, pTitle, Header.h*ms_FontmodHeight*0.8f, 0);
+	UI()->DoLabel(&Header, pTitle, Header.h*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
 
 	View.HSplitTop(Spacing, &Header, &View);
 
@@ -811,7 +816,7 @@ void CMenus::UiDoListboxStart(const void *pID, float RowHeight, const char *pBot
 		View.HSplitBottom(ms_ListheaderHeight, &View, &Footer);
 		Footer.VSplitLeft(10.0f, 0, &Footer);
 		Footer.y += 2.0f;
-		UI()->DoLabel(&Footer, pBottomText, Footer.h*ms_FontmodHeight*0.8f, 0);
+		UI()->DoLabel(&Footer, pBottomText, Footer.h*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
 	}
 
 	// prepare the scroll
@@ -1190,7 +1195,7 @@ void CMenus::RenderMenubar(CUIRect r)
 			Box.HMargin(2.0f, &Box);
 			TextRender()->TextColor(0.0f, 0.0f, 0.0f, 1.0f);
 			TextRender()->TextOutlineColor(1.0f, 1.0f, 1.0f, 0.25f);
-			UI()->DoLabel(&Box, Localize("Demo"), Box.h*ms_FontmodHeight, 0);
+			UI()->DoLabel(&Box, Localize("Demo"), Box.h*ms_FontmodHeight, CUI::ALIGN_CENTER);
 			TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 			TextRender()->TextOutlineColor(0.0f, 0.0f, 0.0f, 0.3f);
 		}
@@ -1245,7 +1250,7 @@ void CMenus::RenderMenubar(CUIRect r)
 	if(NewPage != -1)
 	{
 		if(Client()->State() == IClient::STATE_OFFLINE)
-			m_MenuPage = NewPage;
+			SetMenuPage(NewPage);
 		else
 			m_GamePage = NewPage;
 	}
@@ -1274,30 +1279,24 @@ void CMenus::RenderLoading()
 	float h = 200;
 	float x = Screen.w/2-w/2;
 	float y = Screen.h/2-h/2;
+	CUIRect Rect = {x, y, w, h};
 
 	Graphics()->BlendNormal();
-
-	Graphics()->TextureClear();
-	Graphics()->QuadsBegin();
-	Graphics()->SetColor(0,0,0,0.50f);
-	RenderTools()->DrawRoundRect(x, y, w, h, 40.0f);
-	Graphics()->QuadsEnd();
-
+	RenderTools()->DrawRoundRect(&Rect, vec4(0.0f, 0.0f, 0.0f, 0.5f), 40.0f);
 
 	const char *pCaption = Localize("Loading");
 
-	CUIRect r;
-	r.x = x;
-	r.y = y+20;
-	r.w = w;
-	r.h = h;
-	UI()->DoLabel(&r, pCaption, 48.0f, 0, -1);
+	Rect.x = x;
+	Rect.y = y+20;
+	Rect.w = w;
+	Rect.h = h;
+	UI()->DoLabel(&Rect, pCaption, 48.0f, CUI::ALIGN_CENTER);
 
-	Graphics()->TextureClear();
-	Graphics()->QuadsBegin();
-	Graphics()->SetColor(1,1,1,0.75f);
-	RenderTools()->DrawRoundRect(x+40, y+h-75, (w-80)*Percent, 25, 5.0f);
-	Graphics()->QuadsEnd();
+	Rect.x = x+40.0f;
+	Rect.y = y+h-75.0f;
+	Rect.w = (w-80.0f)*Percent;
+	Rect.h = 25.0f;
+	RenderTools()->DrawRoundRect(&Rect, vec4(1.0f, 1.0f, 1.0f, 0.75f), 5.0f);
 
 	Graphics()->Swap();
 }
@@ -1323,12 +1322,12 @@ void CMenus::RenderBackButton(CUIRect MainView)
 	MainView.HSplitTop(25.0f, &MainView, 0);
 	Button = MainView;
 	static int s_MenuButton=0;
-	if(DoButton_Menu(&s_MenuButton, Localize("Back"), 0, &Button) || m_EscapePressed)
+	if(DoButton_Menu(&s_MenuButton, Localize("Back"), 0, &Button) || (m_EscapePressed && Client()->State() != IClient::STATE_ONLINE))
 	{
 		if(Client()->State() != IClient::STATE_OFFLINE)
 			m_GamePage = PAGE_GAME;
 		else
-			m_MenuPage = PAGE_START;
+			SetMenuPage(PAGE_START);
 	}
 }
 
@@ -1340,7 +1339,7 @@ int CMenus::MenuImageScan(const char *pName, int IsDir, int DirType, void *pUser
 		return 0;
 
 	char aBuf[512];
-	str_format(aBuf, sizeof(aBuf), "menuimages/%s", pName);
+	str_format(aBuf, sizeof(aBuf), "ui/menuimages/%s", pName);
 	CImageInfo Info;
 	if(!pSelf->Graphics()->LoadPNG(&Info, aBuf, DirType))
 	{
@@ -1479,9 +1478,9 @@ void CMenus::UpdatedFilteredVideoModes()
 	}
 }
 
-void CMenus::OnInit()
+void CMenus::UpdateVideoModeSettings()
 {
-	m_NumModes = Graphics()->GetVideoModes(m_aModes, MAX_RESOLUTIONS);
+	m_NumModes = Graphics()->GetVideoModes(m_aModes, MAX_RESOLUTIONS, g_Config.m_GfxScreen);
 	UpdateVideoFormats();
 
 	bool Found = false;
@@ -1501,10 +1500,15 @@ void CMenus::OnInit()
 		m_CurrentVideoFormat = 0;
 
 	UpdatedFilteredVideoModes();
+}
+
+void CMenus::OnInit()
+{
+	UpdateVideoModeSettings();
 
 	// load menu images
 	m_lMenuImages.clear();
-	Storage()->ListDirectory(IStorage::TYPE_ALL, "menuimages", MenuImageScan, this);
+	Storage()->ListDirectory(IStorage::TYPE_ALL, "ui/menuimages", MenuImageScan, this);
 
 	/*
 	array<string> my_strings;
@@ -1560,8 +1564,9 @@ void CMenus::OnInit()
 	Console()->Chain("remove_favorite", ConchainServerbrowserUpdate, this);
 	Console()->Chain("add_friend", ConchainFriendlistUpdate, this);
 	Console()->Chain("remove_friend", ConchainFriendlistUpdate, this);
+	Console()->Chain("snd_enable_music", ConchainToggleMusic, this);
 
-	m_TextureBlob = Graphics()->LoadTexture("blob.png", IStorage::TYPE_ALL, CImageInfo::FORMAT_AUTO, 0);
+	m_TextureBlob = Graphics()->LoadTexture("ui/blob.png", IStorage::TYPE_ALL, CImageInfo::FORMAT_AUTO, 0);
 
 	// setup load amount
 	m_LoadCurrent = 0;
@@ -1679,10 +1684,11 @@ int CMenus::Render()
 		// make sure that other windows doesn't do anything funnay!
 		//UI()->SetHotItem(0);
 		//UI()->SetActiveItem(0);
+		char aBuf[128];
 		const char *pTitle = "";
 		const char *pExtraText = "";
 		const char *pButtonText = "";
-		int ExtraAlign = 0;
+		CUI::EAlignment ExtraAlign = CUI::ALIGN_CENTER;
 		int NumOptions = 4;
 
 		if(m_Popup == POPUP_MESSAGE)
@@ -1697,7 +1703,8 @@ int CMenus::Render()
 			pButtonText = Localize("Abort");
 			if(Client()->MapDownloadTotalsize() > 0)
 			{
-				pTitle = Localize("Downloading map");
+				str_format(aBuf, sizeof(aBuf), "%s: %s", Localize("Downloading map"), Client()->MapDownloadName());
+				pTitle = aBuf;
 				pExtraText = "";
 				NumOptions = 5;
 			}
@@ -1725,7 +1732,7 @@ int CMenus::Render()
 			pTitle = Localize("Disconnected");
 			pExtraText = Localize("The server is running a non-standard tuning on a pure game type.");
 			pButtonText = Localize("Ok");
-			ExtraAlign = -1;
+			ExtraAlign = CUI::ALIGN_LEFT;
 		}
 		else if(m_Popup == POPUP_DELETE_DEMO)
 		{
@@ -1748,7 +1755,7 @@ int CMenus::Render()
 			pTitle = Localize("Save skin");
 			pExtraText = Localize("Are you sure you want to save your skin? If a skin with this name already exists, it will be replaced.");
 			NumOptions = 6;
-			ExtraAlign = -1;
+			ExtraAlign = CUI::ALIGN_LEFT;
 		}
 		else if(m_Popup == POPUP_DELETE_SKIN)
 		{
@@ -1760,7 +1767,7 @@ int CMenus::Render()
 			pTitle = Localize("Sound error");
 			pExtraText = Localize("The audio device couldn't be initialised.");
 			pButtonText = Localize("Ok");
-			ExtraAlign = -1;
+			ExtraAlign = CUI::ALIGN_LEFT;
 		}
 		else if(m_Popup == POPUP_PASSWORD)
 		{
@@ -1778,7 +1785,7 @@ int CMenus::Render()
 			pExtraText = Localize("As this is the first time you launch the game, please enter your nick name below. It's recommended that you check the settings to adjust them to your liking before joining a server.");
 			pButtonText = Localize("Enter");
 			NumOptions = 6;
-			ExtraAlign = -1;
+			ExtraAlign = CUI::ALIGN_LEFT;
 		}
 
 		CUIRect Box, Part, BottomBar;
@@ -1798,7 +1805,7 @@ int CMenus::Render()
 		// headline
 		Box.HSplitTop(ButtonHeightBig, &Part, &Box);
 		Part.y += 3.0f;
-		UI()->DoLabel(&Part, pTitle, Part.h*ms_FontmodHeight*0.8f, 0);
+		UI()->DoLabel(&Part, pTitle, Part.h*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
 
 		// inner box
 		Box.HSplitTop(SpacingH, 0, &Box);
@@ -1815,8 +1822,9 @@ int CMenus::Render()
 			{
 				Box.HSplitTop(12.0f, 0, &Part);
 				UI()->DoLabel(&Part, pExtraText, ButtonHeight*ms_FontmodHeight*0.8f, ExtraAlign);
-				Part.HSplitTop(12.0f, 0, &Part);
-				UI()->DoLabel(&Part, Localize("There's an unsaved map in the editor, you might want to save it before you quit the game."), ButtonHeight*ms_FontmodHeight*0.8f, ExtraAlign);
+				Part.HSplitTop(20.0f, 0, &Part);
+				Part.VMargin(5.0f, &Part);
+				UI()->DoLabel(&Part, Localize("There's an unsaved map in the editor, you might want to save it before you quit the game."), ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_LEFT, Part.w);
 			}
 			else
 			{
@@ -1900,7 +1908,7 @@ int CMenus::Render()
 				Box.HSplitTop(15.f, 0, &Box);
 				Box.HSplitTop(ButtonHeight, &Part, &Box);
 				str_format(aBuf, sizeof(aBuf), "%d/%d KiB (%.1f KiB/s)", Client()->MapDownloadAmount()/1024, Client()->MapDownloadTotalsize()/1024,	m_DownloadSpeed/1024.0f);
-				UI()->DoLabel(&Part, aBuf, ButtonHeight*ms_FontmodHeight*0.8f, 0, -1);
+				UI()->DoLabel(&Part, aBuf, ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
 
 				// time left
 				const char *pTimeLeftString;
@@ -1915,7 +1923,7 @@ int CMenus::Render()
 				Box.HSplitTop(SpacingH, 0, &Box);
 				Box.HSplitTop(ButtonHeight, &Part, &Box);
 				str_format(aBuf, sizeof(aBuf), pTimeLeftString, TimeLeft);
-				UI()->DoLabel(&Part, aBuf, ButtonHeight*ms_FontmodHeight*0.8f, 0, -1);
+				UI()->DoLabel(&Part, aBuf, ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
 
 				// progress bar
 				Box.HSplitTop(SpacingH, 0, &Box);
@@ -1982,12 +1990,12 @@ int CMenus::Render()
 					{
 						TextRender()->TextColor(0.0f, 0.0f, 0.0f, 1.0f);
 						TextRender()->TextOutlineColor(1.0f, 1.0f, 1.0f, 0.25f);
-						UI()->DoLabel(&Label, pEntry->m_aCountryCodeString, 10.0f, 0);
+						UI()->DoLabel(&Label, pEntry->m_aCountryCodeString, 10.0f, CUI::ALIGN_CENTER);
 						TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 						TextRender()->TextOutlineColor(0.0f, 0.0f, 0.0f, 0.3f);
 					}
 					else
-						UI()->DoLabel(&Label, pEntry->m_aCountryCodeString, 10.0f, 0);
+						UI()->DoLabel(&Label, pEntry->m_aCountryCodeString, 10.0f, CUI::ALIGN_CENTER);
 				}
 			}
 
@@ -2150,7 +2158,7 @@ int CMenus::Render()
 			static int s_ButtonTryAgain = 0;
 			if(DoButton_Menu(&s_ButtonTryAgain, Localize("Yes"), !m_aSaveSkinName[0], &Yes) || m_EnterPressed)
 			{
-				if(m_aSaveSkinName[0])
+				if(m_aSaveSkinName[0] && m_aSaveSkinName[0] != 'x' && m_aSaveSkinName[1] != '_')
 				{
 					m_Popup = POPUP_NONE;
 					SaveSkinfile();
@@ -2503,4 +2511,49 @@ void CMenus::RenderBackground()
 	// restore screen
 	{CUIRect Screen = *UI()->Screen();
 	Graphics()->MapScreen(Screen.x, Screen.y, Screen.w, Screen.h);}
+}
+
+void CMenus::ConchainToggleMusic(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData)
+{
+	pfnCallback(pResult, pCallbackUserData);
+	CMenus *pSelf = (CMenus *)pUserData;
+	if(pResult->NumArguments())
+	{
+		pSelf->ToggleMusic();
+	}
+}
+
+void CMenus::ToggleMusic()
+{
+	if(Client()->State() == IClient::STATE_OFFLINE)
+	{
+		if(g_Config.m_SndMusic && !m_pClient->m_pSounds->IsPlaying(SOUND_MENU))
+			m_pClient->m_pSounds->Play(CSounds::CHN_MUSIC, SOUND_MENU, 1.0f);
+		else if(!g_Config.m_SndMusic && m_pClient->m_pSounds->IsPlaying(SOUND_MENU))
+			m_pClient->m_pSounds->Stop(SOUND_MENU);
+	}
+}
+
+void CMenus::SetMenuPage(int NewPage) {
+	if(NewPage == m_MenuPage)
+		return;
+
+	m_MenuPage = NewPage;
+	
+	// update camera position
+	{
+		int CameraPos = -1;
+
+		switch(m_MenuPage)
+		{
+		case PAGE_START: CameraPos = CCamera::POS_START; break;
+		case PAGE_DEMOS: CameraPos = CCamera::POS_DEMOS; break;
+		case PAGE_SETTINGS: CameraPos = CCamera::POS_SETTINGS; break;
+		case PAGE_INTERNET:
+		case PAGE_LAN: CameraPos = CCamera::POS_INTERNET;
+		}
+
+		if(CameraPos != -1 && m_pClient && m_pClient->m_pCamera)
+			m_pClient->m_pCamera->ChangePosition(CameraPos);
+	}
 }

@@ -46,26 +46,21 @@ CInput::CInput()
 void CInput::Init()
 {
 	m_pGraphics = Kernel()->RequestInterface<IEngineGraphics>();
-	SDL_EnableUNICODE(1);
-	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+	// FIXME: unicode handling: use SDL_StartTextInput/SDL_StopTextInput on inputs
+	// FIXME: key repeat: not a global setting anymore; need to do manually
+
+	MouseModeRelative();
 }
 
 void CInput::MouseRelative(float *x, float *y)
 {
+	if(!m_InputGrabbed)
+		return;
+
 	int nx = 0, ny = 0;
 	float Sens = g_Config.m_InpMousesens/100.0f;
-
-	if(g_Config.m_InpGrab)
-		SDL_GetRelativeMouseState(&nx, &ny);
-	else
-	{
-		if(m_InputGrabbed)
-		{
-			SDL_GetMouseState(&nx,&ny);
-			SDL_WarpMouse(Graphics()->ScreenWidth()/2,Graphics()->ScreenHeight()/2);
-			nx -= Graphics()->ScreenWidth()/2; ny -= Graphics()->ScreenHeight()/2;
-		}
-	}
+	
+	SDL_GetRelativeMouseState(&nx,&ny);
 
 	*x = nx*Sens;
 	*y = ny*Sens;
@@ -73,18 +68,23 @@ void CInput::MouseRelative(float *x, float *y)
 
 void CInput::MouseModeAbsolute()
 {
-	SDL_ShowCursor(1);
-	m_InputGrabbed = 0;
-	if(g_Config.m_InpGrab)
-		SDL_WM_GrabInput(SDL_GRAB_OFF);
+	if(m_InputGrabbed)
+	{
+		m_InputGrabbed = 0;
+		SDL_ShowCursor(SDL_ENABLE);
+		SDL_SetRelativeMouseMode(SDL_FALSE);
+	}
 }
 
 void CInput::MouseModeRelative()
 {
-	SDL_ShowCursor(0);
-	m_InputGrabbed = 1;
-	if(g_Config.m_InpGrab)
-		SDL_WM_GrabInput(SDL_GRAB_ON);
+	if(!m_InputGrabbed)
+	{
+		m_InputGrabbed = 1;
+		SDL_ShowCursor(SDL_DISABLE);
+		SDL_SetRelativeMouseMode(SDL_TRUE);
+		SDL_GetRelativeMouseState(NULL, NULL);
+	}
 }
 
 int CInput::MouseDoubleClick()
@@ -104,19 +104,18 @@ void CInput::ClearKeyStates()
 	mem_zero(m_aInputCount, sizeof(m_aInputCount));
 }
 
-int CInput::KeyState(int Key)
+int CInput::KeyState(int Key) const
 {
-	return m_aInputState[m_InputCurrent][Key];
+	return m_aInputState[m_InputCurrent][Key>=KEY_MOUSE_1 ? Key : SDL_GetScancodeFromKey(KeyToKeycode(Key))];
+}
+
+int CInput::KeyStateOld(int Key) const
+{
+	return m_aInputState[m_InputCurrent^1][Key>=KEY_MOUSE_1 ? Key : SDL_GetScancodeFromKey(KeyToKeycode(Key))];
 }
 
 int CInput::Update()
 {
-	if(m_InputGrabbed && !Graphics()->WindowActive())
-		MouseModeAbsolute();
-
-	/*if(!input_grabbed && Graphics()->WindowActive())
-		Input()->MouseModeRelative();*/
-
 	if(m_InputDispatched)
 	{
 		// clear and begin count on the other one
@@ -128,7 +127,7 @@ int CInput::Update()
 
 	{
 		int i;
-		Uint8 *pState = SDL_GetKeyState(&i);
+		const Uint8 *pState = SDL_GetKeyboardState(&i);
 		if(i >= KEY_LAST)
 			i = KEY_LAST-1;
 		mem_copy(m_aInputState[m_InputCurrent], pState, i);
@@ -144,6 +143,7 @@ int CInput::Update()
 	if(i&SDL_BUTTON(6)) m_aInputState[m_InputCurrent][KEY_MOUSE_6] = 1;
 	if(i&SDL_BUTTON(7)) m_aInputState[m_InputCurrent][KEY_MOUSE_7] = 1;
 	if(i&SDL_BUTTON(8)) m_aInputState[m_InputCurrent][KEY_MOUSE_8] = 1;
+	if(i&SDL_BUTTON(9)) m_aInputState[m_InputCurrent][KEY_MOUSE_9] = 1;
 
 	{
 		SDL_Event Event;
@@ -151,19 +151,27 @@ int CInput::Update()
 		while(SDL_PollEvent(&Event))
 		{
 			int Key = -1;
+			int Scancode = 0;
 			int Action = IInput::FLAG_PRESS;
 			switch (Event.type)
 			{
+				case SDL_TEXTINPUT:
+				{
+					int TextLength = strlen(Event.text.text);
+					for(int i = 0; i < TextLength; i++)
+						AddEvent(Event.text.text[i], 0, IInput::FLAG_TEXT);
+				}
+				break;
+
 				// handle keys
 				case SDL_KEYDOWN:
-					// skip private use area of the BMP(contains the unicodes for keyboard function keys on MacOS)
-					if(Event.key.keysym.unicode < 0xE000 || Event.key.keysym.unicode > 0xF8FF)	// ignore_convention
-						AddEvent(Event.key.keysym.unicode, 0, 0); // ignore_convention
-					Key = Event.key.keysym.sym; // ignore_convention
+					Key = KeycodeToKey(Event.key.keysym.sym);
+					Scancode = Event.key.keysym.scancode;
 					break;
 				case SDL_KEYUP:
 					Action = IInput::FLAG_RELEASE;
-					Key = Event.key.keysym.sym; // ignore_convention
+					Key = KeycodeToKey(Event.key.keysym.sym);
+					Scancode = Event.key.keysym.scancode;
 					break;
 
 				// handle mouse buttons
@@ -181,13 +189,30 @@ int CInput::Update()
 					if(Event.button.button == SDL_BUTTON_LEFT) Key = KEY_MOUSE_1; // ignore_convention
 					if(Event.button.button == SDL_BUTTON_RIGHT) Key = KEY_MOUSE_2; // ignore_convention
 					if(Event.button.button == SDL_BUTTON_MIDDLE) Key = KEY_MOUSE_3; // ignore_convention
-					if(Event.button.button == SDL_BUTTON_WHEELUP) Key = KEY_MOUSE_WHEEL_UP; // ignore_convention
-					if(Event.button.button == SDL_BUTTON_WHEELDOWN) Key = KEY_MOUSE_WHEEL_DOWN; // ignore_convention
 					if(Event.button.button == 6) Key = KEY_MOUSE_6; // ignore_convention
 					if(Event.button.button == 7) Key = KEY_MOUSE_7; // ignore_convention
 					if(Event.button.button == 8) Key = KEY_MOUSE_8; // ignore_convention
+					if(Event.button.button == 9) Key = KEY_MOUSE_9; // ignore_convention
+					Scancode = Key;
 					break;
 
+				case SDL_MOUSEWHEEL:
+					if(Event.wheel.y > 0) Key = KEY_MOUSE_WHEEL_UP; // ignore_convention
+					if(Event.wheel.y < 0) Key = KEY_MOUSE_WHEEL_DOWN; // ignore_convention
+					AddEvent(0, Key, Action);
+					Action = IInput::FLAG_RELEASE;
+					break;
+
+#if defined(CONF_PLATFORM_MACOSX)	// Todo SDL: remove this when fixed (mouse state is faulty on start)
+				case SDL_WINDOWEVENT:
+					if(Event.window.event == SDL_WINDOWEVENT_MAXIMIZED)
+					{
+						MouseModeAbsolute();
+						MouseModeRelative();
+					}
+					break;
+#endif
+					
 				// other messages
 				case SDL_QUIT:
 					return 1;
@@ -198,7 +223,7 @@ int CInput::Update()
 			{
 				m_aInputCount[m_InputCurrent][Key].m_Presses++;
 				if(Action == IInput::FLAG_PRESS)
-					m_aInputState[m_InputCurrent][Key] = 1;
+					m_aInputState[m_InputCurrent][Scancode] = 1;
 				AddEvent(0, Key, Action);
 			}
 

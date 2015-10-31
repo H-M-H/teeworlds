@@ -7,8 +7,8 @@
 #include <engine/keys.h>
 #include <engine/shared/config.h>
 
-#include <game/generated/protocol.h>
-#include <game/generated/client_data.h>
+#include <generated/protocol.h>
+#include <generated/client_data.h>
 
 #include <game/client/gameclient.h>
 #include <game/client/localization.h>
@@ -34,6 +34,8 @@ void CChat::OnReset()
 		m_aLines[i].m_aName[0] = 0;
 	}
 
+	m_Mode = MODE_NONE;
+	m_ReverseCompletion = false;
 	m_Show = false;
 	m_InputUpdate = false;
 	m_ChatStringOffset = 0;
@@ -154,11 +156,27 @@ bool CChat::OnInput(IInput::CEvent Event)
 
 		// find next possible name
 		const char *pCompletionString = 0;
-		m_CompletionChosen = (m_CompletionChosen+1)%(2*MAX_CLIENTS);
+		if(m_ReverseCompletion)
+			m_CompletionChosen = (m_CompletionChosen-1 + 2*MAX_CLIENTS)%(2*MAX_CLIENTS);
+		else
+			m_CompletionChosen = (m_CompletionChosen+1)%(2*MAX_CLIENTS);
+
 		for(int i = 0; i < 2*MAX_CLIENTS; ++i)
 		{
-			int SearchType = ((m_CompletionChosen+i)%(2*MAX_CLIENTS))/MAX_CLIENTS;
-			int Index = (m_CompletionChosen+i)%MAX_CLIENTS;
+			int SearchType;
+			int Index;
+
+			if(m_ReverseCompletion)
+			{
+				SearchType = ((m_CompletionChosen-i +2*MAX_CLIENTS)%(2*MAX_CLIENTS))/MAX_CLIENTS;
+				Index = (m_CompletionChosen-i + MAX_CLIENTS )%MAX_CLIENTS;
+			}
+			else
+			{
+				SearchType = ((m_CompletionChosen+i)%(2*MAX_CLIENTS))/MAX_CLIENTS;
+				Index = (m_CompletionChosen+i)%MAX_CLIENTS;
+			}
+
 			if(!m_pClient->m_aClients[Index].m_Active)
 				continue;
 
@@ -211,14 +229,21 @@ bool CChat::OnInput(IInput::CEvent Event)
 	}
 	else
 	{
-		// reset name completion process
-		if(Event.m_Flags&IInput::FLAG_PRESS && Event.m_Key != KEY_TAB)
-			m_CompletionChosen = -1;
-
 		m_OldChatStringLength = m_Input.GetLength();
-		m_Input.ProcessInput(Event);
-		m_InputUpdate = true;
+		if(m_Input.ProcessInput(Event))
+		{
+			m_InputUpdate = true;
+			
+			// reset name completion process
+			m_CompletionChosen = -1;
+		}
 	}
+
+	if(Event.m_Flags&IInput::FLAG_PRESS && Event.m_Key == KEY_LCTRL)
+		m_ReverseCompletion = true;
+	else if(Event.m_Flags&IInput::FLAG_RELEASE && Event.m_Key == KEY_LCTRL)
+		m_ReverseCompletion = false;
+
 	if(Event.m_Flags&IInput::FLAG_PRESS && Event.m_Key == KEY_UP)
 	{
 		if(m_pHistoryEntry)
@@ -282,6 +307,34 @@ void CChat::AddLine(int ClientID, int Team, const char *pLine)
 		m_pClient->m_aClients[ClientID].m_ChatIgnore ||
 		(m_pClient->m_LocalClientID != ClientID && g_Config.m_ClShowChatFriends && !m_pClient->m_aClients[ClientID].m_Friend))))
 		return;
+
+	// trim right and set maximum length to 128 utf8-characters
+	int Length = 0;
+	const char *pStr = pLine;
+	const char *pEnd = 0;
+	while(*pStr)
+ 	{
+		const char *pStrOld = pStr;
+		int Code = str_utf8_decode(&pStr);
+
+		// check if unicode is not empty
+		if(Code > 0x20 && Code != 0xA0 && Code != 0x034F && (Code < 0x2000 || Code > 0x200F) && (Code < 0x2028 || Code > 0x202F) &&
+			(Code < 0x205F || Code > 0x2064) && (Code < 0x206A || Code > 0x206F) && (Code < 0xFE00 || Code > 0xFE0F) &&
+			Code != 0xFEFF && (Code < 0xFFF9 || Code > 0xFFFC))
+		{
+			pEnd = 0;
+		}
+		else if(pEnd == 0)
+			pEnd = pStrOld;
+
+		if(++Length >= 127)
+		{
+			*(const_cast<char *>(pStr)) = 0;
+			break;
+		}
+ 	}
+	if(pEnd != 0)
+		*(const_cast<char *>(pEnd)) = 0;
 
 	bool Highlighted = false;
 	char *p = const_cast<char*>(pLine);

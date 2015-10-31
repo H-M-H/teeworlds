@@ -2,6 +2,7 @@
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <math.h>
 
+#include <base/color.h>
 #include <base/system.h>
 #include <base/math.h>
 
@@ -13,14 +14,14 @@
 #include "skins.h"
 
 
-const char * const CSkins::ms_apSkinPartNames[NUM_SKINPARTS] = {"body", "tattoo", "decoration", "hands", "feet", "eyes"};
+const char * const CSkins::ms_apSkinPartNames[NUM_SKINPARTS] = {"body", "marking", "decoration", "hands", "feet", "eyes"}; /* Localize("body");Localize("marking");Localize("decoration");Localize("hands");Localize("feet");Localize("eyes"); */
 const char * const CSkins::ms_apColorComponents[NUM_COLOR_COMPONENTS] = {"hue", "sat", "lgt", "alp"};
 
-char *const CSkins::ms_apSkinVariables[NUM_SKINPARTS] = {g_Config.m_PlayerSkinBody, g_Config.m_PlayerSkinTattoo, g_Config.m_PlayerSkinDecoration,
+char *const CSkins::ms_apSkinVariables[NUM_SKINPARTS] = {g_Config.m_PlayerSkinBody, g_Config.m_PlayerSkinMarking, g_Config.m_PlayerSkinDecoration,
 													g_Config.m_PlayerSkinHands, g_Config.m_PlayerSkinFeet, g_Config.m_PlayerSkinEyes};
-int *const CSkins::ms_apUCCVariables[NUM_SKINPARTS] = {&g_Config.m_PlayerUseCustomColorBody, &g_Config.m_PlayerUseCustomColorTattoo, &g_Config.m_PlayerUseCustomColorDecoration,
+int *const CSkins::ms_apUCCVariables[NUM_SKINPARTS] = {&g_Config.m_PlayerUseCustomColorBody, &g_Config.m_PlayerUseCustomColorMarking, &g_Config.m_PlayerUseCustomColorDecoration,
 													&g_Config.m_PlayerUseCustomColorHands, &g_Config.m_PlayerUseCustomColorFeet, &g_Config.m_PlayerUseCustomColorEyes};
-int *const CSkins::ms_apColorVariables[NUM_SKINPARTS] = {&g_Config.m_PlayerColorBody, &g_Config.m_PlayerColorTattoo, &g_Config.m_PlayerColorDecoration,
+int *const CSkins::ms_apColorVariables[NUM_SKINPARTS] = {&g_Config.m_PlayerColorBody, &g_Config.m_PlayerColorMarking, &g_Config.m_PlayerColorDecoration,
 													&g_Config.m_PlayerColorHands, &g_Config.m_PlayerColorFeet, &g_Config.m_PlayerColorEyes};
 
 
@@ -125,6 +126,9 @@ int CSkins::SkinScan(const char *pName, int IsDir, int DirType, void *pUser)
 
 	// init
 	CSkin Skin = pSelf->m_DummySkin;
+	str_copy(Skin.m_aName, pName, min((int)sizeof(Skin.m_aName),l-4));
+	if(pSelf->Find(Skin.m_aName, true) != -1)
+		return 0;
 	bool SpecialSkin = pName[0] == 'x' && pName[1] == '_';
 
 	// parse json data
@@ -173,7 +177,7 @@ int CSkins::SkinScan(const char *pName, int IsDir, int DirType, void *pUser)
 				
 			for(int i = 0; i < NUM_COLOR_COMPONENTS; i++)
 			{
-				if(PartIndex != SKINPART_TATTOO && i == 3)
+				if(PartIndex != SKINPART_MARKING && i == 3)
 					continue;
 
 				const json_value &rComponent = rPart[(const char *)ms_apColorComponents[i]];
@@ -199,7 +203,6 @@ int CSkins::SkinScan(const char *pName, int IsDir, int DirType, void *pUser)
 	Skin.m_Flags = SpecialSkin ? SKINFLAG_SPECIAL : 0;
 	if(DirType != IStorage::TYPE_SAVE)
 		Skin.m_Flags |= SKINFLAG_STANDARD;
-	str_copy(Skin.m_aName, pName, min((int)sizeof(Skin.m_aName),l-4));
 	if(g_Config.m_Debug)
 	{
 		str_format(aBuf, sizeof(aBuf), "load skin %s", Skin.m_aName);
@@ -218,7 +221,7 @@ void CSkins::OnInit()
 		m_aaSkinParts[p].clear();
 
 		// add none part
-		if(p == SKINPART_TATTOO || p == SKINPART_DECORATION)
+		if(p == SKINPART_MARKING || p == SKINPART_DECORATION)
 		{
 			CSkinPart NoneSkinPart;
 			NoneSkinPart.m_Flags = SKINFLAG_STANDARD;
@@ -250,14 +253,14 @@ void CSkins::OnInit()
 	for(int p = 0; p < NUM_SKINPARTS; p++)
 	{
 		int Default;
-		if(p == SKINPART_TATTOO || p == SKINPART_DECORATION)
+		if(p == SKINPART_MARKING || p == SKINPART_DECORATION)
 			Default = FindSkinPart(p, "", false);
 		else
 			Default = FindSkinPart(p, "standard", false);
 		if(Default < 0)
 			Default = 0;
 		m_DummySkin.m_apParts[p] = GetSkinPart(p, Default);
-		m_DummySkin.m_aPartColors[p] = p==SKINPART_TATTOO ? (255<<24)+65408 : 65408;
+		m_DummySkin.m_aPartColors[p] = p==SKINPART_MARKING ? (255<<24)+65408 : 65408;
 		m_DummySkin.m_aUseCustomColors[p] = 0;
 	}
 
@@ -283,7 +286,11 @@ void CSkins::AddSkin(const char *pSkinName)
 		Skin.m_aUseCustomColors[PartIndex] = *ms_apUCCVariables[PartIndex];
 		Skin.m_aPartColors[PartIndex] = *ms_apColorVariables[PartIndex];
 	}
-	m_aSkins.add(Skin);
+	int SkinIndex = Find(pSkinName, false);
+	if(SkinIndex != -1)
+		m_aSkins[SkinIndex] = Skin;
+	else
+		m_aSkins.add(Skin);
 }
 
 void CSkins::RemoveSkin(const CSkin *pSkin)
@@ -351,12 +358,12 @@ int CSkins::GetTeamColor(int UseCustomColors, int PartColor, int Team, int Part)
 	if(!UseCustomColors)
 	{
 		int ColorVal = s_aTeamColors[Team+1];
-		if(Part == SKINPART_TATTOO)
+		if(Part == SKINPART_MARKING)
 			ColorVal |= 0xff000000;
 		return ColorVal;
 	}
 
-	/*blue128:  128/PI*ARCSIN(COS((PI*(x+10)/128)))+182 // (decoration, tattoo, hands)
+	/*blue128:  128/PI*ARCSIN(COS((PI*(x+10)/128)))+182 // (decoration, marking, hands)
 	blue64:  64/PI*ARCSIN(COS((PI*(x-76)/64)))+172 // (body, feet, eyes)
 	red128:   Mod((128/PI*ARCSIN(COS((PI*(x-105)/128)))+297),256)
 	red64:    Mod((64/PI*ARCSIN(COS((PI*(x-56)/64)))+280),256)*/
@@ -374,7 +381,7 @@ int CSkins::GetTeamColor(int UseCustomColors, int PartColor, int Team, int Part)
 	int NewHue;
 	if(Team == TEAM_RED)
 	{
-		if(Part == SKINPART_TATTOO || Part == SKINPART_DECORATION || Part == SKINPART_HANDS)
+		if(Part == SKINPART_MARKING || Part == SKINPART_DECORATION || Part == SKINPART_HANDS)
 			NewHue = (int)(128.0f/pi*asinf(cosf(pi/128.0f*(Hue-105.0f))) + 297.0f) % 256;
 		else
 			NewHue = (int)(64.0f/pi*asinf(cosf(pi/64.0f*(Hue-56.0f))) + 280.0f) % 256;
@@ -386,7 +393,7 @@ int CSkins::GetTeamColor(int UseCustomColors, int PartColor, int Team, int Part)
 	int NewLgt = clamp(Lgt, MinLgt, MaxLgt);
 	int ColorVal = (NewHue<<16) + (NewSat<<8) + NewLgt;
 
-	if(Part == SKINPART_TATTOO)
+	if(Part == SKINPART_MARKING)
 		ColorVal += PartColor&0xff000000;
 
 	return ColorVal;

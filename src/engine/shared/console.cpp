@@ -689,6 +689,21 @@ CConsole::CConsole(int FlagMask)
 	#undef MACRO_CONFIG_STR
 }
 
+CConsole::~CConsole()
+{
+	CCommand *pCommand = m_pFirstCommand;
+	while(pCommand)
+	{
+		CCommand *pNext = pCommand->m_pNext;
+
+		if(pCommand->m_pfnCallback == Con_Chain)
+			mem_free(static_cast<CChain *>(pCommand->m_pUserData));
+		mem_free(pCommand);
+
+		pCommand = pNext;
+	}
+}
+
 void CConsole::ParseArguments(int NumArgs, const char **ppArguments)
 {
 	for(int i = 0; i < NumArgs; i++)
@@ -700,9 +715,10 @@ void CConsole::ParseArguments(int NumArgs, const char **ppArguments)
 				ExecuteFile(ppArguments[i+1]);
 			i++;
 		}
-		else if(!str_comp("-s", ppArguments[i]) || !str_comp("--silent", ppArguments[i]))
+		else if(!str_comp("-s", ppArguments[i]) || !str_comp("--silent", ppArguments[i]) ||
+				!str_comp("-d", ppArguments[i]) || !str_comp("--default", ppArguments[i]))
 		{
-			// skip silent param
+			// skip silent, default param
 			continue;
 		}
 		else

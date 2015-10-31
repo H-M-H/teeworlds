@@ -99,7 +99,7 @@ bool CLocalizationDatabase::Load(const char *pFilename, IStorage *pStorage, ICon
 	return true;
 }
 
-const char *CLocalizationDatabase::FindString(unsigned Hash, unsigned ContextHash)
+const char *CLocalizationDatabase::FindString(unsigned Hash, unsigned ContextHash) const
 {
 	CString String;
 	String.m_Hash = Hash;
@@ -109,7 +109,7 @@ const char *CLocalizationDatabase::FindString(unsigned Hash, unsigned ContextHas
 
 	unsigned DefaultHash = str_quickhash("");
 	unsigned DefaultIndex = 0;
-	for(unsigned i = 0; i < r.size(); ++i)
+	for(unsigned i = 0; i < r.size() && r.index(i).m_Hash == Hash; ++i)
 	{
 		const CString &rStr = r.index(i);
 		if(rStr.m_ContextHash == ContextHash)

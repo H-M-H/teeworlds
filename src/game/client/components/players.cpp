@@ -4,10 +4,9 @@
 #include <engine/engine.h>
 #include <engine/graphics.h>
 #include <engine/shared/config.h>
-#include <game/generated/protocol.h>
-#include <game/generated/client_data.h>
+#include <generated/protocol.h>
+#include <generated/client_data.h>
 
-#include <game/gamecore.h> // get_angle
 #include <game/client/animstate.h>
 #include <game/client/gameclient.h>
 #include <game/client/ui.h>
@@ -30,7 +29,7 @@ void CPlayers::RenderHand(CTeeRenderInfo *pInfo, vec2 CenterPos, vec2 Dir, float
 	//dir = normalize(hook_pos-pos);
 
 	vec2 HandPos = CenterPos + Dir;
-	float Angle = GetAngle(Dir);
+	float Angle = angle(Dir);
 	if (Dir.x < 0)
 		Angle -= AngleOffset;
 	else
@@ -159,7 +158,7 @@ void CPlayers::RenderHook(
 		float d = distance(Pos, HookPos);
 		vec2 Dir = normalize(Pos-HookPos);
 
-		Graphics()->QuadsSetRotation(GetAngle(Dir)+pi);
+		Graphics()->QuadsSetRotation(angle(Dir)+pi);
 
 		// render head
 		RenderTools()->SelectSprite(SPRITE_HOOK_HEAD);
@@ -212,7 +211,7 @@ void CPlayers::RenderPlayer(
 	if(m_pClient->m_LocalClientID == ClientID && Client()->State() != IClient::STATE_DEMOPLAYBACK)
 	{
 		// just use the direct input if it's local player we are rendering
-		Angle = GetAngle(m_pClient->m_pControls->m_MousePos);
+		Angle = angle(m_pClient->m_pControls->m_MousePos);
 	}
 	else
 	{
@@ -253,7 +252,7 @@ void CPlayers::RenderPlayer(
 		}
 	}
 
-	vec2 Direction = GetDirection((int)(Angle*256.0f));
+	vec2 Direction = direction(Angle);
 	vec2 Position = mix(vec2(Prev.m_X, Prev.m_Y), vec2(Player.m_X, Player.m_Y), IntraTick);
 	vec2 Vel = mix(vec2(Prev.m_VelX/256.0f, Prev.m_VelY/256.0f), vec2(Player.m_VelX/256.0f, Player.m_VelY/256.0f), IntraTick);
 
@@ -270,12 +269,20 @@ void CPlayers::RenderPlayer(
 	int player_dir = sign(Vel.x);
 	if(player_dir == 0)
 		player_dir = 1;
-	
-	
+
+
 	// evaluate animation
 	float WalkTime = fmod(absolute(Position.x * (Slope == 0 ? 1.0f : 1.414f)), 100.0f)/100.0f;
-	
-		
+
+// =======
+// 	const float WalkTimeMagic = 100.0f;
+// 	float WalkTime =
+// 		((Position.x >= 0)
+// 			? fmod(Position.x, WalkTimeMagic)
+// 			: WalkTimeMagic - fmod(-Position.x, WalkTimeMagic))
+// 		/ WalkTimeMagic;
+// >>>>>>> master
+
 	CAnimState State;
 	State.Set(&g_pData->m_aAnimations[ANIM_BASE], 0);
 	//TODO: omg, there must be a better way...
@@ -283,9 +290,9 @@ void CPlayers::RenderPlayer(
 		State.Add(&g_pData->m_aAnimations[ANIM_SLIDE_SLOPE_LEFT], 0, 1.0f);
 	else if(Sliding && Slope == 1)
 		State.Add(&g_pData->m_aAnimations[ANIM_SLIDE_SLOPE_RIGHT], 0, 1.0f);
-	else if(Sliding && !InAir && player_dir == -1) 
+	else if(Sliding && !InAir && player_dir == -1)
 		State.Add(&g_pData->m_aAnimations[ANIM_SLIDE_GROUND_LEFT], 0, 1.0f);
-	else if(Sliding && !InAir && player_dir == 1) 
+	else if(Sliding && !InAir && player_dir == 1)
 		State.Add(&g_pData->m_aAnimations[ANIM_SLIDE_GROUND_RIGHT], 0, 1.0f);
 	else if(InAir && Sliding && player_dir == -1 && Vel.y > 0)
 		State.Add(&g_pData->m_aAnimations[ANIM_SLIDE_SLOPE_LEFT], 0, 1.0f);
@@ -309,8 +316,8 @@ void CPlayers::RenderPlayer(
 		State.Add(&g_pData->m_aAnimations[ANIM_WALK_SLOPE_RIGHT], WalkTime, 1.0f);
 	else if(!WantOtherDir)
 		State.Add(&g_pData->m_aAnimations[ANIM_WALK], WalkTime, 1.0f);
-	
-	
+
+
 
 	static float s_LastGameTickTime = Client()->GameTickTime();
 	if(m_pClient->m_Snap.m_pGameData && !(m_pClient->m_Snap.m_pGameData->m_GameStateFlags&GAMESTATEFLAG_PAUSED))
@@ -414,8 +421,8 @@ void CPlayers::RenderPlayer(
 				{
 					vec2 Dir = vec2(pPlayerChar->m_X,pPlayerChar->m_Y) - vec2(pPrevChar->m_X, pPrevChar->m_Y);
 					Dir = normalize(Dir);
-					float HadOkenAngle = GetAngle(Dir);
-					Graphics()->QuadsSetRotation(HadOkenAngle );
+					float HadokenAngle = angle(Dir);
+					Graphics()->QuadsSetRotation(HadokenAngle );
 					//float offsety = -data->weapons[iw].muzzleoffsety;
 					RenderTools()->SelectSprite(g_pData->m_Weapons.m_aId[iw].m_aSpriteMuzzles[IteX], 0);
 					vec2 DirY(-Dir.y,Dir.x);
@@ -573,12 +580,12 @@ void CPlayers::OnRender()
 					{
 						m_aRenderInfo[i].m_aTextures[p] = pNinja->m_apParts[p]->m_ColorTexture;
 						int ColorVal = m_pClient->m_pSkins->GetTeamColor(true, pNinja->m_aPartColors[p], m_pClient->m_aClients[i].m_Team, p);
-						m_aRenderInfo[i].m_aColors[p] = m_pClient->m_pSkins->GetColorV4(ColorVal, p==CSkins::SKINPART_TATTOO);
+						m_aRenderInfo[i].m_aColors[p] = m_pClient->m_pSkins->GetColorV4(ColorVal, p==CSkins::SKINPART_MARKING);
 					}
 					else if(pNinja->m_aUseCustomColors[p])
 					{
 						m_aRenderInfo[i].m_aTextures[p] = pNinja->m_apParts[p]->m_ColorTexture;
-						m_aRenderInfo[i].m_aColors[p] = m_pClient->m_pSkins->GetColorV4(pNinja->m_aPartColors[p], p==CSkins::SKINPART_TATTOO);
+						m_aRenderInfo[i].m_aColors[p] = m_pClient->m_pSkins->GetColorV4(pNinja->m_aPartColors[p], p==CSkins::SKINPART_MARKING);
 					}
 					else
 					{
