@@ -157,7 +157,7 @@ int CInput::Update()
 			{
 				case SDL_TEXTINPUT:
 				{
-					int TextLength = strlen(Event.text.text);
+                                        int TextLength = str_length(Event.text.text);
 					for(int i = 0; i < TextLength; i++)
 						AddEvent(Event.text.text[i], 0, IInput::FLAG_TEXT);
 				}
