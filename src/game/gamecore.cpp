@@ -259,7 +259,7 @@ void CCharacterCore::Tick(bool UseInput)
 				//release_hooked();
 		}
 
-		// don't do this hook rutine when we are hook to a player
+		// don't do this hook routine when we are hook to a player
 		if(m_HookedPlayer == -1 && distance(m_HookPos, m_Pos) > 46.0f)
 		{
 			vec2 HookVel = normalize(m_HookPos-m_Pos)*m_pWorld->m_Tuning.m_HookDragAccel;
@@ -283,7 +283,7 @@ void CCharacterCore::Tick(bool UseInput)
 
 		}
 
-		// release hook (max hook time is 1.25
+		// release hook (max hook time is 1.25)
 		m_HookTick++;
 		if(m_HookedPlayer != -1 && (m_HookTick > SERVER_TICK_SPEED+SERVER_TICK_SPEED/5 || !m_pWorld->m_apCharacters[m_HookedPlayer]))
 		{
@@ -323,17 +323,20 @@ void CCharacterCore::Tick(bool UseInput)
 			}
 
 			// handle hook influence
-			if(m_HookedPlayer == i && m_pWorld->m_Tuning.m_PlayerHooking)
+			if(Distance > PhysSize*1.50f && m_pWorld->m_Tuning.m_PlayerHooking) // TODO: fix tweakable variable
 			{
-				if(Distance > PhysSize*1.50f) // TODO: fix tweakable variable
+				float Accel = m_pWorld->m_Tuning.m_HookDragAccel * (Distance/m_pWorld->m_Tuning.m_HookLength);
+				float DragSpeed = m_pWorld->m_Tuning.m_HookDragSpeed;
+
+				if(pCharCore->m_HookedPlayer != -1 && m_pWorld->m_apCharacters[pCharCore->m_HookedPlayer] == this)
 				{
-					float Accel = m_pWorld->m_Tuning.m_HookDragAccel * (Distance/m_pWorld->m_Tuning.m_HookLength);
-					float DragSpeed = m_pWorld->m_Tuning.m_HookDragSpeed;
-
 					// add force to the hooked player
-					pCharCore->m_Vel.x = SaturatedAdd(-DragSpeed, DragSpeed, pCharCore->m_Vel.x, Accel*Dir.x*1.5f);
-					pCharCore->m_Vel.y = SaturatedAdd(-DragSpeed, DragSpeed, pCharCore->m_Vel.y, Accel*Dir.y*1.5f);
+					m_Vel.x = SaturatedAdd(-DragSpeed, DragSpeed, m_Vel.x, -Accel*Dir.x*1.5f);
+					m_Vel.y = SaturatedAdd(-DragSpeed, DragSpeed, m_Vel.y, -Accel*Dir.y*1.5f);
+				}
 
+				if(m_HookedPlayer == i)
+				{
 					// add a little bit force to the guy who has the grip
 					m_Vel.x = SaturatedAdd(-DragSpeed, DragSpeed, m_Vel.x, -Accel*Dir.x*0.25f);
 					m_Vel.y = SaturatedAdd(-DragSpeed, DragSpeed, m_Vel.y, -Accel*Dir.y*0.25f);
@@ -433,4 +436,3 @@ void CCharacterCore::Quantize()
 	Write(&Core);
 	Read(&Core);
 }
-
