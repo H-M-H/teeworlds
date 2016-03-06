@@ -64,6 +64,7 @@ void CCharacterCore::Init(CWorldCore *pWorld, CCollision *pCollision)
 void CCharacterCore::Reset()
 {
 	m_Pos = vec2(0,0);
+	m_PrevPos = vec2(0,0);
 	m_Vel = vec2(0,0);
 	m_HookPos = vec2(0,0);
 	m_HookDir = vec2(0,0);
@@ -78,6 +79,8 @@ void CCharacterCore::Tick(bool UseInput)
 {
 	float PhysSize = 28.0f;
 	m_TriggeredEvents = 0;
+
+	m_PrevPos = m_Pos;
 
 	// get ground state
 	bool Grounded = false;
@@ -379,12 +382,12 @@ void CCharacterCore::Move()
 				CCharacterCore *pCharCore = m_pWorld->m_apCharacters[p];
 				if(!pCharCore || pCharCore == this)
 					continue;
-				float D = distance(Pos, pCharCore->m_Pos);
+				float D = distance(Pos, pCharCore->m_PrevPos);
 				if(D < 28.0f && D > 0.0f)
 				{
 					if(a > 0.0f)
 						m_Pos = LastPos;
-					else if(distance(NewPos, pCharCore->m_Pos) > D)
+					else if(distance(NewPos, pCharCore->m_PrevPos) > D)
 						m_Pos = NewPos;
 					return;
 				}

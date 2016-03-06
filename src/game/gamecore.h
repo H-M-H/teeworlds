@@ -148,6 +148,7 @@ class CCharacterCore
 	CCollision *m_pCollision;
 public:
 	vec2 m_Pos;
+	vec2 m_PrevPos;
 	vec2 m_Vel;
 
 	vec2 m_HookPos;
