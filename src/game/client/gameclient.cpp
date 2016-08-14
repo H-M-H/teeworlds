@@ -177,6 +177,7 @@ void CGameClient::OnConsoleInit()
 	// add the some console commands
 	Console()->Register("team", "i", CFGFLAG_CLIENT, ConTeam, this, "Switch team");
 	Console()->Register("kill", "", CFGFLAG_CLIENT, ConKill, this, "Kill yourself");
+	Console()->Register("example_command", "i?s", CFGFLAG_CLIENT, ConExample, this, "Description of this command.");
 
 	// register server dummy commands for tab completion
 	Console()->Register("tune", "si", CFGFLAG_SERVER, 0, 0, "Tune variable to value");
@@ -1110,6 +1111,28 @@ void CGameClient::ConTeam(IConsole::IResult *pResult, void *pUserData)
 void CGameClient::ConKill(IConsole::IResult *pResult, void *pUserData)
 {
 	((CGameClient*)pUserData)->SendKill(-1);
+}
+
+void CGameClient::ConExample(IConsole::IResult *pResult, void *pUserData)
+{
+	CGameClient* pData = (CGameClient*)pUserData;
+
+	char aBuf[128];
+
+	if (pResult->NumArguments() == 2)
+	{
+		str_format(aBuf, sizeof(aBuf),
+			   "This is an example command called with the argument: %d and the optional argument: %s",
+			   pResult->GetInteger(0),
+			   pResult->GetString(1)
+			   );
+		pData->m_pChat->Say(0, aBuf);
+	}
+	else
+	{
+		str_format(aBuf, sizeof(aBuf), "This is an example command called with the argument: %d", pResult->GetInteger(0));
+		pData->m_pChat->Say(0, aBuf);
+	}
 }
 
 void CGameClient::ConchainSpecialInfoupdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData)
